@@ -1,0 +1,88 @@
+{{set . "title" "Stream"}}
+
+{{template "header.html" .}}
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      {{template "editor_box.html"}}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <h2 class="page-header">{{.title}}</h2>
+      <section class="comment-list">
+        <!-- Post -->
+        {{range $i, $post := .posts}}
+          {{$person := person $post.PersonID}}
+          {{$profile := $person.Profile}}
+          {{$comments := $post.Comments}}
+        <article class="row">
+          <div class="col-md-2 col-sm-2 hidden-xs">
+            <a href="/profiles/{{$person.Guid}}" target="_self">
+              <figure class="thumbnail">
+                <img class="img-responsive" src="{{$profile.ImageUrl}}" />
+                <figcaption class="text-center">{{$profile.FullName}}</figcaption>
+              </figure>
+            </a>
+          </div>
+          <div class="col-md-10 col-sm-10">
+            <div class="panel panel-default arrow left">
+              <div class="panel-body">
+                <header class="text-left">
+                  <div class="comment-user"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{$profile.DiasporaHandle}}</div>
+                  <time class="comment-date" datetime="{{$post.CreatedAt}}"><span class="glyphicon glyphicon-time" aria-hidden="true"></span> {{$post.CreatedAt}}</time>
+                </header>
+                <div class="comment-post">
+                  <p class="markdown">{{$post.Text}}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+        <!-- Comment -->
+          {{range $i, $comment := $comments}}
+            {{$person := person $comment.PersonID}}
+            {{$profile := $person.Profile}}
+        <article class="row">
+          <div class="col-md-2 col-sm-2 col-md-offset-1 col-sm-offset-0 hidden-xs">
+            <a href="/profiles/{{$person.Guid}}" target="_self">
+              <figure class="thumbnail">
+                <img class="img-responsive" src="{{$profile.ImageUrlMedium}}" />
+                <figcaption class="text-center">{{$profile.FullName}}</figcaption>
+              </figure>
+            </a>
+          </div>
+          <div class="col-md-9 col-sm-9">
+            <div class="panel panel-default arrow left">
+              <div class="panel-body">
+                <header class="text-left">
+                  <div class="comment-user"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{$person.DiasporaHandle}}</div>
+                  <time class="comment-date" datetime="{{$comment.CreatedAt}}"><span class="glyphicon glyphicon-time" aria-hidden="true"></span> {{$comment.CreatedAt}}</time>
+                </header>
+                <div class="comment-post">
+                  <p class="markdown">{{$comment.Text}}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+          {{end}}
+        <article class="row">
+          <div class="col-md-2 col-sm-2 col-md-offset-1 col-sm-offset-0 hidden-xs"></div>
+          <div class="col-md-9 col-sm-9">
+            <div class="panel panel-default left">
+              <div class="panel-body">
+                {{template "editor_comment_box.html" $post}}
+              </div>
+            </div>
+          </div>
+        </article>
+          {{toggleSwapElement}}
+        {{end}}
+      </section>
+    </div>
+  </div>
+</div>
+
+{{template "footer.html" .}}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>{{.title}}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" type="image/png" href="/public/img/favicon.png">
+    <link rel="stylesheet" type="text/css" href="/public/vendor/css/bootstrap-3.3.6.min.css">
+    {{stylesheet_link_tag "main"}}
+    {{stylesheet_link_tag "post_panel"}}
+  </head>
+  <body>
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/">GangGo</a>
+      </div>
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          {{if isLoggedIn .TOKEN}}
+          <li class="active"><a href="/stream">Stream</a></li>
+          {{end}}
+        </ul>
+        <form class="navbar-form navbar-right" method="post" action="/search">
+          <div class="input-group input-group-sm">
+            <input type="text" name="search" class="form-control" placeholder="e.g. lukas@sechat.org">
+            <span class="input-group-addon">
+              <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+            </span>
+            <input type="submit" style="display:none"/>
+          </div>
+        </form>
+        <ul class="nav navbar-nav navbar-right">
+          {{if isLoggedIn .TOKEN}}
+          <li><a href="/users/sign_out" data-method="delete">Logout</a></li>
+          {{else}}
+          <li><a href="/users/sign_up">Register</a></li>
+          {{end}}
+        </ul>
+      </div><!--/.nav-collapse -->
+    </div>
+  </nav>
+
+  <div id="main_stream" class="container">
+    <div class="row">
+      <div class="col-md-4 col-md-offset-4">
+        {{template "flash.html" .}}
+      </div>
+    </div>
+

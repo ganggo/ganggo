@@ -1,0 +1,39 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+module:testrunner
+
+GET     /                                       App.Index
+
+GET     /stream                                 Stream.Index
+POST    /stream                                 Stream.Create
+
+POST    /search                                 Search.Create
+GET     /profiles/:guid                         Profile.Index
+
+# Login
+POST    /users/sign_in                          User.Login
+*       /users/sign_out                         User.Logout
+GET     /users/sign_up                          User.Index
+POST    /users/sign_up                          User.Create
+
+# Federation
+*       /.well-known/host-meta                  Webfinger.HostMeta
+*       /webfinger                              Webfinger.Webfinger
+*       /hcard/users/:guid                      Hcard.User
+*       /receive/public                         Receiver.Public
+*       /receive/users/:guid                    Receiver.Private
+#// NOTE not in the federation gem but it seams
+#// to be required after a new user is discovered
+#// all public posts are fetch from this url
+#r.HandleFunc("/people/{guid}/stream", peopleHandler)
+
+# Ignore favicon requests
+GET     /favicon.ico                            404
+
+# Map static resources from the /app/public folder to the /public path
+GET     /public/*filepath                       Static.Serve("public")
+
+# Catch all
+*       /:controller/:action                    :controller.:action

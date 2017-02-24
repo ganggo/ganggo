@@ -1,0 +1,35 @@
+html {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  font-family: 'Open Sans', sans-serif;
+  background: #333;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #000;
+}
+
+#main_stream {
+  padding-top: 90px;
+}
+
+.main-login{
+  background-color: #fff;
+  -moz-border-radius: 2px;
+  -webkit-border-radius: 2px;
+  border-radius: 2px;
+  -moz-box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+}
+
+.main-center{
+  margin-top: 30px;
+  margin: 0 auto;
+  padding: 40px 40px;
+}

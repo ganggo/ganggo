@@ -1,0 +1,12 @@
+# revel
+test-results/
+tmp/
+routes/
+
+# build
+*.tar.gz
+conf/app.conf
+
+# assets
+node_modules
+public/assets
