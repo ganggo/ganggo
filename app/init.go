@@ -47,12 +47,13 @@ func InitDB() {
   if !found {
     panic("Datbase config missing")
   }
+  dsn, found := revel.Config.String("db.dsn")
+  if !found {
+    panic("Datbase config missing")
+  }
 
   models.DB.Driver = driver
-  models.DB.Url = fmt.Sprintf(
-    "user=%s password=%s host=%s dbname=%s sslmode=disable",
-    user, password, host, database,
-  )
+  models.DB.Url = fmt.Sprintf(dsn, user, password, host, database)
   models.InitDB()
 }
 
