@@ -42,3 +42,43 @@ Revel is able to watch changes and recompile if necessary!
 To recompile your assets in your development environment run
 
     make precompile
+
+### Cross Compile
+
+You can cross compile for multiple systems and architectures.
+Simply run e.g.:
+
+    GOOS=linux GOARCH=amd64 make compile
+
+Supported Systems
+ - android
+ - darwin
+ - dragonfly
+ - freebsd
+ - linux
+ - nacl
+ - netbsd
+ - openbsd
+ - plan9
+ - solaris
+ - windows
+
+Supported Architectures
+ - 386
+ - amd64
+ - amd64p32
+ - arm
+ - arm64
+ - ppc64
+ - ppc64le
+ - mips
+ - mipsle
+ - mips64
+ - mips64le
+ - mips64p32
+ - mips64p32le
+ - ppc
+ - s390
+ - s390x
+ - sparc
+ - sparc64

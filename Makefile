@@ -33,7 +33,7 @@ endif
 
 	# Revel web framework
 	go get github.com/revel/revel
-	go get github.com/revel/cmd/revel
+	go get github.com/ganggo/cmd/revel
 
 	# Document Parser
 	go get github.com/PuerkitoBio/goquery
