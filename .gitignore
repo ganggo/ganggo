@@ -2,6 +2,7 @@
 test-results/
 tmp/
 routes/
+log/
 
 # build
 *.tar.gz

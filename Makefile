@@ -1,3 +1,7 @@
+srcdir := src/github.com/ganggo/ganggo
+
+mode := $(shell echo -n $(MODE) 2> /dev/null)
+
 go := $(shell command -v go 2> /dev/null)
 npm := $(shell command -v npm 2> /dev/null)
 revel := $(shell command -v revel 2> /dev/null)
@@ -16,7 +20,9 @@ e.g. export PATH=$$PATH:$$(pwd)/node_modules/.bin
 
 endef
 
-all: precompile compile
+all: clean precompile compile
+
+release: all package-wrapper
 
 install-deps:
 ifndef go
@@ -47,6 +53,14 @@ endif
 set-env:
 	$(info $(env_info))
 
+clean:
+	rm -r test-results || true ; \
+	rm -r routes || true ; \
+	rm log/* || true ; \
+	rm *.tar.gz || true ; \
+	rm -r tmp || true ; \
+	rm -r node_modules || true ;
+
 precompile:
 ifndef train
 	$(error "train $(train_info)")
@@ -57,4 +71,18 @@ compile:
 ifndef revel
 	$(error "revel $(install_deps_info)")
 endif
-	revel package github.com/ganggo/ganggo
+	revel package github.com/ganggo/ganggo $(mode)
+
+package-wrapper:
+	tarball="ganggo-$$GOOS.$$GOARCH.tar.gz" ; \
+	if [[ "$$GOOS" == "" && "$$GOARCH" == "" ]] ; \
+		then tarball="ganggo.tar.gz" ; \
+	fi ; \
+	mkdir -p tmp ; \
+	tar -x -f $$tarball -C tmp ; \
+	cd tmp ; \
+	cp -v $(srcdir)/conf/app.conf.example $(srcdir)/conf/app.conf ; \
+	ln -s $(srcdir)/conf/app.conf ; \
+	rm -r $(srcdir)/node_modules ; \
+	cd - ; \
+	tar -c -z -C tmp -f $$tarball . ;
