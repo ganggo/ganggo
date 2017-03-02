@@ -83,6 +83,7 @@ package-wrapper:
 	cd tmp ; \
 	cp -v $(srcdir)/conf/app.conf.example $(srcdir)/conf/app.conf ; \
 	ln -s $(srcdir)/conf/app.conf ; \
+	ln -s $(srcdir)/public ; \
 	rm -r $(srcdir)/node_modules ; \
 	cd - ; \
 	tar -c -z -C tmp -f $$tarball . ;
