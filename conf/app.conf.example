@@ -22,7 +22,7 @@ db.password = "password"
 db.host = "localhost"
 db.database = "ganggo"
 # mysql
-#db.dsn = "%s:%s@%s/(%s)?sslmode=disable"
+#db.dsn = "%s:%s@tcp(%s)/%s?sslmode=disable"
 # postgres
 db.dsn = "user=%s password=%s host=%s dbname=%s sslmode=disable"
 
