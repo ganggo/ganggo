@@ -172,7 +172,7 @@ func (d *Dispatcher) Post(post *federation.EntityStatusMessage) {
 
   // save post locally
   var dbPost models.Post
-  err = dbPost.Cast(post)
+  err = dbPost.Cast(post, nil)
   if err != nil {
     revel.ERROR.Println(err)
     return

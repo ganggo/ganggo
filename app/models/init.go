@@ -32,6 +32,7 @@ type Database struct {
 }
 
 const (
+  Reshare = "Reshare"
   StatusMessage = "StatusMessage"
   ShareablePost = "Post"
 )

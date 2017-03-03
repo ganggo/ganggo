@@ -48,7 +48,14 @@ type Post struct {
 
 type Posts []Post
 
-func (p *Post) Cast(entity *federation.EntityStatusMessage) (err error) {
+func (p *Post) Cast(post, reshare *federation.EntityStatusMessage) (err error) {
+  entity := post
+  messageType := StatusMessage
+  if entity == nil {
+    entity = reshare
+    messageType = Reshare
+  }
+
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
     return
@@ -64,7 +71,9 @@ func (p *Post) Cast(entity *federation.EntityStatusMessage) (err error) {
   (*p).PersonID = person.ID
   (*p).Public = entity.Public
   (*p).Guid = entity.Guid
-  (*p).Type = StatusMessage
+  (*p).RootGuid = entity.RootGuid
+  (*p).RootHandle = entity.RootHandle
+  (*p).Type = messageType
   (*p).Text = entity.RawMessage
   (*p).ProviderName = entity.ProviderName
 

@@ -111,7 +111,7 @@ func (r *Receiver) Run() {
         return
       }
     }
-  case r.Entity.Post.StatusMessage != nil:
+  case r.Entity.Post.StatusMessage != nil || r.Entity.Post.Reshare != nil:
     var (
       post models.Post
       user models.Person
@@ -120,7 +120,10 @@ func (r *Receiver) Run() {
 
     revel.TRACE.Println("Found a status_message entity")
 
-    err := post.Cast(r.Entity.Post.StatusMessage)
+    err := post.Cast(
+      r.Entity.Post.StatusMessage,
+      r.Entity.Post.Reshare,
+    )
     if err != nil {
       revel.WARN.Println(err)
       return
@@ -245,9 +248,10 @@ func (r *Receiver) Run() {
     }
   case r.Entity.Post.SignedRetraction != nil:
     revel.TRACE.Println("Found a signed_retraction")
-    retraction := r.Entity.Post.RelayableRetraction
+    retraction := r.Entity.Post.SignedRetraction
 
     switch {
+    // TODO nil pointer on reshare retraction
     case strings.EqualFold("post", retraction.TargetType):
       var post models.Post
       err := db.Where("guid = ?", retraction.TargetGuid).First(&post).Error
