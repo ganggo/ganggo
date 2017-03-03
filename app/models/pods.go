@@ -18,6 +18,7 @@ package models
 //
 
 import (
+  "time"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"
@@ -26,6 +27,9 @@ import (
 )
 
 type Pod struct {
-  gorm.Model
+  ID uint `gorm:"primary_key"`
+  CreatedAt time.Time
+  UpdatedAt time.Time
+
   Host string `json:"host"`
 }

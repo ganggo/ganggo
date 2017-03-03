@@ -29,7 +29,9 @@ import (
 )
 
 type Profile struct {
-  gorm.Model
+  ID uint `gorm:"primary_key"`
+  CreatedAt time.Time
+  UpdatedAt time.Time
 
   DiasporaHandle string
   FirstName string `gorm:"null"`

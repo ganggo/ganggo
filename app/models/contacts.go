@@ -18,13 +18,16 @@ package models
 //
 
 import (
+  "time"
   "github.com/ganggo/ganggo/app/helpers"
   "github.com/ganggo/federation"
   "github.com/jinzhu/gorm"
 )
 
 type Contact struct {
-  gorm.Model
+  ID uint `gorm:"primary_key"`
+  CreatedAt time.Time
+  UpdatedAt time.Time
 
   UserID uint `gorm:"size:4"`
   PersonID uint `gorm:"size:4"`

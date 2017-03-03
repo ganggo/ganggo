@@ -18,6 +18,7 @@ package models
 //
 
 import (
+  "time"
   "github.com/ganggo/federation"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
@@ -27,7 +28,9 @@ import (
 )
 
 type Comment struct {
-  gorm.Model
+  ID uint `gorm:"primary_key"`
+  CreatedAt time.Time
+  UpdatedAt time.Time
 
   Text string
   ShareableID uint `gorm:"size:4"`

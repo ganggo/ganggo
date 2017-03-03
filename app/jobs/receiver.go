@@ -251,7 +251,6 @@ func (r *Receiver) Run() {
     retraction := r.Entity.Post.SignedRetraction
 
     switch {
-    // TODO nil pointer on reshare retraction
     case strings.EqualFold("post", retraction.TargetType):
       var post models.Post
       err := db.Where("guid = ?", retraction.TargetGuid).First(&post).Error

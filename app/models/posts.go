@@ -18,6 +18,7 @@ package models
 //
 
 import (
+  "time"
   "github.com/ganggo/federation"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
@@ -27,7 +28,9 @@ import (
 )
 
 type Post struct {
-  gorm.Model
+  ID uint `gorm:"primary_key"`
+  CreatedAt time.Time
+  UpdatedAt time.Time
 
   PersonID uint `gorm:"size:4"`
   Public bool
