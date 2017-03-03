@@ -17,10 +17,7 @@ package models
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import (
-  "time"
-  "github.com/jinzhu/gorm"
-)
+import "time"
 
 type Person struct {
   ID uint `gorm:"primary_key"`

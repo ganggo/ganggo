@@ -44,7 +44,9 @@ type Comment struct {
 type Comments []Comment
 
 type CommentSignature struct {
-  gorm.Model
+  ID uint `gorm:"primary_key"`
+  CreatedAt time.Time
+  UpdatedAt time.Time
 
   CommentId int `gorm:"primary_key;size:4"`
   AuthorSignature string
