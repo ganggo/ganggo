@@ -26,8 +26,8 @@ import (
 type Contact struct {
   gorm.Model
 
-  UserID uint
-  PersonID uint
+  UserID uint `gorm:"size:4"`
+  PersonID uint `gorm:"size:4"`
   Sharing bool
   Receiving bool
 }

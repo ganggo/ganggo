@@ -32,18 +32,18 @@ type Profile struct {
   gorm.Model
 
   DiasporaHandle string
-  FirstName string `sql:"DEFAULT:NULL"`
-  LastName string `sql:"DEFAULT:NULL"`
+  FirstName string `gorm:"null"`
+  LastName string `gorm:"null"`
   ImageUrl string
   ImageUrlSmall string
   ImageUrlMedium string
-  Birthday time.Time `sql:"DEFAULT:NULL"`
-  Gender string `sql:"DEFAULT:NULL"`
-  Bio string `sql:"DEFAULT:NULL"`
+  Birthday time.Time `gorm:"null"`
+  Gender string `gorm:"null"`
+  Bio string `gorm:"null"`
   Searchable bool
-  PersonID uint
-  Location string `sql:"DEFAULT:NULL"`
-  FullName string
+  PersonID uint `gorm:"size:4"`
+  Location string `gorm:"null"`
+  FullName string `gorm:"size:70"`
   Nsfw bool
 }
 

@@ -29,16 +29,17 @@ import (
 type Post struct {
   gorm.Model
 
-  PersonID uint
+  PersonID uint `gorm:"size:4"`
   Public bool
   Guid string
-  Type string
+  Type string `gorm:"size:40"`
   Text string
   ProviderName string
-  //RootGuid string
-  LikesCount int
-  CommentsCount int
-  ResharesCount int
+  RootGuid string
+  RootHandle string
+  LikesCount int `gorm:"size:4"`
+  CommentsCount int `gorm:"size:4"`
+  ResharesCount int `gorm:"size:4"`
   InteractedAt string
 
   Person Person

@@ -28,8 +28,8 @@ import (
 type Shareable struct {
   gorm.Model
 
-  ShareableID uint
+  ShareableID uint `gorm:"size:4"`
   Hidden bool
-  ShareableType string
-  UserID uint
+  ShareableType string `gorm:"size:60"`
+  UserID uint `gorm:"size:4"`
 }

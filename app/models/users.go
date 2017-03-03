@@ -30,9 +30,9 @@ type User struct {
 
   Username string
   Email string
-  SerializedPrivateKey string
+  SerializedPrivateKey string `gorm:"type:text"`
   EncryptedPassword string
 
-  PersonID uint `gorm:"primary_key"`
+  PersonID uint `gorm:"primary_key;size:4"`
   Person Person
 }

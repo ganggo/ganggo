@@ -29,5 +29,5 @@ type Session struct {
   gorm.Model
 
   Token string
-  UserID uint
+  UserID uint `gorm:"size:4"`
 }

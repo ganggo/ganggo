@@ -26,11 +26,11 @@ type Person struct {
 
   Guid string
   DiasporaHandle string
-  SerializedPublicKey string
-  UserID uint
+  SerializedPublicKey string `gorm:"type:text"`
+  UserID uint `gorm:"size:4"`
   ClosedAccount int
-  FetchStatus int
-  PodID uint
+  FetchStatus int `gorm:"size:4"`
+  PodID uint `gorm:"size:4"`
 
   Profile Profile
   Contacts []Contact

@@ -30,11 +30,11 @@ type Comment struct {
   gorm.Model
 
   Text string
-  ShareableID uint
-  PersonID uint
+  ShareableID uint `gorm:"size:4"`
+  PersonID uint `gorm:"size:4"`
   Guid string
-  LikesCount int
-  ShareableType string
+  LikesCount int `gorm:"size:4"`
+  ShareableType string `gorm:"size:60"`
   Signature CommentSignature
 }
 
@@ -43,10 +43,10 @@ type Comments []Comment
 type CommentSignature struct {
   gorm.Model
 
-  CommentId int `gorm:"primary_key"`
+  CommentId int `gorm:"primary_key;size:4"`
   AuthorSignature string
   // TODO
-  //SignatureOrderId int `gorm:"primary_key"`
+  //SignatureOrderId int `gorm:"primary_key" gorm:"type:int(4)"`
   AdditionalData string
 }
 

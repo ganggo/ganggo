@@ -30,11 +30,11 @@ type Like struct {
   gorm.Model
 
   Positive bool
-  TargetID uint
-  PersonID uint
+  TargetID uint `gorm:"size:4"`
+  PersonID uint `gorm:"size:4"`
   Guid string
   AuthorSignature string
-  TargetType string
+  TargetType string `gorm:"size:60"`
 }
 
 func (l *Like) Cast(entity *federation.EntityLike) (err error) {
