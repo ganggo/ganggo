@@ -62,17 +62,6 @@ func init() {
     }
     return
   }
-  revel.TemplateFuncs["swapElement"] = func() bool {
-    return _arrange
-  }
-  revel.TemplateFuncs["toggleSwapElement"] = func() bool {
-    if _arrange {
-      _arrange = false
-    } else {
-      _arrange = true
-    }
-    return _arrange
-  }
 }
 
 func requiresLogin(c *revel.Controller) revel.Result {
