@@ -1,0 +1,26 @@
+{{$person := person .PersonID}}
+{{$profile := $person.Profile}}
+<article class="row">
+  <div class="col-md-2 col-sm-2 col-md-offset-1 col-sm-offset-0 hidden-xs">
+    <a href="/profiles/{{$person.Guid}}" target="_self">
+      <figure class="thumbnail">
+        <img class="img-responsive" src="{{$profile.ImageUrlMedium}}" />
+        <figcaption class="text-center">{{$profile.FullName}}</figcaption>
+      </figure>
+    </a>
+  </div>
+  <div class="col-md-9 col-sm-9">
+    <div class="panel panel-default arrow left">
+      <div class="panel-body">
+        <header class="text-left">
+          <div class="comment-user"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{$person.DiasporaHandle}}</div>
+          <time class="comment-date" datetime="{{.CreatedAt}}"><span class="glyphicon glyphicon-time" aria-hidden="true"></span> {{.CreatedAt}}</time>
+        </header>
+        <div class="comment-post">
+          <p class="markdown">{{.Text}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</article>
+

@@ -1,0 +1,18 @@
+<article class="row">
+  <div class="col-md-2 col-sm-2 col-md-offset-1 col-sm-offset-0 hidden-xs"></div>
+  <div class="col-md-9 col-sm-9">
+    <div class="panel panel-default left">
+      <div class="panel-body">
+        <form action="/stream" method="post">
+          <div class="form-group">
+            <input type="hidden" name="parent_guid" value="{{.Guid}}"\>
+            <textarea class="form-control" rows="2" name="comment" placeholder="Write a comment.."></textarea>
+            <button class="btn btn-medium btn-block" type="submit">
+              <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span> Post Comment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</article>
