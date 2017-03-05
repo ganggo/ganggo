@@ -4,7 +4,7 @@
   <div class="col-md-2 col-sm-2 col-md-offset-1 col-sm-offset-0 hidden-xs">
     <a href="/profiles/{{$person.Guid}}" target="_self">
       <figure class="thumbnail">
-        <img class="img-responsive" src="{{$profile.ImageUrlMedium}}" />
+        <img class="img-responsive" src="//{{HostFromHandle $person.DiasporaHandle}}{{$profile.ImageUrl}}" />
         <figcaption class="text-center">{{$profile.FullName}}</figcaption>
       </figure>
     </a>
