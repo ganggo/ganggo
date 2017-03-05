@@ -18,15 +18,11 @@ package jobs
 //
 
 import (
-  "time"
-  "encoding/xml"
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
-  "github.com/ganggo/ganggo/app/helpers"
   "github.com/ganggo/federation"
   "bytes"
   "sync"
-  "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"
   _ "github.com/jinzhu/gorm/dialects/mysql"
@@ -54,158 +50,6 @@ func (d *Dispatcher) Run() {
   default:
     revel.ERROR.Println("Unknown entity type in dispatcher!")
   }
-}
-
-func (d *Dispatcher) Comment(comment *federation.EntityComment) {
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-  defer db.Close()
-
-  err = db.First(&(d.User.Person), d.User.PersonID).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  guid, err := helpers.Uuid()
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  (*comment).DiasporaHandle = d.User.Person.DiasporaHandle
-  (*comment).Guid = guid
-
-  authorSig, err := federation.AuthorSignature(
-    comment,
-    (*d).User.SerializedPrivateKey,
-  )
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  // parent author signature
-  var (
-    parentPost models.Post
-    parentUser models.User
-  )
-  db.Where("guid = ?", comment.ParentGuid).First(&parentPost)
-  db.First(&parentPost.Person, parentPost.PersonID)
-  // if user is local generate a signature
-  err = db.First(&parentUser, parentPost.Person.UserID).Error
-  if err == nil {
-    parentAuthorSig, err := federation.AuthorSignature(
-      comment,
-      parentUser.SerializedPrivateKey,
-    )
-    if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-    (*comment).ParentAuthorSignature = parentAuthorSig
-  }
-  (*comment).AuthorSignature = authorSig
-
-  // save post locally
-  var dbComment models.Comment
-  err = dbComment.Cast(comment)
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-  err = db.Create(&dbComment).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  entityXml, err := xml.Marshal(comment)
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  revel.TRACE.Println("entityXml", string(entityXml))
-
-  payload, err := federation.MagicEnvelope(
-    (*d).User.SerializedPrivateKey,
-    []byte((*comment).DiasporaHandle),
-    entityXml,
-  )
-
-  // send it to the network
-  send(payload)
-}
-
-func (d *Dispatcher) Post(post *federation.EntityStatusMessage) {
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-  defer db.Close()
-
-  err = db.First(&d.User.Person, d.User.PersonID).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  // create post
-  guid, err := helpers.Uuid()
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  (*post).DiasporaHandle = (*d).User.Person.DiasporaHandle
-  (*post).Guid = guid
-  // set everything to utc
-  // otherwise signature fails
-  (*post).CreatedAt = time.Now().UTC()
-  (*post).ProviderName = "GangGo"
-  (*post).Public = true
-
-  // save post locally
-  var dbPost models.Post
-  err = dbPost.Cast(post, nil)
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-  err = db.Create(&dbPost).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  // send post to d*
-  entity := federation.Entity{
-    Post: federation.EntityPost{
-      StatusMessage: post,
-    },
-  }
-
-  entityXml, err := xml.Marshal(entity)
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  revel.TRACE.Println("USER", d.User)
-
-  payload, err := federation.MagicEnvelope(
-    (*d).User.SerializedPrivateKey,
-    []byte((*post).DiasporaHandle),
-    entityXml,
-  )
-
-  // send it to the network
-  send(payload)
 }
 
 func send(payload []byte) {
