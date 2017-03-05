@@ -24,7 +24,7 @@
       </div>
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
-          {{if isLoggedIn .TOKEN}}
+          {{if IsLoggedIn .TOKEN}}
           <li class="active"><a href="/stream">Stream</a></li>
           {{end}}
         </ul>
@@ -38,7 +38,7 @@
           </div>
         </form>
         <ul class="nav navbar-nav navbar-right">
-          {{if isLoggedIn .TOKEN}}
+          {{if IsLoggedIn .TOKEN}}
           <li><a href="/users/sign_out" data-method="delete">Logout</a></li>
           {{else}}
           <li><a href="/users/sign_up">Register</a></li>

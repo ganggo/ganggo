@@ -28,15 +28,41 @@ import (
   _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-var _templateFuncs = map[string]interface{}{
-  "isLoggedIn": func(token interface {}) bool {
+var TemplateFuncs = map[string]interface{}{
+  // database types
+  "IsReshare": func(a string) bool {
+    return (a == models.Reshare)
+  },
+  "IsStatusMessage": func(a string) bool {
+    return (a == models.StatusMessage)
+  },
+  "IsShareablePost": func(a string) bool {
+    return (a == models.ShareablePost)
+  },
+  // session helper
+  "IsLoggedIn": func(token interface {}) bool {
     switch token.(type) {
     case string:
       return true
     }
     return false
   },
-  "person": func(id uint) (person models.Person) {
+  "PostByGuid": func(guid string) (post models.Post) {
+    db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+    if err != nil {
+      revel.ERROR.Println(err)
+      return
+    }
+    defer db.Close()
+
+    err = db.Where("guid = ?", guid).First(&post).Error
+    if err != nil {
+      revel.ERROR.Println(err, guid)
+      return
+    }
+    return
+  },
+  "PersonByID": func(id uint) (person models.Person) {
     db, err := gorm.Open(models.DB.Driver, models.DB.Url)
     if err != nil {
       revel.ERROR.Println(err)
@@ -57,6 +83,7 @@ var _templateFuncs = map[string]interface{}{
     }
     return
   },
+  // string parse helper
   "HostFromHandle": func(handle string) (host string) {
     _, host, err := helpers.ParseDiasporaHandle(handle)
     if err != nil {
@@ -65,11 +92,4 @@ var _templateFuncs = map[string]interface{}{
     }
     return
   },
-}
-
-func init() {
-  // append custom template functions to revel
-  for key, val := range _templateFuncs {
-    revel.TemplateFuncs[key] = val
-  }
 }

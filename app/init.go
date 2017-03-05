@@ -20,6 +20,7 @@ package app
 import (
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
+  "github.com/ganggo/ganggo/app/views"
   "github.com/shaoshing/train"
   "strings"
   "fmt"
@@ -93,6 +94,11 @@ func init() {
   train.ConfigureHttpHandler(nil)
   revel.TemplateFuncs["javascript_include_tag"] = train.JavascriptTag
   revel.TemplateFuncs["stylesheet_link_tag"] = train.StylesheetTag
+
+  // append custom template functions to revel
+  for key, val := range views.TemplateFuncs {
+    revel.TemplateFuncs[key] = val
+  }
 }
 
 // TODO turn this into revel.HeaderFilter

@@ -1,4 +1,4 @@
-{{$person := person .PersonID}}
+{{$person := PersonByID .PersonID}}
 {{$profile := $person.Profile}}
 {{$comments := .Comments}}
 
@@ -19,7 +19,11 @@
           <time class="comment-date" datetime="{{.CreatedAt}}"><span class="glyphicon glyphicon-time" aria-hidden="true"></span> {{.CreatedAt}}</time>
         </header>
         <div class="comment-post">
+          {{if IsReshare .Type}}
+            {{template "stream/reshare.html" PostByGuid .RootGuid}}
+          {{else}}
           <p class="markdown">{{.Text}}</p>
+          {{end}}
         </div>
       </div>
     </div>

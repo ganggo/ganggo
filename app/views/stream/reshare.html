@@ -1,0 +1,7 @@
+{{$person := PersonByID .PersonID}}
+{{$profile := $person.Profile}}
+
+<div class="bs-callout bs-callout-info">
+  <h4 id="callout-progress-csp">{{$profile.DiasporaHandle}}</h4>
+  <p class="markdown">{{.Text}}</p>
+</div>
