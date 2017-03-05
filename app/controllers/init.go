@@ -20,7 +20,6 @@ package controllers
 import (
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
-  "github.com/ganggo/ganggo/app/helpers"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"
@@ -28,49 +27,10 @@ import (
   _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-var _arrange bool
-
 func init() {
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &Stream{})
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &Search{})
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &Profile{})
-
-  revel.TemplateFuncs["isLoggedIn"] = func(token interface {}) bool {
-    switch token.(type) {
-    case string:
-      return true
-    }
-    return false
-  }
-  revel.TemplateFuncs["person"] = func(id uint) (person models.Person) {
-    db, err := gorm.Open(models.DB.Driver, models.DB.Url)
-    if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-    defer db.Close()
-
-    err = db.First(&person, id).Error
-    if err != nil {
-      revel.ERROR.Println(err, id)
-      return
-    }
-
-    err = db.Where("person_id = ?", person.ID).First(&person.Profile).Error
-    if err != nil {
-      revel.ERROR.Println(err, person)
-      return
-    }
-    return
-  }
-  revel.TemplateFuncs["HostFromHandle"] = func(handle string) (host string) {
-    _, host, err := helpers.ParseDiasporaHandle(handle)
-    if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-    return
-  }
 }
 
 func requiresLogin(c *revel.Controller) revel.Result {

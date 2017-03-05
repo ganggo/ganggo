@@ -11,3 +11,4 @@ conf/app.conf
 # assets
 node_modules
 public/assets
+.js$:.js
