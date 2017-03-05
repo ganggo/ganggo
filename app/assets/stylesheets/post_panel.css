@@ -73,3 +73,20 @@
 .comment-list .comment-post {
   margin: 35px 15px 15px 35px;
 }
+
+/*Likes and dislikes*/
+.comment-list .comment-footer {
+  padding: 15px 30px 15px 30px;
+}
+.comment-list .comment-footer i.glyphicon {
+  display: inline;
+  font-size: 1.125em;
+  cursor: pointer;
+}
+.comment-list .comment-footer i.glyphicon-thumbs-up {
+  color: #1abc9c;
+}
+.comment-list .comment-footer i.glyphicon-thumbs-down {
+  color: #e74c3c;
+  padding-left: 5px;
+}

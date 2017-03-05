@@ -1,6 +1,8 @@
 {{$person := PersonByID .PersonID}}
 {{$profile := $person.Profile}}
 {{$comments := .Comments}}
+{{$likes := LikesByTargetID .ID}}
+{{$dislikes := DislikesByTargetID .ID}}
 
 <article class="row">
   <div class="col-md-2 col-sm-2 hidden-xs">
@@ -24,6 +26,10 @@
           {{else}}
           <p class="markdown">{{.Text}}</p>
           {{end}}
+        </div>
+        <div class="comment-footer">
+          <i id="like1" class="glyphicon glyphicon-thumbs-up">{{len $likes}}</i>
+          <i id="dislike1" class="glyphicon glyphicon-thumbs-down">{{len $dislikes}}</i>
         </div>
       </div>
     </div>

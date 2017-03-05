@@ -47,6 +47,12 @@ var TemplateFuncs = map[string]interface{}{
     }
     return false
   },
+  "LikesByTargetID": func(id uint) []models.Like {
+    return likes(id, true)
+  },
+  "DislikesByTargetID": func(id uint) []models.Like {
+    return likes(id, false)
+  },
   "PostByGuid": func(guid string) (post models.Post) {
     db, err := gorm.Open(models.DB.Driver, models.DB.Url)
     if err != nil {
@@ -92,4 +98,25 @@ var TemplateFuncs = map[string]interface{}{
     }
     return
   },
+}
+
+func likes(id uint, like bool) (likes []models.Like) {
+  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+  if err != nil {
+    revel.ERROR.Println(err)
+    return
+  }
+  defer db.Close()
+
+  err = db.Where(
+    `target_type = ?
+      and target_id = ?
+      and positive = ?`,
+    models.ShareablePost, id, like,
+  ).Find(&likes).Error
+  if err != nil {
+    revel.ERROR.Println(err)
+    return
+  }
+  return
 }
