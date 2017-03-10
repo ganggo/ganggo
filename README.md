@@ -18,6 +18,15 @@ All this can be installed via:
 
     make install-deps
 
+## Configuration
+
+Before you can start the application server  
+you have to point revel to the right settings.
+
+Copy the example file and adjust the `[ganggo]` section:
+
+    cp conf/app.conf.example conf/app.conf
+
 ## Precompile and Build
 
 Make sure your `node_modules/.bin` is in your `$PATH` variable e.g.:
@@ -36,6 +45,9 @@ you change something you can run it directly via
     revel run gopkg.in/ganggo/ganggo.v0
 
 Revel is able to watch changes and recompile if necessary!
+
+**This does not apply to asset files!**  
+You should re-compile everytime something changes in `app/assets`.
 
 ### Assets
 
