@@ -35,6 +35,7 @@ var (
 
 type Dispatcher struct {
   User models.User
+  ParentUser *models.User
   Message interface{}
 }
 
@@ -47,6 +48,8 @@ func (d *Dispatcher) Run() {
     d.Post(&entity)
   case federation.EntityComment:
     d.Comment(&entity)
+  case federation.EntityLike:
+    d.Like(&entity)
   default:
     revel.ERROR.Println("Unknown entity type in dispatcher!")
   }

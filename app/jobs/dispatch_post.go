@@ -39,12 +39,6 @@ func (d *Dispatcher) Post(post *federation.EntityStatusMessage) {
   }
   defer db.Close()
 
-  err = db.First(&d.User.Person, d.User.PersonID).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
   // create post
   guid, err := helpers.Uuid()
   if err != nil {

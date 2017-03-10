@@ -42,6 +42,20 @@ type Like struct {
 
 type Likes []Like
 
+func (l *Like) Create(entity *federation.EntityLike) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return
+  }
+  defer db.Close()
+
+  err = l.Cast(entity)
+  if err != nil {
+    return
+  }
+  return db.Create(l).Error
+}
+
 func (l *Like) Cast(entity *federation.EntityLike) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {

@@ -36,3 +36,13 @@ type User struct {
   PersonID uint `gorm:"primary_key;size:4"`
   Person Person
 }
+
+func (user *User) FindByID(id uint) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Find(user, id).Error
+}

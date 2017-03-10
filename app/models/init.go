@@ -139,5 +139,6 @@ func GetCurrentUser(token string) (user User, err error) {
     revel.ERROR.Println(err)
     return user, err
   }
+  db.Model(&user).Related(&user.Person)
   return
 }

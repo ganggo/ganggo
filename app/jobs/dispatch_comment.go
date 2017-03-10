@@ -38,12 +38,6 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
   }
   defer db.Close()
 
-  err = db.First(&(d.User.Person), d.User.PersonID).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
   guid, err := helpers.Uuid()
   if err != nil {
     revel.ERROR.Println(err)

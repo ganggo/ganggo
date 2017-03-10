@@ -98,12 +98,20 @@ func (posts *Posts) FindAll(offset int) (err error) {
     ).Order("posts.updated_at desc").Find(posts).Error
 }
 
-func (post *Post) FindByID(id uint) (err error) {
+func (post *Post) FindByID(id uint, withRelations bool) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
     return err
   }
   defer db.Close()
 
-  return db.Find(post, id).Error
+  err = db.Find(post, id).Error
+  if err != nil {
+    return
+  }
+  // add relations only if it is required
+  if withRelations {
+    db.Model(post).Related(&post.Person)
+  }
+  return
 }

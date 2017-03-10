@@ -20,50 +20,29 @@ package jobs
 import (
   "encoding/xml"
   "github.com/revel/revel"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
-  "gopkg.in/ganggo/ganggo.v0/app/helpers"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 func (d *Dispatcher) Like(like *federation.EntityLike) {
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+  authorSig, err := federation.AuthorSignature(like,
+    (*d).User.SerializedPrivateKey)
   if err != nil {
     revel.ERROR.Println(err)
     return
   }
-  defer db.Close()
+  (*like).AuthorSignature = authorSig
 
-  err = db.First(&d.User.Person, d.User.PersonID).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
+  // if parent user is local generate a signature
+  if d.ParentUser != nil {
+    parentAuthorSig, err := federation.AuthorSignature(
+      like, d.ParentUser.SerializedPrivateKey)
+    if err != nil {
+      revel.ERROR.Println(err)
+      return
+    }
+    (*like).ParentAuthorSignature = parentAuthorSig
   }
 
-  // create post
-  guid, err := helpers.Uuid()
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  (*like).Positive = true
-  (*like).Guid = guid
-  (*like).DiasporaHandle = (*d).User.Person.DiasporaHandle
-  (*like).TargetType = models.ShareablePost
-
-  //(*like).ParentGuid =
-  //(*like).AuthorSignature =
-  //(*like).ParentAuthorSignature =
-
-
-  // save post locally
-
-  // send post to d*
   entity := federation.Entity{
     Post: federation.EntityPost{
       Like: like,
@@ -75,8 +54,6 @@ func (d *Dispatcher) Like(like *federation.EntityLike) {
     revel.ERROR.Println(err)
     return
   }
-
-  revel.TRACE.Println("USER", d.User)
 
   payload, err := federation.MagicEnvelope(
     (*d).User.SerializedPrivateKey,
