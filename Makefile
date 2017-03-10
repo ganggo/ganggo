@@ -49,20 +49,13 @@ endif
 	go get golang.org/x/crypto/bcrypt
 
 	# ORM
-	go get \
-		github.com/jinzhu/gorm \
-		github.com/denisenkom/go-mssqldb
+	go get github.com/jinzhu/gorm
 
 	# GangGo
-	go get \
+	go get -u \
+		gopkg.in/ganggo/ganggo.v0
 		gopkg.in/ganggo/federation.v0 \
 		gopkg.in/ganggo/api.v0 || true;
-	# Link to your current working directory
-	# in order to start compiling the project
-	ln -s $(shell pwd) $(GOPATH)/src/gopkg.in/ganggo/ganggo.v0
-
-set-env:
-	$(info $(env_info))
 
 clean:
 	rm -r test-results || true ; \

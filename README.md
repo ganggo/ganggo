@@ -94,3 +94,28 @@ Supported Architectures
  - s390x
  - sparc
  - sparc64
+
+### Contribution
+
+Putting everything together you can build and run your own instance by running:
+
+    mkdir /tmp/go && cd /tmp/go
+    export GOPATH=$(pwd)
+    go get gopkg.me/ganggo/ganggo.v0
+    cd src/gopkg.in/ganggo/ganggo.v0
+    make install-deps
+    cp conf/app.conf.example conf/app.conf
+    
+    # do something with the code
+    # then run compile or revel
+    make compile # will produce a tarball for deployment
+    
+    # or simply run it locally
+    make precompile && \
+      revel run gopkg.in/ganggo/ganggo.v0
+
+If you want to push your changes to the offical ganggo repository:
+
+* fork the project
+* create a new branch with your code changes
+* create a [pull request](/ganggo/ganggo/compare)
