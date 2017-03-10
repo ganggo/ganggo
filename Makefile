@@ -49,7 +49,9 @@ endif
 	go get golang.org/x/crypto/bcrypt
 
 	# ORM
-	go get github.com/jinzhu/gorm
+	go get \
+		github.com/jinzhu/gorm \
+		github.com/denisenkom/go-mssqldb
 
 	# GangGo
 	go get \
