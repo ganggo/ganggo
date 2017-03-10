@@ -118,3 +118,26 @@ func InitDB() {
   db.Model(shareable).AddIndex("shareable_and_hidden_and_user_id", "shareable_id", "shareable_type", "hidden", "user_id")
   db.AutoMigrate(shareable)
 }
+
+func GetCurrentUser(token string) (user User, err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    revel.WARN.Println(err)
+    return user, err
+  }
+  defer db.Close()
+
+  var session Session
+  err = db.Where("token = ?", token).First(&session).Error
+  if err != nil {
+    revel.ERROR.Println(err)
+    return user, err
+  }
+
+  err = db.First(&user, session.UserID).Error
+  if err != nil {
+    revel.ERROR.Println(err)
+    return user, err
+  }
+  return
+}

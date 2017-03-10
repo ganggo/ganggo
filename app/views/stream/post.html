@@ -1,15 +1,9 @@
-{{$person := PersonByID .PersonID}}
-{{$profile := $person.Profile}}
-{{$comments := .Comments}}
-{{$likes := LikesByTargetID .ID}}
-{{$dislikes := DislikesByTargetID .ID}}
-
-<article class="row">
+<article id="post-element" class="row">
   <div class="col-md-2 col-sm-2 hidden-xs">
-    <a href="/profiles/{{$person.Guid}}" target="_self">
+    <a href="/profiles/{[{Person.Guid}]}" target="_self">
       <figure class="thumbnail">
-        <img class="img-responsive" src="//{{HostFromHandle $person.DiasporaHandle}}{{$profile.ImageUrl}}" />
-        <figcaption class="text-center">{{$profile.FullName}}</figcaption>
+        <img class="img-responsive" src="{[{Profile.ImageUrl}]}" />
+        <figcaption class="text-center">{[{Profile.FullName}]}</figcaption>
       </figure>
     </a>
   </div>
@@ -17,27 +11,17 @@
     <div class="panel panel-default arrow left">
       <div class="panel-body">
         <header class="text-left">
-          <div class="comment-user"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{$profile.DiasporaHandle}}</div>
-          <time class="comment-date" datetime="{{.CreatedAt}}"><span class="glyphicon glyphicon-time" aria-hidden="true"></span> {{.CreatedAt}}</time>
+          <div class="comment-user"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {[{Profile.DiasporaHandle}]}</div>
+          <time class="comment-date" datetime="{[{CreatedAt}]}"><span class="glyphicon glyphicon-time" aria-hidden="true"></span> {[{CreatedAt}]}</time>
         </header>
         <div class="comment-post">
-          {{if IsReshare .Type}}
-            {{template "stream/reshare.html" PostByGuid .RootGuid}}
-          {{else}}
-          <p class="markdown">{{.Text}}</p>
-          {{end}}
+          <p class="markdown">{[{Text}]}</p>
         </div>
         <div class="comment-footer">
-          <i id="like1" class="glyphicon glyphicon-thumbs-up">{{len $likes}}</i>
-          <i id="dislike1" class="glyphicon glyphicon-thumbs-down">{{len $dislikes}}</i>
+          <i class="glyphicon glyphicon-thumbs-up like"></i>
+          <i class="glyphicon glyphicon-thumbs-down dislike"></i>
         </div>
       </div>
     </div>
   </div>
 </article>
-
-{{range $i, $comment := $comments}}
-  {{template "stream/comment.html" $comment}}
-{{end}}
-
-{{template "stream/editor_comment_box.html" .}}

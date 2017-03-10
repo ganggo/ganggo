@@ -3,9 +3,8 @@
   <div class="col-md-9 col-sm-9">
     <div class="panel panel-default left">
       <div class="panel-body">
-        <form action="/stream" method="post">
+        <form action="/api/v0/posts/{[{ID}]}/comments" method="post">
           <div class="form-group">
-            <input type="hidden" name="parent_guid" value="{{.Guid}}"\>
             <textarea class="form-control" rows="2" name="comment" placeholder="Write a comment.."></textarea>
             <button class="btn btn-medium btn-block" type="submit">
               <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span> Post Comment

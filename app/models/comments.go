@@ -86,3 +86,13 @@ func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
   }
   return nil
 }
+
+func (c *Comments) FindByPostID(id uint) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("shareable_id = ? and shareable_type = ?", id, ShareablePost).Find(c).Error
+}

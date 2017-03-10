@@ -20,6 +20,7 @@ package jobs
 import (
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
+  "github.com/ganggo/ganggo/app/helpers"
   "github.com/ganggo/federation"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
@@ -96,6 +97,17 @@ func (r *Receiver) Run() {
     if err != nil {
       revel.ERROR.Println(err)
       return
+    }
+
+    if !strings.HasPrefix(profile.ImageUrl, "http") {
+      _, host, err := helpers.ParseDiasporaHandle(profile.DiasporaHandle)
+      if err != nil {
+        revel.ERROR.Println(err)
+        return
+      }
+      profile.ImageUrl = host + profile.ImageUrl
+      profile.ImageUrlMedium = host + profile.ImageUrlMedium
+      profile.ImageUrlSmall = host + profile.ImageUrlSmall
     }
 
     if insert {

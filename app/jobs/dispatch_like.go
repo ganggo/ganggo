@@ -1,4 +1,4 @@
-package controllers
+package jobs
 //
 // GangGo Application Server
 // Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
@@ -18,9 +18,11 @@ package controllers
 //
 
 import (
+  "encoding/xml"
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
-  api "gopkg.in/ganggo/api.v0/app/controllers"
+  "github.com/ganggo/ganggo/app/helpers"
+  "github.com/ganggo/federation"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"
@@ -28,33 +30,60 @@ import (
   _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-func init() {
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &Stream{})
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &Search{})
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &Profile{})
-  // API
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiComment{})
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiLike{})
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiPost{})
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiPeople{})
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiProfile{})
-}
-
-func requiresLogin(c *revel.Controller) revel.Result {
-  var session models.Session
-
+func (d *Dispatcher) Like(like *federation.EntityLike) {
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
-    revel.WARN.Println(err)
-    return c.Render()
+    revel.ERROR.Println(err)
+    return
   }
   defer db.Close()
 
-  err = db.Where("token = ?", c.Session["TOKEN"]).First(&session).Error
+  err = db.First(&d.User.Person, d.User.PersonID).Error
   if err != nil {
-    c.Flash.Error("Please log in first")
-    return c.Redirect(App.Index)
+    revel.ERROR.Println(err)
+    return
   }
-  c.RenderArgs["TOKEN"] = c.Session["TOKEN"]
-  return nil
+
+  // create post
+  guid, err := helpers.Uuid()
+  if err != nil {
+    revel.ERROR.Println(err)
+    return
+  }
+
+  (*like).Positive = true
+  (*like).Guid = guid
+  (*like).DiasporaHandle = (*d).User.Person.DiasporaHandle
+  (*like).TargetType = models.ShareablePost
+
+  //(*like).ParentGuid =
+  //(*like).AuthorSignature =
+  //(*like).ParentAuthorSignature =
+
+
+  // save post locally
+
+  // send post to d*
+  entity := federation.Entity{
+    Post: federation.EntityPost{
+      Like: like,
+    },
+  }
+
+  entityXml, err := xml.Marshal(entity)
+  if err != nil {
+    revel.ERROR.Println(err)
+    return
+  }
+
+  revel.TRACE.Println("USER", d.User)
+
+  payload, err := federation.MagicEnvelope(
+    (*d).User.SerializedPrivateKey,
+    []byte((*like).DiasporaHandle),
+    entityXml,
+  )
+
+  // send it to the network
+  send(payload)
 }

@@ -4,11 +4,12 @@
 
 module:testrunner
 
+# Restful API (see config file)
+module:api
+
 GET     /                                       App.Index
 
 GET     /stream                                 Stream.Index
-POST    /stream                                 Stream.Create
-
 POST    /search                                 Search.Create
 GET     /profiles/:guid                         Profile.Index
 

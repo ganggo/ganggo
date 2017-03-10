@@ -45,8 +45,8 @@ type Post struct {
   ResharesCount int `gorm:"size:4"`
   InteractedAt string
 
-  Person Person
-  Comments []Comment
+  Person Person `gorm:"ForeignKey:PersonID" json:",omitempty"`
+  Comments []Comment `json:",omitempty"`
 }
 
 type Posts []Post
@@ -81,4 +81,29 @@ func (p *Post) Cast(post, reshare *federation.EntityStatusMessage) (err error) {
   (*p).ProviderName = entity.ProviderName
 
   return nil
+}
+
+func (posts *Posts) FindAll(offset int) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Offset(offset).Limit(10).Table("posts").
+    Joins(`left join shareables on shareables.shareable_id = posts.id`).
+    Where("posts.public = true").
+    Or(`posts.ID = shareables.shareable_id and shareables.shareable_type = ?`,
+      ShareablePost,
+    ).Order("posts.updated_at desc").Find(posts).Error
+}
+
+func (post *Post) FindByID(id uint) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Find(post, id).Error
 }

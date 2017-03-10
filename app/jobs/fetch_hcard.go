@@ -18,6 +18,7 @@ package jobs
 //
 
 import (
+  "strings"
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
   "github.com/ganggo/ganggo/app/helpers"
@@ -94,7 +95,11 @@ func (f *FetchHcard) Run() {
     for _, node := range nodes.Nodes {
       for _, attr := range node.Attr {
         if attr.Key == "src" {
-          profile.ImageUrl = attr.Val
+          value := attr.Val
+          if !strings.HasPrefix(value, "http") {
+            value = host + value
+          }
+          profile.ImageUrl = value
         }
       }
     }
@@ -105,7 +110,11 @@ func (f *FetchHcard) Run() {
     for _, node := range nodes.Nodes {
       for _, attr := range node.Attr {
         if attr.Key == "src" {
-          profile.ImageUrlMedium = attr.Val
+          value := attr.Val
+          if !strings.HasPrefix(value, "http") {
+            value = host + value
+          }
+          profile.ImageUrlMedium = value
         }
       }
     }
@@ -116,7 +125,11 @@ func (f *FetchHcard) Run() {
     for _, node := range nodes.Nodes {
       for _, attr := range node.Attr {
         if attr.Key == "src" {
-          profile.ImageUrlSmall = attr.Val
+          value := attr.Val
+          if !strings.HasPrefix(value, "http") {
+            value = host + value
+          }
+          profile.ImageUrlSmall = value
         }
       }
     }

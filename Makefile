@@ -38,8 +38,9 @@ endif
 	go build -o $(GOPATH)/bin/train github.com/shaoshing/train/cmd
 
 	# Revel web framework
-	go get github.com/revel/revel
-	go get github.com/ganggo/cmd/revel
+	go get \
+		github.com/revel/revel \
+		github.com/ganggo/cmd/revel
 
 	# Document Parser
 	go get github.com/PuerkitoBio/goquery
@@ -49,6 +50,12 @@ endif
 
 	# ORM
 	go get github.com/jinzhu/gorm
+
+	# GangGo
+	go get \
+		gopkg.in/ganggo/ganggo.v0 \
+		gopkg.in/ganggo/federation.v0 \
+		gopkg.in/ganggo/api.v0 || true;
 
 set-env:
 	$(info $(env_info))

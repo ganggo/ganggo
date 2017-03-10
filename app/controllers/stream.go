@@ -21,13 +21,6 @@ import (
   "net/http"
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
-  "github.com/ganggo/ganggo/app/jobs"
-  "github.com/ganggo/federation"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 type Stream struct {
@@ -35,101 +28,13 @@ type Stream struct {
 }
 
 func (s Stream) Index() revel.Result {
-  var offset int
-
-  s.Params.Bind(&offset, "offset")
-  posts := s.IndexPosts(offset)
-
-  if offset > 0 {
-    return s.RenderJson(posts)
+  var posts models.Posts
+  err := posts.FindAll(0)
+  if err != nil {
+    s.Response.Status = http.StatusInternalServerError
+    revel.WARN.Println(err)
   }
-
   s.RenderArgs["posts"] = posts
 
   return s.Render()
-}
-
-func (s *Stream) IndexPosts(offset int) (posts []models.Post) {
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
-  if err != nil {
-    (*s).Response.Status = http.StatusInternalServerError
-    revel.WARN.Println(err)
-    return
-  }
-  defer db.Close()
-
-  err = db.Offset(offset).Limit(10).Table("posts").
-    Joins(`left join shareables on shareables.shareable_id = posts.id`).
-    Where("posts.public = true").
-    Or(`posts.ID = shareables.shareable_id and shareables.shareable_type = ?`,
-      models.ShareablePost,
-    ).
-    Order("posts.updated_at desc").
-    Find(&posts).
-    Error
-  if err != nil {
-    (*s).Response.Status = http.StatusInternalServerError
-    revel.WARN.Println(err)
-    return
-  }
-
-  // load comments
-  for i, post := range posts {
-    err = db.Where("shareable_id = ?", post.ID).Find(&(posts[i].Comments)).Error
-    if err != nil {
-      (*s).Response.Status = http.StatusInternalServerError
-      revel.WARN.Println(err)
-      return
-    }
-  }
-  return
-}
-
-func (s Stream) Create() revel.Result {
-  var post, comment, parentGuid string
-  var (
-    user models.User
-    session models.Session
-  )
-
-  s.Params.Bind(&post, "post")
-  s.Params.Bind(&comment, "comment")
-  s.Params.Bind(&parentGuid, "parent_guid")
-
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
-  if err != nil {
-    s.Response.Status = http.StatusInternalServerError
-    revel.WARN.Println(err)
-    return s.Render()
-  }
-  defer db.Close()
-
-  err = db.Where("token = ?", s.Session["TOKEN"]).First(&session).Error
-  if err != nil {
-    s.Response.Status = http.StatusInternalServerError
-    revel.ERROR.Println(err)
-    return s.Render()
-  }
-
-  err = db.First(&user, session.UserID).Error
-  if err != nil {
-    s.Response.Status = http.StatusInternalServerError
-    revel.ERROR.Println(err)
-    return s.Render()
-  }
-
-  dispatcher := jobs.Dispatcher{User: user}
-  if post != "" {
-    dispatcher.Message = federation.EntityStatusMessage{
-      RawMessage: post,
-    }
-  } else if comment != "" {
-    dispatcher.Message = federation.EntityComment{
-      ParentGuid: parentGuid,
-      Text: comment,
-    }
-  }
-  go dispatcher.Run()
-
-  return s.Redirect(Stream.Index)
 }

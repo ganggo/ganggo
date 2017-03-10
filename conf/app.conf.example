@@ -115,6 +115,11 @@ i18n.default_language = en
 #  `Static.ServeModule("modulename","public")`
 module.static=github.com/revel/modules/static
 
+# Module to serve a restful API
+# Adds Routes like this:
+#   /api/v1/...
+module.api=gopkg.in/ganggo/api.v0
+
 ################################################################################
 # Section: dev
 # This section is evaluated when running Revel in dev mode. Like so:

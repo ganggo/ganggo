@@ -11,12 +11,15 @@
   <div class="row">
     <div class="col-md-12">
       <h2 class="page-header">{{.title}}</h2>
-      <section class="comment-list">
-        <!-- Post -->
-        {{range $i, $post := .posts}}
-          {{template "stream/post.html" $post}}
-        {{end}}
+      <script src="/public/vendor/js/rest-client.min.js"></script>
+      <section id="post-list" class="comment-list">
+        <script>
+          var PostTemplate = `{{template "stream/post.html"}}`;
+          var CommentTemplate = `{{template "stream/comment.html"}}`;
+          var EditorCommentTemplate = `{{template "stream/editor_comment_box.html"}}`;
+        </script>
       </section>
+      {{javascript_include_tag "stream"}}
     </div>
   </div>
 </div>

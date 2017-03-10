@@ -88,3 +88,13 @@ func (p Profile) Nickname() (nickname string) {
   nickname, _, _ = helpers.ParseDiasporaHandle(p.DiasporaHandle)
   return
 }
+
+func (profile *Profile) FindByPersonID(id uint) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("person_id = ?", id).First(profile).Error
+}

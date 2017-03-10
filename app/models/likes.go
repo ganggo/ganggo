@@ -40,6 +40,8 @@ type Like struct {
   TargetType string `gorm:"size:60"`
 }
 
+type Likes []Like
+
 func (l *Like) Cast(entity *federation.EntityLike) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
@@ -71,4 +73,14 @@ func (l *Like) Cast(entity *federation.EntityLike) (err error) {
   (*l).TargetType = entity.TargetType
 
   return
+}
+
+func (l *Likes) FindByPostID(id uint) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("target_id = ? and target_type = ?", id, ShareablePost).Find(l).Error
 }
