@@ -26,6 +26,10 @@ you have to point revel to the right settings.
 Copy the example file and adjust the `[ganggo]` section:
 
     cp conf/app.conf.example conf/app.conf
+    
+# Database setup
+
+Please check [the wiki page](https://github.com/ganggo/ganggo/wiki/Database-setup) to setup your database.
 
 ## Precompile and Build
 
