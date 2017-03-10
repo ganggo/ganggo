@@ -19,7 +19,7 @@ package models
 
 import (
   "time"
-  "github.com/ganggo/federation"
+  federation "gopkg.in/ganggo/federation.v0"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"

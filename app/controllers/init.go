@@ -19,7 +19,7 @@ package controllers
 
 import (
   "github.com/revel/revel"
-  "github.com/ganggo/ganggo/app/models"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
   api "gopkg.in/ganggo/api.v0/app/controllers"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"

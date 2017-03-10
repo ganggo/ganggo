@@ -19,8 +19,8 @@ package app
 
 import (
   "github.com/revel/revel"
-  "github.com/ganggo/ganggo/app/models"
-  "github.com/ganggo/ganggo/app/views"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
+  "gopkg.in/ganggo/ganggo.v0/app/views"
   "github.com/shaoshing/train"
   "strings"
   "fmt"

@@ -33,7 +33,7 @@ Then run
 If you don't want to compile the whole application everytime
 you change something you can run it directly via
 
-    revel run github.com/ganggo/ganggo
+    revel run gopkg.in/ganggo/ganggo.v0
 
 Revel is able to watch changes and recompile if necessary!
 

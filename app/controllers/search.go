@@ -19,8 +19,8 @@ package controllers
 
 import (
   "github.com/revel/revel"
-  "github.com/ganggo/ganggo/app/helpers"
-  "github.com/ganggo/ganggo/app/jobs"
+  "gopkg.in/ganggo/ganggo.v0/app/helpers"
+  "gopkg.in/ganggo/ganggo.v0/app/jobs"
 )
 
 type Search struct {

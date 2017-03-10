@@ -20,7 +20,7 @@ package controllers
 import (
   "net/http"
   "github.com/revel/revel"
-  "github.com/ganggo/ganggo/app/models"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
 )
 
 type Stream struct {

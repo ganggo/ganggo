@@ -1,4 +1,4 @@
-srcdir := src/github.com/ganggo/ganggo
+srcdir := src/gopkg.in/ganggo/ganggo.v0
 
 mode := $(shell echo -n $(MODE) 2> /dev/null)
 
@@ -78,7 +78,7 @@ compile:
 ifndef revel
 	$(error "revel $(install_deps_info)")
 endif
-	revel package github.com/ganggo/ganggo $(mode)
+	revel package gopkg.in/ganggo/ganggo.v0 $(mode)
 
 package-wrapper:
 	tarball="ganggo-$$GOOS.$$GOARCH.tar.gz" ; \

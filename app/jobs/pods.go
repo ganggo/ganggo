@@ -19,8 +19,8 @@ package jobs
 
 import (
   "github.com/revel/revel"
-  "github.com/ganggo/ganggo/app/models"
-  "github.com/ganggo/federation"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
+  federation "gopkg.in/ganggo/federation.v0"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"

@@ -27,8 +27,8 @@ import (
   "crypto/x509"
   "encoding/pem"
 
-  "github.com/ganggo/ganggo/app/models"
-  "github.com/ganggo/ganggo/app/helpers"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
+  "gopkg.in/ganggo/ganggo.v0/app/helpers"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"

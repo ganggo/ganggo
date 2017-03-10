@@ -20,14 +20,14 @@ package controllers
 import (
   "net/http"
   "github.com/revel/revel"
-  "github.com/ganggo/federation"
+  federation "gopkg.in/ganggo/federation.v0"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"
   _ "github.com/jinzhu/gorm/dialects/mysql"
   _ "github.com/jinzhu/gorm/dialects/sqlite"
-  "github.com/ganggo/ganggo/app/models"
-  "github.com/ganggo/ganggo/app/jobs"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
+  "gopkg.in/ganggo/ganggo.v0/app/jobs"
 )
 
 type Receiver struct {
