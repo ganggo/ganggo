@@ -53,9 +53,11 @@ endif
 
 	# GangGo
 	go get \
-		gopkg.in/ganggo/ganggo.v0 \
 		gopkg.in/ganggo/federation.v0 \
 		gopkg.in/ganggo/api.v0 || true;
+	# Link to your current working directory
+	# in order to start compiling the project
+	ln -s $(shell pwd) $(GOPATH)/src/gopkg.in/ganggo/ganggo.v0
 
 set-env:
 	$(info $(env_info))
