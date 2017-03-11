@@ -53,7 +53,6 @@ endif
 
 	# GangGo
 	go get -u \
-		gopkg.in/ganggo/ganggo.v0
 		gopkg.in/ganggo/federation.v0 \
 		gopkg.in/ganggo/api.v0 || true;
 

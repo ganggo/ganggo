@@ -105,16 +105,11 @@ Putting everything together you can build and run your own instance by running:
 
     mkdir /tmp/go && cd /tmp/go
     export GOPATH=$(pwd)
-    go get gopkg.me/ganggo/ganggo.v0
+    go get gopkg.in/ganggo/ganggo.v0
     cd src/gopkg.in/ganggo/ganggo.v0
     make install-deps
     cp conf/app.conf.example conf/app.conf
     
-    # do something with the code
-    # then run compile or revel
-    make compile # will produce a tarball for deployment
-    
-    # or simply run it locally
     make precompile && \
       revel run gopkg.in/ganggo/ganggo.v0
 
