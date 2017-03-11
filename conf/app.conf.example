@@ -17,8 +17,8 @@ pods.discovery = "https://the-federation.info/pods.json"
 #  - sqlite
 #
 db.driver = "postgres"
-db.user = "root"
-db.password = "password"
+db.user = "ganggo"
+db.password = "ganggo"
 db.host = "localhost"
 db.database = "ganggo"
 # mysql
