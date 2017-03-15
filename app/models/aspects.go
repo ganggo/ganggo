@@ -26,39 +26,68 @@ import (
   _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-type Person struct {
+type Aspect struct {
   ID uint `gorm:"primary_key"`
   CreatedAt time.Time
   UpdatedAt time.Time
 
-  Guid string
-  DiasporaHandle string
-  SerializedPublicKey string `gorm:"type:text"`
-  UserID uint `gorm:"size:4"`
-  ClosedAccount int
-  FetchStatus int `gorm:"size:4"`
-  PodID uint `gorm:"size:4"`
+  Name string
+  UserID uint
+  Default bool
 
-  Profile Profile `json:",omitempty"`
-  Contacts []Contact `json:",omitempty"`
+  Memberships []AspectMembership `json:",omitempty"`
 }
 
-func (person *Person) FindByID(id uint) (err error) {
+type Aspects []Aspect
+
+type AspectMembership struct {
+  ID uint `gorm:"primary_key"`
+  CreatedAt time.Time
+  UpdatedAt time.Time
+
+  AspectID uint
+  PersonID uint
+}
+
+func (aspect *Aspect) Create() (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
     return err
   }
   defer db.Close()
 
-  return db.Find(person, id).Error
+  return db.Create(aspect).Error
 }
 
-func (person *Person) FindByGuid(guid string) (err error) {
+func (aspects *Aspects) FindByUserPersonID(userID, personID uint) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
     return err
   }
   defer db.Close()
 
-  return db.Where("guid = ?", guid).First(person).Error
+  return db.Table("aspects").
+    Joins("left join aspect_memberships on aspect_memberships.aspect_id = aspects.ID").
+    Where("aspects.user_id = ? and aspect_memberships.person_id = ?", userID, personID).
+    Find(&aspects).Error
+}
+
+func (membership *AspectMembership) Create() (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Create(membership).Error
+}
+
+func (membership *AspectMembership) Delete() (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Delete(membership).Error
 }

@@ -48,10 +48,10 @@ type CommentSignature struct {
   CreatedAt time.Time
   UpdatedAt time.Time
 
-  CommentId int `gorm:"primary_key;size:4"`
+  CommentId int
   AuthorSignature string
   // TODO
-  //SignatureOrderId int `gorm:"primary_key" gorm:"type:int(4)"`
+  //SignatureOrderId int
   AdditionalData string
 }
 

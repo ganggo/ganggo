@@ -18,9 +18,12 @@ package app
 //
 
 import (
+  "io/ioutil"
+  "encoding/json"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/views"
+  "gopkg.in/ganggo/ganggo.v0/app/jobs"
   "github.com/shaoshing/train"
   "strings"
   "fmt"
@@ -66,6 +69,7 @@ func init() {
     revel.RouterFilter,            // Use the routing table to select the right Action
     revel.FilterConfiguringFilter, // A hook for adding or removing per-Action filters.
     revel.ParamsFilter,            // Parse parameters into Controller.Params.
+    JsonParamsFilter,
     revel.SessionFilter,           // Restore and write the session cookie.
     revel.FlashFilter,             // Restore and write the flash cookie.
     revel.ValidationFilter,        // Restore kept validation errors and save new ones from cookie.
@@ -80,9 +84,9 @@ func init() {
   revel.OnAppStart(InitDB)
 
   // upstart jobs
-  //revel.INFO.Println("Starting jobs required for first boot")
-  //pods := jobs.PodsJob{}
-  //go pods.Run()
+  revel.INFO.Println("Starting jobs required for first boot")
+  pods := jobs.PodsJob{}
+  go pods.Run()
 
   train.Config.AssetsPath = "app/assets"
   train.Config.SASS.DebugInfo = false
@@ -120,4 +124,17 @@ var AssetsFilter = func(c *revel.Controller, fc []revel.Filter) {
   } else {
     fc[0](c, fc[1:])
   }
+}
+
+var JsonParamsFilter = func(c *revel.Controller, fc []revel.Filter) {
+  if strings.Contains(c.Request.ContentType, "application/json") {
+    data := map[string]string{}
+    content, _ := ioutil.ReadAll(c.Request.Body)
+    json.Unmarshal(content, &data)
+    for k, v := range data {
+      revel.TRACE.Println("application/json", k, v)
+      c.Params.Values.Set(k, v)
+    }
+  }
+  fc[0](c, fc[1:])
 }

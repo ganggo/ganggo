@@ -117,6 +117,17 @@ func InitDB() {
   db.Model(shareable).AddIndex("index_share_visibilities_on_user_id", "user_id")
   db.Model(shareable).AddIndex("shareable_and_hidden_and_user_id", "shareable_id", "shareable_type", "hidden", "user_id")
   db.AutoMigrate(shareable)
+
+  aspect := &Aspect{}
+  //db.Model(aspect).AddIndex("index_aspects_on_user_id_and_contacts_visible", "user_id", "contacts_visible")
+  db.Model(aspect).AddIndex("index_aspects_on_user_id", "user_id")
+  db.AutoMigrate(aspect)
+
+  aspectMembership := &AspectMembership{}
+  db.Model(aspectMembership).AddUniqueIndex("index_aspect_memberships_on_aspect_id_and_person_id", "aspect_id", "person_id")
+  db.Model(aspectMembership).AddIndex("index_aspect_memberships_on_aspect_id", "aspect_id")
+  db.Model(aspectMembership).AddIndex("index_aspect_memberships_on_contact_id", "person_id")
+  db.AutoMigrate(aspectMembership)
 }
 
 func GetCurrentUser(token string) (user User, err error) {
@@ -140,5 +151,6 @@ func GetCurrentUser(token string) (user User, err error) {
     return user, err
   }
   db.Model(&user).Related(&user.Person)
+  db.Model(&user).Related(&user.Aspects)
   return
 }

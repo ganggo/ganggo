@@ -1,8 +1,17 @@
 <form action="/api/v0/posts" method="post">
   <div class="form-group">
     <textarea class="form-control" rows="5" name="post" placeholder="I like cats !!"></textarea>
+    <div class="dropdown">
+      <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select an Aspect <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" name="aspectID">
+        <li value="0" selected><a class="toggle-create-aspect" href="#">Public</a></li>
+      </ul>
+    </div>
     <button class="btn btn-primary btn-large btn-block" type="submit">
       <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span> Post It
     </button>
   </div>
 </form>
+
+{{javascript_include_tag "aspects_editor_box"}}
