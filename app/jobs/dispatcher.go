@@ -23,10 +23,6 @@ import (
   federation "gopkg.in/ganggo/federation.v0"
   "bytes"
   "sync"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 var (
@@ -58,13 +54,11 @@ func (d *Dispatcher) Run() {
 func send(payload []byte) {
   revel.TRACE.Println("Sending payload", string(payload))
 
-  //pods, err := models.DB.FindPods()
-  //if err != nil {
-  //  revel.ERROR.Println(err)
-  //  return
-  //}
-  pods := []models.Pod{
-    {Host: "192.168.0.173:3000"},
+  var pods models.Pods
+  err := pods.FindAll()
+  if err != nil {
+    revel.ERROR.Println(err)
+    return
   }
 
   var wg sync.WaitGroup
