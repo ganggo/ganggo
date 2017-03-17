@@ -20,7 +20,10 @@ package jobs
 import (
   "encoding/xml"
   "github.com/revel/revel"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
+  "gopkg.in/ganggo/ganggo.v0/app/helpers"
   federation "gopkg.in/ganggo/federation.v0"
+  "sync"
 )
 
 func (d *Dispatcher) Post(post *federation.EntityStatusMessage) {
@@ -36,14 +39,59 @@ func (d *Dispatcher) Post(post *federation.EntityStatusMessage) {
     return
   }
 
-  revel.TRACE.Println("USER", d.User)
+  if d.AspectID > 0 {
+    var aspect models.Aspect
+    err = aspect.FindByID(d.AspectID)
+    if err != nil {
+      revel.ERROR.Println(err)
+      return
+    }
 
-  payload, err := federation.MagicEnvelope(
-    (*d).User.SerializedPrivateKey,
-    []byte((*post).DiasporaHandle),
-    entityXml,
-  )
+    var wg sync.WaitGroup
+    for i, member := range aspect.Memberships {
+      var person models.Person
+      err = person.FindByID(member.PersonID)
+      if err != nil {
+        revel.ERROR.Println(err)
+        continue
+      }
 
-  // send it to the network
-  send(payload)
+      payload, err := federation.EncryptedMagicEnvelope(
+        (*d).User.SerializedPrivateKey,
+        person.SerializedPublicKey,
+        (*post).DiasporaHandle,
+        entityXml,
+      )
+      if err != nil {
+        revel.ERROR.Println(err)
+        continue
+      }
+
+      _, host, err := helpers.ParseDiasporaHandle(person.DiasporaHandle)
+      if err != nil {
+        revel.ERROR.Println(err)
+        continue
+      }
+      revel.TRACE.Println("Private request add", person.Guid, "on", host)
+
+      wg.Add(1)
+      go send(&wg, host, person.Guid, payload)
+      // do a maximum of e.g. 20 jobs async
+      if i >= MAX_ASYNC_JOBS {
+        wg.Wait()
+      }
+    }
+  } else {
+    payload, err := federation.MagicEnvelope(
+      (*d).User.SerializedPrivateKey,
+      (*post).DiasporaHandle,
+      entityXml,
+    )
+    if err != nil {
+      revel.ERROR.Println(err)
+      return
+    }
+
+    sendPublic(payload)
+  }
 }

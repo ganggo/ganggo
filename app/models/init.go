@@ -150,7 +150,7 @@ func GetCurrentUser(token string) (user User, err error) {
     revel.ERROR.Println(err)
     return user, err
   }
-  db.Model(&user).Related(&user.Person)
+  db.Model(&user).Related(&user.Person, "Person")
   db.Model(&user).Related(&user.Aspects)
   return
 }

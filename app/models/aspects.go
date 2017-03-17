@@ -59,6 +59,23 @@ func (aspect *Aspect) Create() (err error) {
   return db.Create(aspect).Error
 }
 
+func (aspect *Aspect) FindByID(id uint) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  err = db.Find(aspect, id).Error
+  if err != nil {
+    return err
+  }
+
+  db.Model(aspect).Related(&aspect.Memberships)
+
+  return
+}
+
 func (aspects *Aspects) FindByUserPersonID(userID, personID uint) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {

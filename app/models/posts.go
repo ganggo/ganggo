@@ -63,11 +63,7 @@ func (p *Post) Create(post, reshare *federation.EntityStatusMessage) (err error)
     return
   }
 
-  entity := post
-  if entity == nil {
-    entity = reshare
-  }
-  return db.Create(entity).Error
+  return db.Create(p).Error
 }
 
 func (p *Post) Cast(post, reshare *federation.EntityStatusMessage) (err error) {
