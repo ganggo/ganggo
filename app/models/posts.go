@@ -51,6 +51,25 @@ type Post struct {
 
 type Posts []Post
 
+func (p *Post) Create(post, reshare *federation.EntityStatusMessage) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return
+  }
+  defer db.Close()
+
+  err = p.Cast(post, reshare)
+  if err != nil {
+    return
+  }
+
+  entity := post
+  if entity == nil {
+    entity = reshare
+  }
+  return db.Create(entity).Error
+}
+
 func (p *Post) Cast(post, reshare *federation.EntityStatusMessage) (err error) {
   entity := post
   messageType := StatusMessage
