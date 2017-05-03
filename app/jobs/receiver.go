@@ -143,8 +143,13 @@ func (r *Receiver) Run() {
 
     err = db.Create(&post).Error
     if err != nil {
-      revel.WARN.Println(err)
-      return
+      revel.TRACE.Println(err)
+      // XXX ignore if it fails cause
+      // if multiple user receive the
+      // same private status message you
+      // need a shareable item for everyone
+      // even if the post already exists
+      //return
     }
 
     err = db.Where("guid = ?", r.Guid).First(&person).Error
