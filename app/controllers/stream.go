@@ -29,7 +29,14 @@ type Stream struct {
 
 func (s Stream) Index() revel.Result {
   var posts models.Posts
-  err := posts.FindAll(0)
+
+  user, err := models.GetCurrentUser(s.Session["TOKEN"])
+  if err != nil {
+    revel.ERROR.Println(err)
+    return s.RenderError(err)
+  }
+
+  err = posts.FindAll(user.ID, 0)
   if err != nil {
     s.Response.Status = http.StatusInternalServerError
     revel.WARN.Println(err)

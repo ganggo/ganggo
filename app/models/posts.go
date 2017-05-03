@@ -98,7 +98,7 @@ func (p *Post) Cast(post, reshare *federation.EntityStatusMessage) (err error) {
   return nil
 }
 
-func (posts *Posts) FindAll(offset int) (err error) {
+func (posts *Posts) FindAll(userID uint, offset int) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
     return err
@@ -107,9 +107,11 @@ func (posts *Posts) FindAll(offset int) (err error) {
 
   return db.Offset(offset).Limit(10).Table("posts").
     Joins(`left join shareables on shareables.shareable_id = posts.id`).
-    Where("posts.public = true").
-    Or(`posts.ID = shareables.shareable_id and shareables.shareable_type = ?`,
-      ShareablePost,
+    Where("posts.public = True").
+    Or(`posts.ID = shareables.shareable_id
+      and shareables.shareable_type = ?
+      and shareables.user_id = ?`,
+        ShareablePost, userID,
     ).Order("posts.updated_at desc").Find(posts).Error
 }
 
