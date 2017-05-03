@@ -52,3 +52,13 @@ func (person *Person) FindByID(id uint) (err error) {
 
   return db.Find(person, id).Error
 }
+
+func (person *Person) FindByGuid(guid string) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("guid = ?", guid).First(person).Error
+}

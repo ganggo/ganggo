@@ -77,9 +77,9 @@ endif
 	revel package gopkg.in/ganggo/ganggo.v0 $(mode)
 
 package-wrapper:
-	tarball="ganggo-$$GOOS.$$GOARCH.tar.gz" ; \
+	tarball="ganggo.v0-$$GOOS.$$GOARCH.tar.gz" ; \
 	if [[ "$$GOOS" == "" && "$$GOARCH" == "" ]] ; \
-		then tarball="ganggo.tar.gz" ; \
+		then tarball="ganggo.v0.tar.gz" ; \
 	fi ; \
 	mkdir -p tmp ; \
 	tar -x -f $$tarball -C tmp ; \

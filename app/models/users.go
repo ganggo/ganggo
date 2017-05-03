@@ -33,8 +33,10 @@ type User struct {
   SerializedPrivateKey string `gorm:"type:text"`
   EncryptedPassword string
 
-  PersonID uint `gorm:"primary_key;size:4"`
+  PersonID uint
   Person Person
+
+  Aspects []Aspect `gorm:"AssociationForeignKey:UserID"`
 }
 
 func (user *User) FindByID(id uint) (err error) {

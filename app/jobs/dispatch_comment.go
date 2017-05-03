@@ -101,10 +101,10 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
 
   payload, err := federation.MagicEnvelope(
     (*d).User.SerializedPrivateKey,
-    []byte((*comment).DiasporaHandle),
+    (*comment).DiasporaHandle,
     entityXml,
   )
 
   // send it to the network
-  send(payload)
+  sendPublic(payload)
 }

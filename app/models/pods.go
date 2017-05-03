@@ -19,6 +19,7 @@ package models
 
 import (
   "time"
+  "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"
   _ "github.com/jinzhu/gorm/dialects/mysql"
@@ -31,4 +32,16 @@ type Pod struct {
   UpdatedAt time.Time
 
   Host string `json:"host"`
+}
+
+type Pods []Pod
+
+func (pods *Pods) FindAll() (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Find(pods).Error
 }

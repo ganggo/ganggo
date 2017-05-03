@@ -19,7 +19,6 @@ package models
 
 import (
   "time"
-  federation "gopkg.in/ganggo/federation.v0"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"
@@ -27,72 +26,85 @@ import (
   _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-type Comment struct {
+type Aspect struct {
   ID uint `gorm:"primary_key"`
   CreatedAt time.Time
   UpdatedAt time.Time
 
-  Text string
-  ShareableID uint `gorm:"size:4"`
-  PersonID uint `gorm:"size:4"`
-  Guid string
-  LikesCount int `gorm:"size:4"`
-  ShareableType string `gorm:"size:60"`
-  Signature CommentSignature
+  Name string
+  UserID uint
+  Default bool
+
+  Memberships []AspectMembership `json:",omitempty"`
 }
 
-type Comments []Comment
+type Aspects []Aspect
 
-type CommentSignature struct {
+type AspectMembership struct {
   ID uint `gorm:"primary_key"`
   CreatedAt time.Time
   UpdatedAt time.Time
 
-  CommentId int
-  AuthorSignature string
-  // TODO
-  //SignatureOrderId int
-  AdditionalData string
+  AspectID uint
+  PersonID uint
 }
 
-type CommentSignatures []CommentSignature
-
-func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
-  if err != nil {
-    return
-  }
-  defer db.Close()
-
-  var post Post
-  err = db.Where("guid = ?", entity.ParentGuid).First(&post).Error
-  if err != nil {
-    return
-  }
-  var person Person
-  err = db.Where("diaspora_handle = ?",
-    entity.DiasporaHandle).First(&person).Error
-  if err != nil {
-    return
-  }
-
-  (*c).Text = entity.Text
-  (*c).ShareableID = post.ID
-  (*c).PersonID = person.ID
-  (*c).Guid = entity.Guid
-  (*c).ShareableType = ShareablePost
-  (*c).Signature = CommentSignature{
-    AuthorSignature: entity.AuthorSignature,
-  }
-  return nil
-}
-
-func (c *Comments) FindByPostID(id uint) (err error) {
+func (aspect *Aspect) Create() (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
     return err
   }
   defer db.Close()
 
-  return db.Where("shareable_id = ? and shareable_type = ?", id, ShareablePost).Find(c).Error
+  return db.Create(aspect).Error
+}
+
+func (aspect *Aspect) FindByID(id uint) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  err = db.Find(aspect, id).Error
+  if err != nil {
+    return err
+  }
+
+  db.Model(aspect).Related(&aspect.Memberships)
+
+  return
+}
+
+func (aspects *Aspects) FindByUserPersonID(userID, personID uint) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Table("aspects").
+    Joins("left join aspect_memberships on aspect_memberships.aspect_id = aspects.ID").
+    Where("aspects.user_id = ? and aspect_memberships.person_id = ?", userID, personID).
+    Find(&aspects).Error
+}
+
+func (membership *AspectMembership) Create() (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Create(membership).Error
+}
+
+func (membership *AspectMembership) Delete() (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Delete(membership).Error
 }

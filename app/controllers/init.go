@@ -29,6 +29,9 @@ import (
 )
 
 func init() {
+  // redirect if logged-in
+  revel.InterceptFunc(redirectIfLoggedIn, revel.BEFORE, &App{})
+  // requires login
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &Stream{})
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &Search{})
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &Profile{})
@@ -38,6 +41,15 @@ func init() {
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiPost{})
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiPeople{})
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiProfile{})
+  revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiAspect{})
+}
+
+func redirectIfLoggedIn(c *revel.Controller) revel.Result {
+  result := requiresLogin(c)
+  if result == nil {
+    return c.Redirect(Stream.Index)
+  }
+  return nil
 }
 
 func requiresLogin(c *revel.Controller) revel.Result {

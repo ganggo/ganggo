@@ -57,10 +57,10 @@ func (d *Dispatcher) Like(like *federation.EntityLike) {
 
   payload, err := federation.MagicEnvelope(
     (*d).User.SerializedPrivateKey,
-    []byte((*like).DiasporaHandle),
+    (*like).DiasporaHandle,
     entityXml,
   )
 
   // send it to the network
-  send(payload)
+  sendPublic(payload)
 }
