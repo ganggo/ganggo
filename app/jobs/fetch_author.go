@@ -50,18 +50,25 @@ func (f *FetchAuthor) Run() {
   }
   defer db.Close()
 
+  _, host, err := helpers.ParseDiasporaHandle((*f).Author)
+  if err != nil {
+    revel.ERROR.Println(err)
+    (*f).Err = err
+    return
+  }
+
+  // add host to pod list
+  pod := models.Pod{Host: host}
+  if err := db.Create(&pod).Error; err != nil {
+    revel.TRACE.Println("Most likely the host already exists:", err)
+  }
+
   err = db.Where("diaspora_handle = ?", (*f).Author).First(&person).Error
   if err != nil {
     revel.TRACE.Println("No author with name", (*f).Author, "known to the db")
 
     // set diaspora handle
     person.DiasporaHandle = (*f).Author
-    _, host, err := helpers.ParseDiasporaHandle((*f).Author)
-    if err != nil {
-      revel.ERROR.Println(err)
-      (*f).Err = err
-      return
-    }
 
     webFinger := federation.WebFinger{
       Host: host,
