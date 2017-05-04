@@ -25,10 +25,10 @@ POST    /users/sign_up                          User.Create
 *       /hcard/users/:guid                      Hcard.User
 *       /receive/public                         Receiver.Public
 *       /receive/users/:guid                    Receiver.Private
-#// NOTE not in the federation gem but it seams
-#// to be required after a new user is discovered
-#// all public posts are fetch from this url
-#r.HandleFunc("/people/{guid}/stream", peopleHandler)
+# XXX not in the federation gem but it seams
+# to be required after a new user is discovered
+# all public posts are fetch from this url
+*       /people/:guid/stream                    People.Index
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
