@@ -23,7 +23,6 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/views"
-  "gopkg.in/ganggo/ganggo.v0/app/jobs"
   "github.com/shaoshing/train"
   "strings"
   "fmt"
@@ -82,11 +81,6 @@ func init() {
 
   // register startup functions with OnAppStart
   revel.OnAppStart(InitDB)
-
-  // upstart jobs
-  revel.INFO.Println("Starting jobs required for first boot")
-  pods := jobs.PodsJob{}
-  go pods.Run()
 
   train.Config.AssetsPath = "app/assets"
   train.Config.SASS.DebugInfo = false

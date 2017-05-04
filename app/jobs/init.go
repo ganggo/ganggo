@@ -19,11 +19,10 @@ package jobs
 
 import (
   "github.com/revel/revel"
-  "github.com/revel/modules/jobs/app/jobs"
 )
 
 func init() {
   revel.OnAppStart(func() {
-    jobs.Schedule("@every 24h", PodsJob{})
+  //  jobs.Schedule("@every 24h", PodsJob{})
   })
 }
