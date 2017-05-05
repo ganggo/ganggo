@@ -122,7 +122,7 @@ func (r Receiver) Private() revel.Result {
     return r.Render()
   }
 
-  // NOTE investigate whether this is a
+  // XXX investigate whether this is a
   // d* problem in production mode as well
   go func() {
     // check if author is already known
@@ -141,6 +141,8 @@ func (r Receiver) Private() revel.Result {
       revel.ERROR.Println(err)
       return
     }
+    // we may need it for relay purposes
+    entity.RequestBody = []byte(xml)
 
     receiverJob := jobs.Receiver{
       Entity: entity,
