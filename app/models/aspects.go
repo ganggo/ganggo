@@ -49,6 +49,18 @@ type AspectMembership struct {
   PersonID uint
 }
 
+type AspectVisibility struct {
+  ID uint `gorm:"primary_key"`
+  CreatedAt time.Time
+  UpdatedAt time.Time
+
+  ShareableID uint
+  AspectID uint
+  ShareableType string
+}
+
+type AspectVisibilities []AspectVisibility
+
 func (aspect *Aspect) Create() (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
@@ -57,6 +69,16 @@ func (aspect *Aspect) Create() (err error) {
   defer db.Close()
 
   return db.Create(aspect).Error
+}
+
+func (visibility *AspectVisibility) Create() (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Create(visibility).Error
 }
 
 func (aspect *Aspect) FindByID(id uint) (err error) {
