@@ -28,6 +28,9 @@ import (
   _ "github.com/jinzhu/gorm/dialects/mysql"
   _ "github.com/jinzhu/gorm/dialects/sqlite"
   "strings"
+  //"net/url"
+  //"fmt"
+  //"encoding/xml"
 )
 
 type Receiver struct {
@@ -178,30 +181,7 @@ func (r *Receiver) Run() {
       return
     }
   case r.Entity.Post.Comment != nil:
-    var comment models.Comment
-
-    revel.TRACE.Println("Found a comment entity")
-
-    fetchAuthor := FetchAuthor{
-      Author: r.Entity.Post.Comment.DiasporaHandle,
-    }
-    fetchAuthor.Run()
-    if fetchAuthor.Err != nil {
-      revel.ERROR.Println(fetchAuthor.Err)
-      return
-    }
-
-    err := comment.Cast(r.Entity.Post.Comment)
-    if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-
-    err = db.Create(&comment).Error
-    if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
+    r.Comment()
   case r.Entity.Post.Like != nil:
     var like models.Like
 

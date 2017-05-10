@@ -99,12 +99,20 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
 
   revel.TRACE.Println("entityXml", string(entityXml))
 
-  payload, err := federation.MagicEnvelope(
-    (*d).User.SerializedPrivateKey,
-    (*comment).DiasporaHandle,
-    entityXml,
-  )
-
-  // send it to the network
-  sendPublic(payload)
+  if helpers.IsLocalHandle(d.ParentPerson.DiasporaHandle) {
+    //sendToAspect(
+    //  d.AspectID, (*d).User.SerializedPrivateKey,
+    //  (*post).DiasporaHandle, entityXml,
+    //)
+  } else {
+    payload, err := federation.MagicEnvelope(
+      (*d).User.SerializedPrivateKey,
+      (*comment).DiasporaHandle,
+      entityXml,
+    ); if err != nil {
+      revel.ERROR.Println(err)
+      return
+    }
+    sendPublic(payload)
+  }
 }

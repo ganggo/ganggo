@@ -20,9 +20,10 @@ package jobs
 import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
+  "gopkg.in/ganggo/ganggo.v0/app/helpers"
   federation "gopkg.in/ganggo/federation.v0"
-  "bytes"
   "sync"
+  "bytes"
 )
 
 var (
@@ -32,6 +33,7 @@ var (
 type Dispatcher struct {
   User models.User
   ParentUser *models.User
+  ParentPerson *models.Person
   Message interface{}
   AspectID uint
 }
@@ -71,6 +73,46 @@ func sendPublic(payload []byte) {
   }
 }
 
+func sendToAspect(aspectID uint, priv, handle string, xml []byte) {
+  var aspect models.Aspect
+  err := aspect.FindByID(aspectID)
+  if err != nil {
+    revel.ERROR.Println(err)
+    return
+  }
+
+  var wg sync.WaitGroup
+  for i, member := range aspect.Memberships {
+    var person models.Person
+    err = person.FindByID(member.PersonID)
+    if err != nil {
+      revel.ERROR.Println(err)
+      continue
+    }
+
+    payload, err := federation.EncryptedMagicEnvelope(
+      priv, person.SerializedPublicKey, handle, xml,
+    ); if err != nil {
+      revel.ERROR.Println(err)
+      continue
+    }
+
+    _, host, err := helpers.ParseDiasporaHandle(person.DiasporaHandle)
+    if err != nil {
+      revel.ERROR.Println(err)
+      continue
+    }
+    revel.TRACE.Println("Private request add", person.Guid, "on", host)
+
+    wg.Add(1)
+    go send(&wg, host, person.Guid, payload)
+    // do a maximum of e.g. 20 jobs async
+    if i >= MAX_ASYNC_JOBS {
+      wg.Wait()
+    }
+  }
+}
+
 func send(wg *sync.WaitGroup, host, guid string, payload []byte) {
   var err error
 
@@ -86,22 +128,23 @@ func send(wg *sync.WaitGroup, host, guid string, payload []byte) {
     return
   }
 
-  revel.TRACE.Println("Sending payload to", guid,
-    host, "with", string(payload))
+  revel.TRACE.Println("Sending payload to", guid, host, "with", string(payload))
 
-  if guid == "" {
-    err = federation.PushXmlToPublic(
-      host, bytes.NewBuffer(payload),
-    )
+  if string(payload[:4]) == "xml=" {
+    err = federation.PushFormToPrivate(host, guid, bytes.NewBuffer(payload))
   } else {
-    err = federation.PushXmlToPrivate(
-      host, guid, bytes.NewBuffer(payload),
-    )
+    if guid == "" {
+      err = federation.PushXmlToPublic(host, bytes.NewBuffer(payload))
+    } else {
+      err = federation.PushJsonToPrivate(host, guid, bytes.NewBuffer(payload))
+    }
   }
 
   if err != nil {
     revel.ERROR.Println(err, host)
   }
 
-  wg.Done()
+  if wg != nil {
+    wg.Done()
+  }
 }

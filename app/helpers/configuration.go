@@ -1,4 +1,4 @@
-package jobs
+package helpers
 //
 // GangGo Application Server
 // Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
@@ -17,39 +17,22 @@ package jobs
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import (
-  "encoding/xml"
-  "github.com/revel/revel"
-  federation "gopkg.in/ganggo/federation.v0"
-)
+import "github.com/revel/revel"
 
-func (d *Dispatcher) Post(post *federation.EntityStatusMessage) {
-  entity := federation.Entity{
-    Post: federation.EntityPost{
-      StatusMessage: post,
-    },
+func IsLocalHandle(handle string) bool {
+  revel.Config.SetSection("ganggo")
+  localhost, found := revel.Config.String("address")
+  if !found {
+    panic("No server address configured")
   }
 
-  entityXml, err := xml.Marshal(entity)
+  _, host, err := ParseDiasporaHandle(handle)
   if err != nil {
-    revel.ERROR.Println(err)
-    return
+    panic("Cannot parse diaspora handle")
   }
 
-  if d.AspectID > 0 {
-    sendToAspect(
-      d.AspectID, (*d).User.SerializedPrivateKey,
-      (*post).DiasporaHandle, entityXml,
-    )
-  } else {
-    payload, err := federation.MagicEnvelope(
-      (*d).User.SerializedPrivateKey,
-      (*post).DiasporaHandle,
-      entityXml,
-    ); if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-    sendPublic(payload)
+  if host == localhost {
+    return true
   }
+  return false
 }

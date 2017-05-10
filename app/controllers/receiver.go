@@ -37,6 +37,8 @@ type Receiver struct {
 func (r Receiver) Public() revel.Result {
   var xml string
 
+  revel.TRACE.Println("REQUEST", r.Request, r.Request.ContentType)
+
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
     revel.WARN.Println(err)
@@ -88,6 +90,8 @@ func (r Receiver) Private() revel.Result {
     person models.Person
     user models.User
   )
+
+  revel.TRACE.Println("REQUEST", r.Request, r.Request.ContentType)
 
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
@@ -141,7 +145,6 @@ func (r Receiver) Private() revel.Result {
       revel.ERROR.Println(err)
       return
     }
-    // we may need it for relay purposes
     entity.RequestBody = []byte(xml)
 
     receiverJob := jobs.Receiver{

@@ -19,6 +19,7 @@ package models
 
 import (
   "time"
+  "github.com/revel/revel"
   federation "gopkg.in/ganggo/federation.v0"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
@@ -38,7 +39,9 @@ type Comment struct {
   Guid string
   LikesCount int `gorm:"size:4"`
   ShareableType string `gorm:"size:60"`
+
   Signature CommentSignature
+  Person Person
 }
 
 type Comments []Comment
@@ -85,6 +88,35 @@ func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
     AuthorSignature: entity.AuthorSignature,
   }
   return nil
+}
+
+func (c *Comment) ParentIsLocal() (user User, found bool) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    revel.WARN.Println(err)
+    return
+  }
+  defer db.Close()
+
+  var post Post
+  // XXX here we assume every comment is related to post
+  // that could be a problem in respect of private messages
+  err = db.First(&post, c.ShareableID).Error
+  if err != nil {
+    return
+  }
+  db.Model(&post).Related(&post.Person, "Person")
+
+  if post.Person.UserID > 0 {
+    err = db.First(&user, post.Person.UserID).Error
+    if err != nil {
+      return
+    }
+    db.Model(&user).Related(&user.Person, "Person")
+    found = true
+    return
+  }
+  return
 }
 
 func (c *Comments) FindByPostID(id uint) (err error) {
