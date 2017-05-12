@@ -26,10 +26,6 @@ import (
   "bytes"
 )
 
-var (
-  MAX_ASYNC_JOBS int
-)
-
 type Dispatcher struct {
   User models.User
   ParentUser *models.User
@@ -39,9 +35,6 @@ type Dispatcher struct {
 }
 
 func (d *Dispatcher) Run() {
-  revel.Config.SetSection("ganggo")
-  MAX_ASYNC_JOBS = revel.Config.IntDefault("max_async_jobs", 20)
-
   switch entity := d.Message.(type) {
   case federation.EntityStatusMessage:
     d.Post(&entity)
