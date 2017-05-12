@@ -19,6 +19,7 @@ package models
 
 import (
   "time"
+  "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"
   _ "github.com/jinzhu/gorm/dialects/mysql"
@@ -34,4 +35,14 @@ type Shareable struct {
   Hidden bool
   ShareableType string `gorm:"size:60"`
   UserID uint `gorm:"size:4"`
+}
+
+func (s *Shareable) Create() error {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Create(s).Error
 }
