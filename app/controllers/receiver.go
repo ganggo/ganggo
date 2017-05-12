@@ -145,7 +145,6 @@ func (r Receiver) Private() revel.Result {
       revel.ERROR.Println(err)
       return
     }
-    entity.RequestBody = []byte(xml)
 
     receiverJob := jobs.Receiver{
       Entity: entity,
