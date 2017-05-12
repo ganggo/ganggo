@@ -23,9 +23,11 @@ import (
   federation "gopkg.in/ganggo/federation.v0"
 )
 
+const LIKE_SIG_ORDER = "positive guid parent_guid target_type diaspora_handle"
+
 func (d *Dispatcher) Like(like *federation.EntityLike) {
-  authorSig, err := federation.AuthorSignature(like,
-    (*d).User.SerializedPrivateKey)
+  authorSig, err := federation.AuthorSignature(
+    *like, LIKE_SIG_ORDER, (*d).User.SerializedPrivateKey)
   if err != nil {
     revel.ERROR.Println(err)
     return
@@ -35,7 +37,7 @@ func (d *Dispatcher) Like(like *federation.EntityLike) {
   // if parent user is local generate a signature
   if d.ParentUser != nil {
     parentAuthorSig, err := federation.AuthorSignature(
-      like, d.ParentUser.SerializedPrivateKey)
+      *like, LIKE_SIG_ORDER, d.ParentUser.SerializedPrivateKey)
     if err != nil {
       revel.ERROR.Println(err)
       return

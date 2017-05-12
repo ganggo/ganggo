@@ -166,7 +166,7 @@ func (r *Receiver) Run() {
 
     err = db.Find(&user, person.UserID).Error
     if err != nil {
-      revel.WARN.Println(err)
+      revel.ERROR.Println(err)
       return
     }
 
@@ -177,7 +177,7 @@ func (r *Receiver) Run() {
     }
     err = db.Create(&shareable).Error
     if err != nil {
-      revel.WARN.Println(err)
+      revel.ERROR.Println(err)
       return
     }
   case r.Entity.Post.Comment != nil:

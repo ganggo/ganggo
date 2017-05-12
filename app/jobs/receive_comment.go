@@ -20,15 +20,11 @@ package jobs
 import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
-  "gopkg.in/ganggo/ganggo.v0/app/helpers"
-  federation "gopkg.in/ganggo/federation.v0"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"
   _ "github.com/jinzhu/gorm/dialects/mysql"
   _ "github.com/jinzhu/gorm/dialects/sqlite"
-  "encoding/xml"
-  "sync"
 )
 
 func (r *Receiver) Comment() {
@@ -58,17 +54,27 @@ func (r *Receiver) Comment() {
     return
   }
 
+  revel.WARN.Println(r.Entity.SignatureOrder)
+
+  sigOrder := models.SignatureOrder{
+    Order: r.Entity.SignatureOrder,
+  }; err = sigOrder.CreateOrFind()
+  if err != nil {
+    revel.ERROR.Println(err)
+    return
+  }
+  comment.Signature.SignatureOrderID = sigOrder.ID
+
   err = db.Create(&comment).Error
   if err != nil {
     revel.ERROR.Println(err)
     return
   }
 
-  // if parent post is local
-  // we have to relay the
-  // comment to all recipients
+  // if parent post is local we have
+  // to relay the comment to all recipients
   if user, found := comment.ParentIsLocal(); found {
-    revel.TRACE.Println("Parent post is local! Let's relay it then..")
+    revel.TRACE.Println("Parent post is local! Relaying it..")
     var visibilities models.AspectVisibilities
     err = db.Where(
       "shareable_id = ? and shareable_type = ?",
@@ -80,75 +86,7 @@ func (r *Receiver) Comment() {
       return
     }
 
-    entityComment := *r.Entity.Post.Comment
-    parentSignature, err := federation.AuthorSignature(
-      &entityComment, user.SerializedPrivateKey,
-    )
-    if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-
-    revel.WARN.Println("entityComment.AuthorSignature", entityComment.AuthorSignature)
-
-    entityComment.ParentAuthorSignature = parentSignature
-
-    entityCommentXml, err := xml.Marshal(&entityComment)
-    if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-
-  for _, visibility := range visibilities {
-    var aspect models.Aspect
-    err := aspect.FindByID(visibility.AspectID)
-    if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-
-    var wg sync.WaitGroup
-    for i, member := range aspect.Memberships {
-      var person models.Person
-      err = person.FindByID(member.PersonID)
-      if err != nil {
-        revel.ERROR.Println(err)
-        continue
-      }
-
-      // XXX still sender is invalid
-
-      revel.TRACE.Println("// XXX still sender is invalid", string(entityCommentXml))
-
-
-    payload, err := federation.EncryptedMagicEnvelope(
-      user.SerializedPrivateKey,
-      person.SerializedPublicKey,
-      user.Person.DiasporaHandle,
-      entityCommentXml,
-    ); if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-
-
-      _, host, err := helpers.ParseDiasporaHandle(person.DiasporaHandle)
-      if err != nil {
-        revel.ERROR.Println(err)
-        continue
-      }
-      revel.TRACE.Println("Private request add", person.Guid, "on", host)
-
-      wg.Add(1)
-      go send(&wg, host, person.Guid, payload)
-      // do a maximum of e.g. 20 jobs async
-      if i >= MAX_ASYNC_JOBS {
-        wg.Wait()
-      }
-    }
-  }
-
-
+    r.RelayComment(user, visibilities)
   } else {
     revel.TRACE.Println("Parent post is not local!")
   }

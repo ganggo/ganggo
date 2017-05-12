@@ -30,6 +30,8 @@ import (
   _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
+const COMMENT_SIG_ORDER = "diaspora_handle guid parent_guid text"
+
 func (d *Dispatcher) Comment(comment *federation.EntityComment) {
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
@@ -48,8 +50,7 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
   (*comment).Guid = guid
 
   authorSig, err := federation.AuthorSignature(
-    comment,
-    (*d).User.SerializedPrivateKey,
+    *comment, COMMENT_SIG_ORDER, d.User.SerializedPrivateKey,
   )
   if err != nil {
     revel.ERROR.Println(err)
@@ -67,8 +68,7 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
   err = db.First(&parentUser, parentPost.Person.UserID).Error
   if err == nil {
     parentAuthorSig, err := federation.AuthorSignature(
-      comment,
-      parentUser.SerializedPrivateKey,
+      *comment, COMMENT_SIG_ORDER, parentUser.SerializedPrivateKey,
     )
     if err != nil {
       revel.ERROR.Println(err)
