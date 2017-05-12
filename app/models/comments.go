@@ -53,9 +53,10 @@ type CommentSignature struct {
 
   CommentId int
   AuthorSignature string
-  // TODO
-  //SignatureOrderId int
+  SignatureOrderID uint
   AdditionalData string
+
+  SignatureOrder SignatureOrder
 }
 
 type CommentSignatures []CommentSignature

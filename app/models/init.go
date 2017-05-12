@@ -134,6 +134,10 @@ func InitDB() {
   db.Model(aspectVisibility).AddIndex("shareable_and_aspect_id", "shareable_id", "shareable_type", "aspect_id")
   db.Model(aspectVisibility).AddIndex("index_aspect_visibilities_on_shareable_id_and_shareable_type", "shareable_id", "shareable_type")
   db.AutoMigrate(aspectVisibility)
+
+  signatureOrder := &SignatureOrder{}
+  db.Model(signatureOrder).AddUniqueIndex("index_signature_orders_on_order", "order")
+  db.AutoMigrate(signatureOrder)
 }
 
 func GetCurrentUser(token string) (user User, err error) {
