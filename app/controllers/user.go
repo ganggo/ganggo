@@ -75,7 +75,7 @@ func (u User) Create() revel.Result {
   }
 
   // generate priv,pub key
-  privKey, err := rsa.GenerateKey(rand.Reader, 1024)
+  privKey, err := rsa.GenerateKey(rand.Reader, 2048)
   if err != nil {
     revel.ERROR.Println(err)
     u.Response.Status = http.StatusInternalServerError
