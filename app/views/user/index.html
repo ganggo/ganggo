@@ -1,4 +1,5 @@
 {{set . "title" "Sign Up"}}
+{{set . "captchaID" CaptchaNew}}
 
 {{template "header.html" .}}
 
@@ -38,6 +39,19 @@
                 <i class="glyphicon glyphicon-asterisk" aria-hidden="true"></i>
               </span>
               <input type="password" class="form-control" name="confirm" id="confirm"  placeholder="Confirm your Password"/>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="captcha" class="cols-sm-2 control-label">Captcha</label>
+          <img src="/captcha/{{.captchaID}}.png" alt="Captcha Image">
+          <input type="hidden" name="captchaID" value="{{.captchaID}}">
+          <div class="cols-sm-10">
+            <div class="input-group">
+              <span class="input-group-addon">
+                <i class="glyphicon glyphicon-question-sign" aria-hidden="true"></i>
+              </span>
+              <input type="text" class="form-control" name="captchaValue" placeholder="Type the numbers you see in the picture"/>
             </div>
           </div>
         </div>

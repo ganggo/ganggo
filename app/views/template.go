@@ -22,6 +22,7 @@ import (
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
   "github.com/jinzhu/gorm"
+  "github.com/dchest/captcha"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"
   _ "github.com/jinzhu/gorm/dialects/mysql"
@@ -98,6 +99,8 @@ var TemplateFuncs = map[string]interface{}{
     }
     return
   },
+  // captcha generator
+  "CaptchaNew": func() string { return captcha.New() },
 }
 
 func likes(id uint, like bool) (likes []models.Like) {

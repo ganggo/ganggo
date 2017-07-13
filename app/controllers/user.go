@@ -21,6 +21,7 @@ import (
   "net/http"
   "golang.org/x/crypto/bcrypt"
   "github.com/revel/revel"
+  "github.com/dchest/captcha"
 
   "crypto/rand"
   "crypto/rsa"
@@ -47,6 +48,7 @@ func (u User) Index() revel.Result {
 func (u User) Create() revel.Result {
   var user models.User
   var username, password, verify string
+  var captchaID, captchaValue string
 
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
@@ -58,6 +60,14 @@ func (u User) Create() revel.Result {
   u.Params.Bind(&username, "username")
   u.Params.Bind(&password, "password")
   u.Params.Bind(&verify, "confirm")
+
+  u.Params.Bind(&captchaID, "captchaID")
+  u.Params.Bind(&captchaValue, "captchaValue")
+
+  if !captcha.VerifyString(captchaID, captchaValue) {
+    u.Flash.Error("Captcha was not correct!")
+    return u.Redirect(User.Index)
+  }
 
   if !db.Where("username = ?", username).First(&user).RecordNotFound() {
     u.Flash.Error("Username already exists!")

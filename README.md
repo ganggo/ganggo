@@ -13,6 +13,7 @@ Following golang dependecnies are required for:
  - parsing documents e.g. hcard `github.com/PuerkitoBio/goquery`
  - using password hashing `golang.org/x/crypto/bcrypt`
  - support multiple databases `github.com/jinzhu/gorm`
+ - captcha's for registrations `github.com/dchest/captcha`
 
 All this can be installed via:
 

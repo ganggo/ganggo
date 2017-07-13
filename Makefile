@@ -45,6 +45,9 @@ endif
 	# Document Parser
 	go get github.com/PuerkitoBio/goquery
 
+	# Captcha generator
+	go get github.com/dchest/captcha
+
 	# Bcrypt password hashing
 	go get golang.org/x/crypto/bcrypt
 
