@@ -65,10 +65,10 @@ func (c Hcard) User() revel.Result {
   proto := revel.Config.StringDefault("proto", "http://")
   address := revel.Config.StringDefault("address", "localhost")
 
-  c.RenderArgs["profile"] = profile
-  c.RenderArgs["person"] = person
-  c.RenderArgs["proto"] = proto
-  c.RenderArgs["address"] = address
+  c.ViewArgs["profile"] = profile
+  c.ViewArgs["person"] = person
+  c.ViewArgs["proto"] = proto
+  c.ViewArgs["address"] = address
 
   return c.Render()
 }

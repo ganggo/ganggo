@@ -56,7 +56,7 @@ func (p Profile) Index() revel.Result {
     return p.Redirect(Stream.Index)
   }
 
-  p.RenderArgs["person"] = person
+  p.ViewArgs["person"] = person
 
   return p.Render()
 }

@@ -41,7 +41,7 @@ func (s Stream) Index() revel.Result {
     s.Response.Status = http.StatusInternalServerError
     revel.WARN.Println(err)
   }
-  s.RenderArgs["posts"] = posts
+  s.ViewArgs["posts"] = posts
 
   return s.Render()
 }

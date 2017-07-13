@@ -67,6 +67,6 @@ func requiresLogin(c *revel.Controller) revel.Result {
     c.Flash.Error("Please log in first")
     return c.Redirect(App.Index)
   }
-  c.RenderArgs["TOKEN"] = c.Session["TOKEN"]
+  c.ViewArgs["TOKEN"] = c.Session["TOKEN"]
   return nil
 }

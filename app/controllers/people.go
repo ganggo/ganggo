@@ -30,5 +30,5 @@ type People struct {
 // all public posts are fetch from this url
 func (p People) Index() revel.Result {
   type ToDo struct {}
-  return p.RenderJson(ToDo{})
+  return p.RenderJSON(ToDo{})
 }

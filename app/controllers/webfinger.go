@@ -45,20 +45,20 @@ func (c Webfinger) Webfinger() revel.Result {
   if !ok {
     c.Response.Status = http.StatusNotFound
     revel.TRACE.Println("no proto config found")
-    return c.RenderXml(m)
+    return c.RenderXML(m)
   }
   address, ok := revel.Config.String("address")
   if !ok {
     c.Response.Status = http.StatusNotFound
     revel.TRACE.Println("no address config found")
-    return c.RenderXml(m)
+    return c.RenderXML(m)
   }
 
   username, err := federation.ParseWebfingerHandle(q)
   if err != nil {
     c.Response.Status = http.StatusNotFound
     revel.TRACE.Println(err)
-    return c.RenderXml(m)
+    return c.RenderXML(m)
   }
 
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
@@ -74,7 +74,7 @@ func (c Webfinger) Webfinger() revel.Result {
   if err != nil {
     c.Response.Status = http.StatusNotFound
     revel.TRACE.Println(err)
-    return c.RenderXml(m)
+    return c.RenderXML(m)
   }
 
   m = federation.WebfingerXml{
@@ -94,7 +94,7 @@ func (c Webfinger) Webfinger() revel.Result {
     },
   }
 
-  return c.RenderXml(m)
+  return c.RenderXML(m)
 }
 
 func (c Webfinger) HostMeta() revel.Result {
@@ -104,13 +104,13 @@ func (c Webfinger) HostMeta() revel.Result {
   if !ok {
     c.Response.Status = http.StatusNotFound
     revel.TRACE.Println("no proto config found")
-    return c.RenderXml(m)
+    return c.RenderXML(m)
   }
   address, ok := revel.Config.String("address")
   if !ok {
     c.Response.Status = http.StatusNotFound
     revel.TRACE.Println("no address config found")
-    return c.RenderXml(m)
+    return c.RenderXML(m)
   }
 
   m = federation.WebfingerXml{
@@ -124,5 +124,5 @@ func (c Webfinger) HostMeta() revel.Result {
     },
   }
 
-  return c.RenderXml(m)
+  return c.RenderXML(m)
 }
