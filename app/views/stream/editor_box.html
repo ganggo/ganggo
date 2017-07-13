@@ -1,17 +1,27 @@
 <form action="/api/v0/posts" method="post">
   <div class="form-group">
-    <input id="aspectID" name="aspectID" type="hidden" value="0">
-    <textarea class="form-control" rows="5" name="post" placeholder="I like cats !!"></textarea>
-    <div class="dropdown">
-      <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select an Aspect <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu">
-        <li><a class="toggle-create-aspect" href="#">Public</a></li>
-      </ul>
+    <div class="row">
+      <div class="col-md-12">
+        <input id="aspectID" name="aspectID" type="hidden" value="0">
+        <textarea class="form-control" rows="5" name="post" placeholder="I like cats !!"></textarea>
+      </div>
     </div>
-    <button class="btn btn-primary btn-large btn-block" type="submit">
-      <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span> Post It
-    </button>
+    <div class="row">
+      <div class="col-md-10">
+        <button class="btn btn-primary btn-large btn-block" type="submit">
+          <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span> Post It
+        </button>
+      </div>
+      <div class="col-md-2">
+        <div class="dropdown">
+          <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select an Aspect <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="toggle-create-aspect" href="#">Public</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
 </form>
 
