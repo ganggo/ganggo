@@ -70,7 +70,7 @@ func sendToAspect(aspectID uint, priv, handle string, xml []byte) {
   var aspect models.Aspect
   err := aspect.FindByID(aspectID)
   if err != nil {
-    revel.ERROR.Println(err)
+    revel.ERROR.Println("aspectID", aspectID, err)
     return
   }
 

@@ -132,3 +132,19 @@ func (post *Post) FindByID(id uint, withRelations bool) (err error) {
   }
   return
 }
+
+func (post *Post) FindByParentGuid(guid string) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  err = db.Where("guid = ?", guid).Find(post).Error
+  if err != nil {
+    return
+  }
+  // XXX need relations !?
+  //db.Model(post).Related(&post.Person)
+  return
+}

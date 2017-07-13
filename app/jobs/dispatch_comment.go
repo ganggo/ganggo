@@ -100,10 +100,13 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
   revel.TRACE.Println("entityXml", string(entityXml))
 
   if helpers.IsLocalHandle(d.ParentPerson.DiasporaHandle) {
-    //sendToAspect(
-    //  d.AspectID, (*d).User.SerializedPrivateKey,
-    //  (*post).DiasporaHandle, entityXml,
-    //)
+    var visibility models.AspectVisibility
+    err = visibility.FindByParentGuid(comment.ParentGuid)
+    if err != nil {
+      revel.ERROR.Println(err)
+      return
+    }
+    sendToAspect(visibility.AspectID, d.User.SerializedPrivateKey, comment.DiasporaHandle, entityXml)
   } else {
     payload, err := federation.MagicEnvelope(
       (*d).User.SerializedPrivateKey,

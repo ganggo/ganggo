@@ -81,6 +81,22 @@ func (visibility *AspectVisibility) Create() (err error) {
   return db.Create(visibility).Error
 }
 
+func (visibility *AspectVisibility) FindByParentGuid(guid string) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  var post Post
+  err = post.FindByParentGuid(guid)
+  if err != nil {
+    return err
+  }
+
+  return db.Where("shareable_id = ? and shareable_type = ?", post.ID, ShareablePost).Find(visibility).Error
+}
+
 func (aspect *Aspect) FindByID(id uint) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
