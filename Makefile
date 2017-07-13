@@ -40,6 +40,7 @@ endif
 	# Revel web framework
 	go get \
 		github.com/revel/revel \
+		github.com/revel/cmd/revel \
 		github.com/ganggo/cmd/revel
 
 	# Document Parser
