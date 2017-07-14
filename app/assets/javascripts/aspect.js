@@ -1,7 +1,7 @@
 //= require javascripts/api
 
 (function() {
-  var personId = $("#personID").val();
+  var personId = $("#personId").val();
   API.people(personId).aspects.get().then(function(personInAspects) {
     API.aspects.get().then(function(aspects) {
       $.each(aspects, function(i, aspect) {
@@ -45,7 +45,7 @@
   $("#create-aspect").submit(function() {
     API.aspects.post({
       name: $("#aspectName").val(),
-      personId: $("#personID").val()
+      personId: $("#personId").val()
     }).then(function() {
       window.location.reload();
     });

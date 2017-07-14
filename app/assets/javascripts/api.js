@@ -1,4 +1,7 @@
-var API = new RestClient("/api/v0");
+var API = new RestClient("/api/v0", {
+  contentType: 'application/x-www-form-urlencoded'}
+);
+
 API.res({
   posts: [
     'comments',
