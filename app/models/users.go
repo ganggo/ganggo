@@ -48,3 +48,14 @@ func (user *User) FindByID(id uint) (err error) {
 
   return db.Find(user, id).Error
 }
+
+func (user *User) Count() (count int, err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return -1, err
+  }
+  defer db.Close()
+
+  db.Table("users").Count(&count)
+  return
+}

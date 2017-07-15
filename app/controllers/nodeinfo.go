@@ -19,6 +19,7 @@ package controllers
 
 import (
   "github.com/revel/revel"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
 )
 
 type NodeInfo struct {
@@ -120,6 +121,16 @@ func generateSchema(version string) SchemaJson {
     protocols = []string{"diaspora"}
   }
 
+  // XXX implement login timestamp for monthly statistics
+  var (
+    user models.User
+    comment models.Comment
+    post models.Post
+  )
+  userCnt, _ := user.Count()
+  commentCnt, _ := comment.Count()
+  postCnt, _ := post.Count()
+
   return SchemaJson{
     Version: version,
     Software: SchemaSoftwareJson{
@@ -134,12 +145,12 @@ func generateSchema(version string) SchemaJson {
     OpenRegistrations: true,
     Usage: SchemaUsageJson{
       Users: SchemaUsersJson{
-        Total: 0,
-        ActiveHalfyear: 0,
-        ActiveMonth: 0,
+        Total: userCnt,
+        ActiveHalfyear: userCnt,
+        ActiveMonth: userCnt,
       },
-      LocalPosts: 0,
-      LocalComments: 0,
+      LocalPosts: postCnt,
+      LocalComments: commentCnt,
     },
     MetaData: SchemaMetaDataJson{
       NodeName: appName,

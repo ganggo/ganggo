@@ -51,6 +51,17 @@ type Post struct {
 
 type Posts []Post
 
+func (p *Post) Count() (count int, err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return -1, err
+  }
+  defer db.Close()
+
+  db.Table("posts").Count(&count)
+  return
+}
+
 func (p *Post) Create(post, reshare *federation.EntityStatusMessage) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
