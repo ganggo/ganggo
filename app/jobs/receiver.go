@@ -108,9 +108,10 @@ func (r *Receiver) Run() {
         revel.ERROR.Println(err)
         return
       }
-      profile.ImageUrl = host + profile.ImageUrl
-      profile.ImageUrlMedium = host + profile.ImageUrlMedium
-      profile.ImageUrlSmall = host + profile.ImageUrlSmall
+      url := "http://" + host
+      profile.ImageUrl = url + profile.ImageUrl
+      profile.ImageUrlMedium = url + profile.ImageUrlMedium
+      profile.ImageUrlSmall = url + profile.ImageUrlSmall
     }
 
     if insert {
