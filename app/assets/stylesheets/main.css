@@ -19,6 +19,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 #main_stream {
+  width: 65%;
   padding-top: 90px;
 }
 
