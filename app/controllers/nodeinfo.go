@@ -38,12 +38,13 @@ type SchemaJson struct {
   Version string `json:"version"`
   Software SchemaSoftwareJson `json:"software"`
   Protocols interface{} `json:"protocols"`
-  Services SchemaServiceJson `json:"services"`
+  Services SchemaInOutJson `json:"services"`
+  OpenRegistrations bool `json:"openRegistrations"`
   Usage SchemaUsageJson `json:"usage"`
   MetaData SchemaMetaDataJson `json:"metadata"`
 }
 
-type SchemaProtocolsOne struct {
+type SchemaInOutJson struct {
   Inbound []string `json:"inbound"`
   Outbound []string `json:"outbound"`
 }
@@ -51,12 +52,6 @@ type SchemaProtocolsOne struct {
 type SchemaSoftwareJson struct {
   Name string `json:"name"`
   Version string `json:"version"`
-}
-
-type SchemaServiceJson struct {
-  Inbound []string `json:"inbound"`
-  Outbound []string `json:"outbound"`
-  OpenRegistrations bool `json:"openRegistrations"`
 }
 
 type SchemaUsageJson struct {
@@ -104,11 +99,8 @@ func (n NodeInfo) Index() revel.Result {
 
 func generateSchema(version string) SchemaJson {
   var protocols interface{}
-  var softwareName string = "ganggo"
-  var softwareVersion string = "6.6.6"
-
   revel.Config.SetSection("DEFAULT")
-  name, found := revel.Config.String("app.name")
+  appName, found := revel.Config.String("app.name")
   if !found {
     revel.ERROR.Println("app.name configuration value not found!")
     return SchemaJson{}
@@ -120,27 +112,26 @@ func generateSchema(version string) SchemaJson {
   }
 
   if version == "1.0" {
-    softwareName = "diaspora"
-    protocols = SchemaProtocolsOne{
+    protocols = SchemaInOutJson{
+      Inbound: []string{},
       Outbound: []string{"diaspora"},
     }
   } else if version == "2.0" {
-    softwareVersion = appVersion
     protocols = []string{"diaspora"}
   }
 
   return SchemaJson{
     Version: version,
     Software: SchemaSoftwareJson{
-      Name: softwareName,
-      Version: softwareVersion,
+      Name: "ganggo",
+      Version: appVersion,
     },
     Protocols: protocols,
-    Services: SchemaServiceJson{
+    Services: SchemaInOutJson{
       Inbound: []string{},
       Outbound: []string{},
-      OpenRegistrations: true,
     },
+    OpenRegistrations: true,
     Usage: SchemaUsageJson{
       Users: SchemaUsersJson{
         Total: 0,
@@ -151,7 +142,7 @@ func generateSchema(version string) SchemaJson {
       LocalComments: 0,
     },
     MetaData: SchemaMetaDataJson{
-      NodeName: name,
+      NodeName: appName,
       XmppChat: false,
       AdminAccount: "hq",
     },
