@@ -35,46 +35,46 @@ type IndexLinkJson struct {
 }
 
 type SchemaJson struct {
-  Version string
-  Software SchemaSoftwareJson
-  Protocols interface{}
-  Services SchemaServiceJson
-  Usage SchemaUsageJson
-  MetaData SchemaMetaDataJson
+  Version string `json:"version"`
+  Software SchemaSoftwareJson `json:"software"`
+  Protocols interface{} `json:"protocols"`
+  Services SchemaServiceJson `json:"services"`
+  Usage SchemaUsageJson `json:"usage"`
+  MetaData SchemaMetaDataJson `json:"metadata"`
 }
 
 type SchemaProtocolsOne struct {
-  Inbound []string
-  Outbound []string
+  Inbound []string `json:"inbound"`
+  Outbound []string `json:"outbound"`
 }
 
 type SchemaSoftwareJson struct {
-  Name string
-  Version string
+  Name string `json:"name"`
+  Version string `json:"version"`
 }
 
 type SchemaServiceJson struct {
-  Inbound []string
-  Outbound []string
-  OpenRegistrations bool
+  Inbound []string `json:"inbound"`
+  Outbound []string `json:"outbound"`
+  OpenRegistrations bool `json:"openRegistrations"`
 }
 
 type SchemaUsageJson struct {
-  Users SchemaUsersJson
-  LocalPosts int
-  LocalComments int
+  Users SchemaUsersJson `json:"users"`
+  LocalPosts int `json:"localPosts"`
+  LocalComments int `json:"localComments"`
 }
 
 type SchemaUsersJson struct {
-  Total int
-  ActiveHalfyear int
-  ActiveMonth int
+  Total int `json:"total"`
+  ActiveHalfyear int `json:"activeHalfyear"`
+  ActiveMonth int `json:"activeMonth"`
 }
 
 type SchemaMetaDataJson struct {
-  NodeName string
-  XmppChat bool
-  AdminAccount string
+  NodeName string `json:"nodeName"`
+  XmppChat bool `json:"xmppChat"`
+  AdminAccount string `json:"adminAccount"`
 }
 
 func (n NodeInfo) Index() revel.Result {
