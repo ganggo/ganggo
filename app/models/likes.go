@@ -36,7 +36,7 @@ type Like struct {
   TargetID uint `gorm:"size:4"`
   PersonID uint `gorm:"size:4"`
   Guid string
-  AuthorSignature string
+  AuthorSignature string `gorm:"type:text"`
   TargetType string `gorm:"size:60"`
 }
 

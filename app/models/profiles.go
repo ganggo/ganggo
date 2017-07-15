@@ -41,7 +41,7 @@ type Profile struct {
   ImageUrlMedium string
   Birthday time.Time `gorm:"null"`
   Gender string `gorm:"null"`
-  Bio string `gorm:"null"`
+  Bio string `gorm:"type:text;null"`
   Searchable bool
   PersonID uint `gorm:"size:4"`
   Location string `gorm:"null"`

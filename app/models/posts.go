@@ -36,7 +36,7 @@ type Post struct {
   Public bool
   Guid string
   Type string `gorm:"size:40"`
-  Text string
+  Text string `gorm:"type:text"`
   ProviderName string
   RootGuid string
   RootHandle string

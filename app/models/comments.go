@@ -33,7 +33,7 @@ type Comment struct {
   CreatedAt time.Time
   UpdatedAt time.Time
 
-  Text string
+  Text string `gorm:"type:text"`
   ShareableID uint `gorm:"size:4"`
   PersonID uint `gorm:"size:4"`
   Guid string
@@ -52,7 +52,7 @@ type CommentSignature struct {
   UpdatedAt time.Time
 
   CommentId int
-  AuthorSignature string
+  AuthorSignature string `gorm:"type:text"`
   SignatureOrderID uint
   AdditionalData string
 
