@@ -26,6 +26,13 @@ db.database = "ganggo"
 # postgres
 db.dsn = "user=%s password=%s host=%s dbname=%s sslmode=disable"
 
+# Relay configuration
+# is enabled on default
+#relay.subscribe = false
+# valid options for scope would be all or tags
+#relay.scope = "tags"
+#relay.tags = "social,network,politics"
+
 [DEFAULT]
 
 # This sets the `AppName` variable which can be used in your code as

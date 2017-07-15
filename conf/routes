@@ -17,6 +17,9 @@ GET     /profiles/:guid                         Profile.Index
 GET     /.well-known/nodeinfo                   NodeInfo.Index
 GET     /nodeinfo/:version                      NodeInfo.Schema
 
+# Social Relay (see https://github.com/jaywink/social-relay)
+GET     /.well-known/x-social-relay             SocialRelay.Index
+
 # Login
 POST    /users/sign_in                          User.Login
 *       /users/sign_out                         User.Logout
