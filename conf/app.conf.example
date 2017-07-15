@@ -32,6 +32,8 @@ db.dsn = "user=%s password=%s host=%s dbname=%s sslmode=disable"
 #   `if revel.AppName {...}`
 app.name = ganggo
 
+app.version = 0.0.1
+
 # A secret string which is passed to cryptographically sign the cookie to prevent
 # (and detect) user modification.
 # Keep this string secret or users will be able to inject arbitrary cookie values

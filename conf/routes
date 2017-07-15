@@ -13,6 +13,10 @@ GET     /stream                                 Stream.Index
 POST    /search                                 Search.Create
 GET     /profiles/:guid                         Profile.Index
 
+# NodeInfo (see https://github.com/jhass/nodeinfo)
+GET     /.well-known/nodeinfo                   NodeInfo.Index
+GET     /nodeinfo/:version                      NodeInfo.Schema
+
 # Login
 POST    /users/sign_in                          User.Login
 *       /users/sign_out                         User.Logout
