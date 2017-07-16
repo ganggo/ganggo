@@ -5,10 +5,6 @@ proto = "https://"
 # This should be set to your TLD e.g. example.com or example.com:8080
 address = "localhost"
 
-# This url will be used to discover new federation server
-# the-federation.info is currently the only tested one
-pods.discovery = "https://the-federation.info/pods.json"
-
 # Configure your database access and driver
 # Possible database driver are:
 #  - mssql
@@ -26,11 +22,19 @@ db.database = "ganggo"
 # postgres
 db.dsn = "user=%s password=%s host=%s dbname=%s sslmode=disable"
 
-# Relay configuration
-# is enabled on default
-#relay.subscribe = false
-# valid options for scope would be all or tags
-#relay.scope = "tags"
+# The relay is disabled on default
+# in respect of privacy matters
+#
+# You should think about enabling it! The software
+# will register at the-federation.info and start
+# using the social-relay. After using it you will
+# benefit from public posts and comments from the
+# relay and fill your pod up more quicklier then
+# just using the diaspora protocol
+relay.subscribe = false
+# valid options for scope would be "all" or "tags"
+#relay.scope = "all"
+# This option is obsolete if you specified "all" in "relay.scope"
 #relay.tags = "social,network,politics"
 
 [DEFAULT]

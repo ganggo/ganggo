@@ -34,7 +34,7 @@ type SocialRelay struct {
 
 func (s SocialRelay) Index() revel.Result {
   revel.Config.SetSection("ganggo")
-  subscribe := revel.Config.BoolDefault("relay.subscribe", true)
+  subscribe := revel.Config.BoolDefault("relay.subscribe", false)
   scope := revel.Config.StringDefault("relay.scope", "all")
   tags := strings.Split(revel.Config.StringDefault("relay.tags", ""), ",")
 

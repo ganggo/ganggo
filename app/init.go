@@ -23,6 +23,7 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/views"
+  "net/http"
   "github.com/shaoshing/train"
   "strings"
   "fmt"
@@ -96,6 +97,20 @@ func init() {
   // append custom template functions to revel
   for key, val := range views.TemplateFuncs {
     revel.TemplateFuncs[key] = val
+  }
+
+  // register the pod at the-federation.info
+  // this is required for using the social-relay
+  revel.Config.SetSection("ganggo")
+  subscribe := revel.Config.BoolDefault("relay.subscribe", false)
+  if !revel.DevMode && subscribe {
+    address, found := revel.Config.String("address")
+    if found {
+      _, err := http.Get("https://the-federation.info/register/" + address)
+      if err != nil {
+        revel.WARN.Println("Wasn't able to register at the-federation.info", err)
+      }
+    }
   }
 }
 
