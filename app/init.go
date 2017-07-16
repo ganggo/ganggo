@@ -61,6 +61,22 @@ func InitDB() {
   models.InitDB()
 }
 
+func InitSocialRelay() {
+  // register the pod at the-federation.info
+  // this is required for using the social-relay
+  revel.Config.SetSection("ganggo")
+  subscribe := revel.Config.BoolDefault("relay.subscribe", false)
+  if !revel.DevMode && subscribe {
+    address, found := revel.Config.String("address")
+    if found {
+      _, err := http.Get("https://the-federation.info/register/" + address)
+      if err != nil {
+        revel.WARN.Println("Wasn't able to register at the-federation.info", err)
+      }
+    }
+  }
+}
+
 func init() {
   // Filters is the default set of global filters.
   revel.Filters = []revel.Filter{
@@ -82,6 +98,7 @@ func init() {
 
   // register startup functions with OnAppStart
   revel.OnAppStart(InitDB)
+  revel.OnAppStart(InitSocialRelay)
 
   train.Config.AssetsPath = "app/assets"
   train.Config.SASS.DebugInfo = false
@@ -97,20 +114,6 @@ func init() {
   // append custom template functions to revel
   for key, val := range views.TemplateFuncs {
     revel.TemplateFuncs[key] = val
-  }
-
-  // register the pod at the-federation.info
-  // this is required for using the social-relay
-  revel.Config.SetSection("ganggo")
-  subscribe := revel.Config.BoolDefault("relay.subscribe", false)
-  if !revel.DevMode && subscribe {
-    address, found := revel.Config.String("address")
-    if found {
-      _, err := http.Get("https://the-federation.info/register/" + address)
-      if err != nil {
-        revel.WARN.Println("Wasn't able to register at the-federation.info", err)
-      }
-    }
   }
 }
 
