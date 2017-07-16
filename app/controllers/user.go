@@ -145,8 +145,6 @@ func (u User) Create() revel.Result {
       Profile: models.Profile{
         DiasporaHandle: username + "@" + host,
         ImageUrl: "/public/img/avatar.png",
-        ImageUrlSmall: "/public/img/avatar.png",
-        ImageUrlMedium: "/public/img/avatar.png",
       },
     },
   }
