@@ -89,6 +89,9 @@ func (f *FetchHcard) Run() {
     profile.Searchable = searchable
   })
 
+  // XXX do we want to support http as well ?
+  host = "https://" + host
+
   doc.Find(".entity_photo").Each(
   func(i int, s *goquery.Selection) {
     nodes := s.Find("img")

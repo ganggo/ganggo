@@ -108,7 +108,7 @@ func (r *Receiver) Run() {
         revel.ERROR.Println(err)
         return
       }
-      url := "http://" + host
+      url := "https://" + host
       profile.ImageUrl = url + profile.ImageUrl
       profile.ImageUrlMedium = url + profile.ImageUrlMedium
       profile.ImageUrlSmall = url + profile.ImageUrlSmall
