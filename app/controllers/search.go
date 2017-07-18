@@ -36,15 +36,13 @@ func (s Search) Create() revel.Result {
     return s.Redirect(Stream.Index)
   }
 
-  fetchAuthor := jobs.FetchAuthor{
-    Author: searchText,
-  }
+  fetchAuthor := jobs.FetchAuthor{Author: searchText}
   fetchAuthor.Run()
   if fetchAuthor.Err != nil {
     revel.WARN.Println(fetchAuthor.Err)
     return s.Redirect(Stream.Index)
   }
 
-  guid := (*fetchAuthor.Person).Guid
+  guid := fetchAuthor.Person.Guid
   return s.Redirect("/profiles/%s", guid)
 }

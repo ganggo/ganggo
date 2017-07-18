@@ -14,11 +14,11 @@ package jobs
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// along with this program.  If not, see <http://www.gnf.org/licenses/>.
 //
 
 import (
-  "encoding/base64"
+  "errors"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
@@ -37,10 +37,7 @@ type FetchAuthor struct {
 }
 
 func (f *FetchAuthor) Run() {
-  var (
-    profile models.Profile
-    person models.Person
-  )
+  f.Person = &models.Person{}
 
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
@@ -57,65 +54,65 @@ func (f *FetchAuthor) Run() {
     return
   }
 
+  // skip updating person already known
+  err = db.Where("author = ?", f.Author).First(f.Person).Error
+  if err == nil { return }
+
   // add host to pod list
   pod := models.Pod{Host: host}
-  if err := db.Create(&pod).Error; err != nil {
-    revel.TRACE.Println("Most likely the host already exists:", err)
+  if err := db.Save(&pod).Error; err != nil {
+    revel.TRACE.Println("The host already exists", err)
   }
 
-  err = db.Where("diaspora_handle = ?", (*f).Author).First(&person).Error
+  webFinger := federation.WebFinger{
+    Host: host, Handle: f.Author,
+  }; err = webFinger.Discovery()
   if err != nil {
-    revel.TRACE.Println("No author with name", (*f).Author, "known to the db")
+    revel.ERROR.Println(err)
+    (*f).Err = err
+    return
+  }
 
-    // set diaspora handle
-    person.DiasporaHandle = (*f).Author
-
-    webFinger := federation.WebFinger{
-      Host: host,
-      Handle: (*f).Author,
-    }
-    err = webFinger.Discovery()
-    if err != nil {
-      revel.ERROR.Println(err)
-      (*f).Err = err
-      return
-    }
-
-    for _, link := range webFinger.Xrd.Links {
-      if link.Rel == "diaspora-public-key" {
-        key, err := base64.StdEncoding.DecodeString(link.Href)
-        if err != nil {
-          revel.ERROR.Println(err)
-          (*f).Err = err
-          return
-        }
-        // set public key
-        person.SerializedPublicKey = string(key)
-      }
-      if link.Rel == "http://joindiaspora.com/guid" {
-        // set guid
-        person.Guid = link.Href
+  var hcard federation.Hcard
+  for _, link := range webFinger.Xrd.Links {
+    if link.Rel == federation.WebFingerHcard {
+      if err = hcard.Fetch(link.Href); err != nil {
+        revel.ERROR.Println(err)
+        (*f).Err = err
+        return
       }
     }
-    revel.TRACE.Println(person)
-
-    err = db.Create(&person).Error
-    if err != nil {
-      revel.ERROR.Println(err)
-      (*f).Err = err
-      return
-    }
   }
 
-  err = db.Find(&profile, person.ID).Error
+  if hcard.Guid == "" || hcard.PublicKey == "" {
+    (*f).Err = errors.New("Something went wrong! Hcard struct is empty.")
+    return
+  }
+  revel.TRACE.Println("Fetched hcard", hcard)
+
+  *f.Person = models.Person{
+    Guid: hcard.Guid,
+    Author: f.Author,
+    SerializedPublicKey: hcard.PublicKey,
+    PodID: pod.ID,
+    Profile: models.Profile{
+      Author: f.Author,
+      FullName: hcard.FullName,
+      Searchable: hcard.Searchable,
+      FirstName: hcard.FirstName,
+      LastName: hcard.LastName,
+      ImageUrl: hcard.Photo,
+      ImageUrlSmall: hcard.PhotoSmall,
+      ImageUrlMedium: hcard.PhotoMedium,
+    },
+    Contacts: models.Contacts{},
+  }
+
+  err = db.Save(f.Person).Error
   if err != nil {
-    revel.TRACE.Println("No profile for", (*f).Author, "available! Fetching..")
-
-    fetchHcard := FetchHcard{
-      Person: &person,
-    }
-    fetchHcard.Run()
-    (*f).Err = fetchHcard.Err
+    revel.ERROR.Println(err)
+    (*f).Err = err
+    return
   }
-  (*f).Person = &person
+  revel.TRACE.Println(f.Person, f.Person.Profile)
 }
