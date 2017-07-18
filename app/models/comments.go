@@ -36,7 +36,9 @@ type Comment struct {
   Text string `gorm:"type:text"`
   ShareableID uint `gorm:"size:4"`
   PersonID uint `gorm:"size:4"`
-  Guid string
+  // size should be max 191 with mysql innodb
+  // cause asumming we use utf8mb 4*191 = 764 < 767
+  Guid string `gorm:"size:191"`
   LikesCount int `gorm:"size:4"`
   ShareableType string `gorm:"size:60"`
 

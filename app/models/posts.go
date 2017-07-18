@@ -34,7 +34,9 @@ type Post struct {
 
   PersonID uint `gorm:"size:4"`
   Public bool
-  Guid string
+  // size should be max 191 with mysql innodb
+  // cause asumming we use utf8mb 4*191 = 764 < 767
+  Guid string `gorm:"size:191"`
   Type string `gorm:"size:40"`
   Text string `gorm:"type:text"`
   ProviderName string
@@ -45,7 +47,7 @@ type Post struct {
   ResharesCount int `gorm:"size:4"`
   InteractedAt string
 
-  Person Person `gorm:"ForeignKey:PersonID" json:",omitempty"`
+  Person Person `gorm:"ForeignKey:PersonID";json:",omitempty"`
   Comments []Comment `json:",omitempty"`
 }
 

@@ -31,7 +31,9 @@ type Pod struct {
   CreatedAt time.Time
   UpdatedAt time.Time
 
-  Host string `json:"host"`
+  // size should be max 191 with mysql innodb
+  // cause asumming we use utf8mb 4*191 = 764 < 767
+  Host string `json:"host";gorm:"size:191"`
 }
 
 type Pods []Pod

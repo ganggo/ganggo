@@ -30,6 +30,8 @@ type Session struct {
   CreatedAt time.Time
   UpdatedAt time.Time
 
-  Token string
+  // size should be max 191 with mysql innodb
+  // cause asumming we use utf8mb 4*191 = 764 < 767
+  Token string `gorm:"size:191"`
   UserID uint `gorm:"size:4"`
 }

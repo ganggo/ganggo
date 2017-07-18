@@ -31,7 +31,9 @@ type SignatureOrder struct {
   CreatedAt time.Time
   UpdatedAt time.Time
 
-  Order string
+  // size should be max 191 with mysql innodb
+  // cause asumming we use utf8mb 4*191 = 764 < 767
+  Order string `gorm:"size:191"`
 }
 
 type SignatureOrders []SignatureOrder

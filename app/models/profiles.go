@@ -33,7 +33,9 @@ type Profile struct {
   CreatedAt time.Time
   UpdatedAt time.Time
 
-  DiasporaHandle string
+  // size should be max 191 with mysql innodb
+  // cause asumming we use utf8mb 4*191 = 764 < 767
+  Author string `gorm:"size:191"`
   FirstName string `gorm:"null"`
   LastName string `gorm:"null"`
   ImageUrl string

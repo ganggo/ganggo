@@ -28,8 +28,10 @@ import (
 type User struct {
   gorm.Model
 
-  Username string
-  Email string
+  // size should be max 191 with mysql innodb
+  // cause asumming we use utf8mb 4*191 = 764 < 767
+  Username string `gorm:"size:191"`
+  Email string `gorm:"size:191"`
   SerializedPrivateKey string `gorm:"type:text"`
   EncryptedPassword string
 
