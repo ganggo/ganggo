@@ -120,13 +120,9 @@ func send(wg *sync.WaitGroup, host, guid string, payload []byte) {
 
   revel.TRACE.Println("Sending payload to", guid, host, "with", string(payload))
   if guid == "" {
-    err = federation.PushFormToPrivate(host, guid, bytes.NewBuffer(payload))
+    err = federation.PushToPublic(host, bytes.NewBuffer(payload))
   } else {
-    if guid == "" {
-      err = federation.PushXmlToPublic(host, bytes.NewBuffer(payload))
-    } else {
-      err = federation.PushJsonToPrivate(host, guid, bytes.NewBuffer(payload))
-    }
+    err = federation.PushToPrivate(host, guid, bytes.NewBuffer(payload))
   }
 
   if err != nil { revel.ERROR.Println(err, host) }
