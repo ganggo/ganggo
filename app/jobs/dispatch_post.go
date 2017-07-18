@@ -39,13 +39,12 @@ func (d *Dispatcher) Post(post *federation.EntityStatusMessage) {
   if d.AspectID > 0 {
     sendToAspect(
       d.AspectID, (*d).User.SerializedPrivateKey,
-      (*post).DiasporaHandle, entityXml,
+      post.Author, entityXml,
     )
   } else {
     payload, err := federation.MagicEnvelope(
       (*d).User.SerializedPrivateKey,
-      (*post).DiasporaHandle,
-      entityXml,
+      post.Author, entityXml,
     ); if err != nil {
       revel.ERROR.Println(err)
       return

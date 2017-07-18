@@ -75,13 +75,13 @@ func InitDB() {
 
   profile := &Profile{}
   db.Model(profile).AddUniqueIndex("index_profiles_on_person_id", "person_id")
-  db.Model(profile).AddUniqueIndex("index_profiles_on_diaspora_handle", "diaspora_handle")
+  db.Model(profile).AddUniqueIndex("index_profiles_on_author", "author")
   db.Model(profile).AddIndex("index_profiles_on_full_name_and_searchable", "full_name", "searchable")
   db.Model(profile).AddIndex("index_profiles_on_full_name", "full_name")
   db.AutoMigrate(profile)
 
   person := &Person{}
-  db.Model(person).AddUniqueIndex("index_people_on_diaspora_handle", "diaspora_handle")
+  db.Model(person).AddUniqueIndex("index_people_on_author", "author")
   db.Model(person).AddUniqueIndex("index_people_on_guid", "guid")
   // NOTE not every person is a local user
   //db.Model(person).AddUniqueIndex("index_people_on_user_id", "user_id")

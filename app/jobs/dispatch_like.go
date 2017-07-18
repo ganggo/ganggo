@@ -23,7 +23,8 @@ import (
   federation "gopkg.in/ganggo/federation.v0"
 )
 
-const LIKE_SIG_ORDER = "positive guid parent_guid target_type diaspora_handle"
+// XXX remove and replace with database sort
+const LIKE_SIG_ORDER = "positive guid parent_guid target_type author"
 
 func (d *Dispatcher) Like(like *federation.EntityLike) {
   authorSig, err := federation.AuthorSignature(
@@ -59,8 +60,7 @@ func (d *Dispatcher) Like(like *federation.EntityLike) {
 
   payload, err := federation.MagicEnvelope(
     (*d).User.SerializedPrivateKey,
-    (*like).DiasporaHandle,
-    entityXml,
+    like.Author, entityXml,
   )
 
   // send it to the network

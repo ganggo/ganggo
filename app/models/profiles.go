@@ -59,7 +59,7 @@ func (p *Profile) Cast(entity *federation.EntityProfile) (err error) {
   defer db.Close()
 
   var person Person
-  err = db.Where("diaspora_handle = ?", entity.DiasporaHandle).First(&person).Error
+  err = db.Where("author = ?", entity.Author).First(&person).Error
   if err != nil {
     return
   }
@@ -69,7 +69,7 @@ func (p *Profile) Cast(entity *federation.EntityProfile) (err error) {
     (*p).Birthday = birthday
   }
 
-  (*p).DiasporaHandle = entity.DiasporaHandle
+  (*p).Author = entity.Author
   (*p).FirstName = entity.FirstName
   (*p).LastName = entity.LastName
   (*p).ImageUrl = entity.ImageUrl
@@ -87,7 +87,7 @@ func (p *Profile) Cast(entity *federation.EntityProfile) (err error) {
 }
 
 func (p Profile) Nickname() (nickname string) {
-  nickname, _, _ = helpers.ParseDiasporaHandle(p.DiasporaHandle)
+  nickname, _, _ = helpers.ParseAuthor(p.Author)
   return
 }
 

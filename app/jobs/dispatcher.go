@@ -90,7 +90,7 @@ func sendToAspect(aspectID uint, priv, handle string, xml []byte) {
       continue
     }
 
-    _, host, err := helpers.ParseDiasporaHandle(person.DiasporaHandle)
+    _, host, err := helpers.ParseAuthor(person.Author)
     if err != nil {
       revel.ERROR.Println(err)
       continue
@@ -108,7 +108,6 @@ func sendToAspect(aspectID uint, priv, handle string, xml []byte) {
 
 func send(wg *sync.WaitGroup, host, guid string, payload []byte) {
   var err error
-
   revel.Config.SetSection("ganggo")
   localhost, found := revel.Config.String("address")
   if !found {

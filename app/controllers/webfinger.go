@@ -69,8 +69,7 @@ func (c Webfinger) Webfinger() revel.Result {
   defer db.Close()
 
   var person models.Person
-  err = db.Where("diaspora_handle = ?",
-    username + "@" + address).First(&person).Error
+  err = db.Where("author = ?", username + "@" + address).First(&person).Error
   if err != nil {
     c.Response.Status = http.StatusNotFound
     revel.TRACE.Println(err)

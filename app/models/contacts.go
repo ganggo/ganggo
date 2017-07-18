@@ -48,7 +48,7 @@ func (c *Contact) Cast(entity *federation.EntityRequest) (err error) {
   }
   defer db.Close()
 
-  username, _, err := helpers.ParseDiasporaHandle(entity.Recipient)
+  username, _, err := helpers.ParseAuthor(entity.Recipient)
   if err != nil {
     return err
   }
@@ -59,7 +59,7 @@ func (c *Contact) Cast(entity *federation.EntityRequest) (err error) {
     return
   }
 
-  err = db.Where("diaspora_handle = ?", entity.Sender).First(&sender).Error
+  err = db.Where("author = ?", entity.Author).First(&sender).Error
   if err != nil {
     return
   }

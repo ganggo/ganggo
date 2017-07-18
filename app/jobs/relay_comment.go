@@ -85,14 +85,14 @@ func (r *Receiver) RelayComment(user models.User, visibilities models.AspectVisi
       payload, err := federation.EncryptedMagicEnvelope(
         user.SerializedPrivateKey,
         person.SerializedPublicKey,
-        user.Person.DiasporaHandle,
+        user.Person.Author,
         entityCommentXml,
       ); if err != nil {
         revel.ERROR.Println(err)
         return
       }
 
-      _, host, err := helpers.ParseDiasporaHandle(person.DiasporaHandle)
+      _, host, err := helpers.ParseAuthor(person.Author)
       if err != nil {
         revel.ERROR.Println(err)
         continue

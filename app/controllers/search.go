@@ -31,7 +31,7 @@ func (s Search) Create() revel.Result {
   var searchText string
   s.Params.Bind(&searchText, "search")
 
-  _, _, err := helpers.ParseDiasporaHandle(searchText)
+  _, _, err := helpers.ParseAuthor(searchText)
   if err != nil {
     return s.Redirect(Stream.Index)
   }

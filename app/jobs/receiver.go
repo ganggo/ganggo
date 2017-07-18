@@ -92,8 +92,8 @@ func (r *Receiver) Run() {
 
     revel.TRACE.Println("Found a profile entity")
 
-    insert := db.Where("diaspora_handle = ?",
-      r.Entity.Post.Profile.DiasporaHandle,
+    insert := db.Where("author = ?",
+      profileEntity.Author,
     ).First(&profile).RecordNotFound()
 
     err := profile.Cast(r.Entity.Post.Profile)
@@ -103,7 +103,7 @@ func (r *Receiver) Run() {
     }
 
     if !strings.HasPrefix(profile.ImageUrl, "http") {
-      _, host, err := helpers.ParseDiasporaHandle(profile.DiasporaHandle)
+      _, host, err := helpers.ParseAuthor(profile.Author)
       if err != nil {
         revel.ERROR.Println(err)
         return

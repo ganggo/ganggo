@@ -26,7 +26,7 @@ func IsLocalHandle(handle string) bool {
     panic("No server address configured")
   }
 
-  _, host, err := ParseDiasporaHandle(handle)
+  _, host, err := ParseAuthor(handle)
   if err != nil {
     panic("Cannot parse diaspora handle")
   }

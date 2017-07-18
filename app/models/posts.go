@@ -94,7 +94,7 @@ func (p *Post) Cast(post, reshare *federation.EntityStatusMessage) (err error) {
   defer db.Close()
 
   var person Person
-  err = db.Where("diaspora_handle = ?", entity.DiasporaHandle).First(&person).Error
+  err = db.Where("author = ?", entity.Author).First(&person).Error
   if err != nil {
     return
   }

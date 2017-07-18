@@ -87,8 +87,7 @@ func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
     return
   }
   var person Person
-  err = db.Where("diaspora_handle = ?",
-    entity.DiasporaHandle).First(&person).Error
+  err = db.Where("author = ?", entity.Author).First(&person).Error
   if err != nil {
     return
   }

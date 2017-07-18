@@ -140,10 +140,11 @@ func (u User) Create() revel.Result {
     EncryptedPassword: string(passwordEncoded),
     Person: models.Person {
       Guid: guid,
-      DiasporaHandle: username + "@" + host,
+      Author: username + "@" + host,
       SerializedPublicKey: string(pubEncoded),
       Profile: models.Profile{
-        DiasporaHandle: username + "@" + host,
+        Author: username + "@" + host,
+        Searchable: true,
         ImageUrl: "/public/img/avatar.png",
       },
     },

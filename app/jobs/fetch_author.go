@@ -50,7 +50,7 @@ func (f *FetchAuthor) Run() {
   }
   defer db.Close()
 
-  _, host, err := helpers.ParseDiasporaHandle((*f).Author)
+  _, host, err := helpers.ParseAuthor(f.Author)
   if err != nil {
     revel.ERROR.Println(err)
     (*f).Err = err

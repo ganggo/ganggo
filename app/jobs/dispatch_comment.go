@@ -30,7 +30,7 @@ import (
   _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-const COMMENT_SIG_ORDER = "diaspora_handle guid parent_guid text"
+const COMMENT_SIG_ORDER = "author guid parent_guid text"
 
 func (d *Dispatcher) Comment(comment *federation.EntityComment) {
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
@@ -46,7 +46,7 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
     return
   }
 
-  (*comment).DiasporaHandle = d.User.Person.DiasporaHandle
+  (*comment).Author = d.User.Person.Author
   (*comment).Guid = guid
 
   authorSig, err := federation.AuthorSignature(
@@ -99,18 +99,18 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
 
   revel.TRACE.Println("entityXml", string(entityXml))
 
-  if helpers.IsLocalHandle(d.ParentPerson.DiasporaHandle) {
+  if helpers.IsLocalHandle(d.ParentPerson.Author) {
     var visibility models.AspectVisibility
     err = visibility.FindByParentGuid(comment.ParentGuid)
     if err != nil {
       revel.ERROR.Println(err)
       return
     }
-    sendToAspect(visibility.AspectID, d.User.SerializedPrivateKey, comment.DiasporaHandle, entityXml)
+    sendToAspect(visibility.AspectID, d.User.SerializedPrivateKey, comment.Author, entityXml)
   } else {
     payload, err := federation.MagicEnvelope(
       (*d).User.SerializedPrivateKey,
-      (*comment).DiasporaHandle,
+      (*comment).Author,
       entityXml,
     ); if err != nil {
       revel.ERROR.Println(err)

@@ -22,7 +22,7 @@ import (
   "errors"
 )
 
-func ParseDiasporaHandle(handle string) (string, string, error) {
+func ParseAuthor(handle string) (string, string, error) {
   parts, err := _ParseStringHelper(handle, `^(.+?)@(.+?)$`, 2)
   if err != nil {
     return "", "", err
