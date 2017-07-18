@@ -35,6 +35,7 @@ type Contact struct {
   Receiving bool
 }
 
+type Contacts []Contact
 func (c *Contact) Cast(entity *federation.EntityRequest) (err error) {
   var (
     recipient User

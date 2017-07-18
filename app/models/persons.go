@@ -42,7 +42,7 @@ type Person struct {
   PodID uint `gorm:"size:4"`
 
   Profile Profile `json:",omitempty"`
-  Contacts []Contact `json:",omitempty"`
+  Contacts Contacts `json:",omitempty"`
 }
 
 func (person *Person) FindByID(id uint) (err error) {
