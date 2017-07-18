@@ -18,6 +18,7 @@ package jobs
 //
 
 import (
+  "strings"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
@@ -28,7 +29,7 @@ import (
   _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-func (r *Receiver) Comment(entity federation.EntityComment) {
+func (r *Receiver) Retraction(entity federation.EntityRetraction) {
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
     revel.WARN.Println(err)
@@ -36,51 +37,45 @@ func (r *Receiver) Comment(entity federation.EntityComment) {
   }
   defer db.Close()
 
-  var comment models.Comment
-
-  revel.TRACE.Println("Found a comment entity", entity)
-
-  err = comment.Cast(&entity)
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  user, local := comment.ParentIsLocal()
-  if !local {
-    sigOrder := models.SignatureOrder{
-      Order: r.Entity.SignatureOrder,
-    }
-    if err = sigOrder.CreateOrFind(); err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-    comment.Signature.SignatureOrderID = sigOrder.ID
-  }
-
-  revel.TRACE.Println("DEBUG", comment)
-
-  err = db.Create(&comment).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  // if parent post is local we have
-  // to relay the comment to all recipients
-  if local {
-    revel.TRACE.Println("Parent post is local! Relaying it..")
-    var visibilities models.AspectVisibilities
-    err = db.Where(
-      "shareable_id = ? and shareable_type = ?",
-      comment.ShareableID,
-      comment.ShareableType,
-    ).Find(&visibilities).Error
+  switch {
+  case strings.EqualFold("post", entity.TargetType):
+    var post models.Post
+    err := db.Where("guid = ?", entity.TargetGuid).First(&post).Error
     if err != nil {
-      revel.ERROR.Println(err)
+      revel.WARN.Println(err)
       return
     }
-
-    r.RelayComment(user, visibilities)
+    err = db.Delete(&post).Error
+    if err != nil {
+      revel.WARN.Println(err)
+      return
+    }
+  case strings.EqualFold("like", entity.TargetType):
+    var like models.Like
+    err := db.Where("guid = ?", entity.TargetGuid).First(&like).Error
+    if err != nil {
+      revel.WARN.Println(err)
+      return
+    }
+    err = db.Delete(&like).Error
+    if err != nil {
+      revel.WARN.Println(err)
+      return
+    }
+  case strings.EqualFold("comment", entity.TargetType):
+    var comment models.Comment
+    err := db.Where("guid = ?", entity.TargetGuid).First(&comment).Error
+    if err != nil {
+      revel.WARN.Println(err)
+      return
+    }
+    err = db.Delete(&comment).Error
+    if err != nil {
+      revel.WARN.Println(err)
+      return
+    }
+  default:
+    revel.ERROR.Println("Unknown entity:", entity)
+    return
   }
 }

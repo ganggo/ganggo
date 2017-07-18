@@ -28,7 +28,7 @@ import (
   _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-func (r *Receiver) Comment(entity federation.EntityComment) {
+func (r *Receiver) Contact(entity federation.EntityContact) {
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
     revel.WARN.Println(err)
@@ -36,51 +36,30 @@ func (r *Receiver) Comment(entity federation.EntityComment) {
   }
   defer db.Close()
 
-  var comment models.Comment
+  revel.TRACE.Println("Found a contact entity", entity)
 
-  revel.TRACE.Println("Found a comment entity", entity)
-
-  err = comment.Cast(&entity)
+  var contact models.Contact
+  err = contact.Cast(&entity)
   if err != nil {
-    revel.ERROR.Println(err)
+    revel.WARN.Println(err)
     return
   }
 
-  user, local := comment.ParentIsLocal()
-  if !local {
-    sigOrder := models.SignatureOrder{
-      Order: r.Entity.SignatureOrder,
-    }
-    if err = sigOrder.CreateOrFind(); err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-    comment.Signature.SignatureOrderID = sigOrder.ID
-  }
-
-  revel.TRACE.Println("DEBUG", comment)
-
-  err = db.Create(&comment).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  // if parent post is local we have
-  // to relay the comment to all recipients
-  if local {
-    revel.TRACE.Println("Parent post is local! Relaying it..")
-    var visibilities models.AspectVisibilities
-    err = db.Where(
-      "shareable_id = ? and shareable_type = ?",
-      comment.ShareableID,
-      comment.ShareableType,
-    ).Find(&visibilities).Error
+  var oldContact models.Contact
+  if err = db.Where(
+    "user_id = ? AND person_id = ?",
+    contact.UserID, contact.PersonID,
+  ).First(&oldContact).Error; err == nil {
+    err = db.Model(&oldContact).Updates(contact).Error
     if err != nil {
-      revel.ERROR.Println(err)
+      revel.WARN.Println(err)
       return
     }
-
-    r.RelayComment(user, visibilities)
+  } else {
+    err = db.Create(&contact).Error
+    if err != nil {
+      revel.WARN.Println(err)
+      return
+    }
   }
 }

@@ -23,14 +23,8 @@ import (
   federation "gopkg.in/ganggo/federation.v0"
 )
 
-func (d *Dispatcher) Post(post *federation.EntityStatusMessage) {
-  entity := federation.Entity{
-    Post: federation.EntityPost{
-      StatusMessage: post,
-    },
-  }
-
-  entityXml, err := xml.Marshal(entity)
+func (d *Dispatcher) Post(post federation.EntityStatusMessage) {
+  entityXml, err := xml.Marshal(post)
   if err != nil {
     revel.ERROR.Println(err)
     return

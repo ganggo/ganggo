@@ -39,28 +39,20 @@ func (r *Receiver) RelayComment(user models.User, visibilities models.AspectVisi
   }
   defer db.Close()
 
+  commentEntity := r.Entity.Data.(federation.EntityComment)
+
   // always generate a parent author signature
   // if the original post is local
-  parentSignature, err := federation.AuthorSignature(
-    *r.Entity.Post.Comment,
-    r.Entity.SignatureOrder,
-    user.SerializedPrivateKey,
-  ); if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-  r.Entity.Post.Comment.ParentAuthorSignature = parentSignature
-
-  entityCommentXml, err := xml.Marshal(r.Entity.Post.Comment)
+  parentSignature, err := federation.AuthorSignature(commentEntity,
+    r.Entity.LocalSignatureOrder(), user.SerializedPrivateKey)
   if err != nil {
     revel.ERROR.Println(err)
     return
   }
+  commentEntity.ParentAuthorSignature = parentSignature
 
-  // XXX workaround should be in xml.Marshal
-  entityCommentXml = federation.SortByEntityOrder(
-    r.Entity.SignatureOrder, entityCommentXml,
-  ); if entityCommentXml == nil {
+  entityCommentXml, err := xml.Marshal(commentEntity)
+  if err != nil {
     revel.ERROR.Println(err)
     return
   }

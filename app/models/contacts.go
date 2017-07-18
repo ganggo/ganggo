@@ -36,7 +36,8 @@ type Contact struct {
 }
 
 type Contacts []Contact
-func (c *Contact) Cast(entity *federation.EntityRequest) (err error) {
+
+func (c *Contact) Cast(entity *federation.EntityContact) (err error) {
   var (
     recipient User
     sender Person
@@ -66,7 +67,7 @@ func (c *Contact) Cast(entity *federation.EntityRequest) (err error) {
 
   (*c).UserID = recipient.ID
   (*c).PersonID = sender.ID
-  (*c).Receiving = true
-
+  (*c).Receiving = entity.Following
+  (*c).Sharing = entity.Sharing
   return
 }

@@ -47,56 +47,22 @@ func (r *Receiver) Run() {
   defer db.Close()
 
   // TODO signature verification for entities missing !!!
-  switch {
-  case r.Entity.Post.Request != nil:
-    var contact models.Contact
+  switch name := r.Entity.Type; name {
+  case federation.Retraction:
+    r.Retraction(r.Entity.Data.(federation.EntityRetraction))
+  case federation.Profile:
+    var (
+      profile models.Profile
+      profileEntity = r.Entity.Data.(federation.EntityProfile)
+    )
 
-    revel.TRACE.Println("Found a request entity")
-
-    err := contact.Cast(r.Entity.Post.Request)
-    if err != nil {
-      revel.WARN.Println(err)
-      return
-    }
-
-    err = db.Create(&contact).Error
-    if err != nil {
-      revel.WARN.Println(err)
-      return
-    }
-  case r.Entity.Post.Retraction != nil:
-    var person models.Person
-
-    revel.TRACE.Println("Found a retraction entity")
-
-    retract := r.Entity.Post.Retraction
-    err := db.Where("guid = ?", retract.PostGuid).First(&person).Error
-    if err != nil {
-      revel.WARN.Println(err)
-      return
-    }
-
-    // TODO there are probably more types
-    // do not delete on every retraction some contacts
-    return
-
-    for _, contact := range person.Contacts {
-      err = db.Delete(&contact).Error
-      if err != nil {
-        revel.WARN.Println(err)
-      }
-    }
-    return
-  case r.Entity.Post.Profile != nil:
-    var profile models.Profile
-
-    revel.TRACE.Println("Found a profile entity")
+    revel.TRACE.Println("Found a profile entity", profileEntity)
 
     insert := db.Where("author = ?",
       profileEntity.Author,
     ).First(&profile).RecordNotFound()
 
-    err := profile.Cast(r.Entity.Post.Profile)
+    err := profile.Cast(&profileEntity)
     if err != nil {
       revel.ERROR.Println(err)
       return
@@ -127,19 +93,25 @@ func (r *Receiver) Run() {
         return
       }
     }
-  case r.Entity.Post.StatusMessage != nil || r.Entity.Post.Reshare != nil:
+  case federation.StatusMessage, federation.Reshare:
     var (
       post models.Post
       user models.Person
       person models.Person
+      message = r.Entity.Data.(federation.EntityStatusMessage)
     )
 
     revel.TRACE.Println("Found a status_message entity")
 
-    err := post.Cast(
-      r.Entity.Post.StatusMessage,
-      r.Entity.Post.Reshare,
-    )
+    fetch := FetchAuthor{Author: message.Author}
+    fetch.Run()
+
+    var reshare bool
+    if name == federation.Reshare {
+      reshare = true
+    }
+
+    err := post.Cast(&message, reshare)
     if err != nil {
       revel.WARN.Println(err)
       return
@@ -181,14 +153,17 @@ func (r *Receiver) Run() {
       revel.ERROR.Println(err)
       return
     }
-  case r.Entity.Post.Comment != nil:
-    r.Comment()
-  case r.Entity.Post.Like != nil:
-    var like models.Like
+  case federation.Comment:
+    r.Comment(r.Entity.Data.(federation.EntityComment))
+  case federation.Like:
+    var (
+      like models.Like
+      likeEntity = r.Entity.Data.(federation.EntityLike)
+    )
 
-    revel.TRACE.Println("Found a like entity")
+    revel.TRACE.Println("Found a like entity", likeEntity)
 
-    err := like.Cast(r.Entity.Post.Like)
+    err := like.Cast(&likeEntity)
     if err != nil {
       revel.WARN.Println(err)
       return
@@ -196,101 +171,13 @@ func (r *Receiver) Run() {
 
     err = db.Create(&like).Error
     if err != nil {
-      revel.WARN.Println(err)
+      revel.WARN.Println(err, like.TargetType, like.TargetID, like.PersonID)
       return
     }
-  case r.Entity.Post.RelayableRetraction != nil:
-    revel.TRACE.Println("Found a relayable_retraction")
-    retraction := r.Entity.Post.RelayableRetraction
-
-    switch {
-    case strings.EqualFold("post", retraction.TargetType):
-      var post models.Post
-      err := db.Where("guid = ?", retraction.TargetGuid).First(&post).Error
-      if err != nil {
-        revel.WARN.Println(err)
-        return
-      }
-      err = db.Delete(&post).Error
-      if err != nil {
-        revel.WARN.Println(err)
-        return
-      }
-    case strings.EqualFold("like", retraction.TargetType):
-      var like models.Like
-      err := db.Where("guid = ?", retraction.TargetGuid).First(&like).Error
-      if err != nil {
-        revel.WARN.Println(err)
-        return
-      }
-      err = db.Delete(&like).Error
-      if err != nil {
-        revel.WARN.Println(err)
-        return
-      }
-    case strings.EqualFold("comment", retraction.TargetType):
-      var comment models.Comment
-      err := db.Where("guid = ?", retraction.TargetGuid).First(&comment).Error
-      if err != nil {
-        revel.WARN.Println(err)
-        return
-      }
-      err = db.Delete(&comment).Error
-      if err != nil {
-        revel.WARN.Println(err)
-        return
-      }
-    default:
-      revel.ERROR.Println("Unknown retraction:", retraction)
-      return
-    }
-  case r.Entity.Post.SignedRetraction != nil:
-    revel.TRACE.Println("Found a signed_retraction")
-    retraction := r.Entity.Post.SignedRetraction
-
-    switch {
-    case strings.EqualFold("post", retraction.TargetType):
-      var post models.Post
-      err := db.Where("guid = ?", retraction.TargetGuid).First(&post).Error
-      if err != nil {
-        revel.WARN.Println(err)
-        return
-      }
-      err = db.Delete(&post).Error
-      if err != nil {
-        revel.WARN.Println(err)
-        return
-      }
-    case strings.EqualFold("like", retraction.TargetType):
-      var like models.Like
-      err := db.Where("guid = ?", retraction.TargetGuid).First(&like).Error
-      if err != nil {
-        revel.WARN.Println(err)
-        return
-      }
-      err = db.Delete(&like).Error
-      if err != nil {
-        revel.WARN.Println(err)
-        return
-      }
-    case strings.EqualFold("comment", retraction.TargetType):
-      var comment models.Comment
-      err := db.Where("guid = ?", retraction.TargetGuid).First(&comment).Error
-      if err != nil {
-        revel.WARN.Println(err)
-        return
-      }
-      err = db.Delete(&comment).Error
-      if err != nil {
-        revel.WARN.Println(err)
-        return
-      }
-    default:
-      revel.ERROR.Println("Unknown retraction:", retraction)
-      return
-    }
+  case federation.Contact:
+    r.Contact(r.Entity.Data.(federation.EntityContact))
   default:
-    revel.ERROR.Println("No matching entity found! Ignoring it..")
+    revel.ERROR.Println("No matching entity found for", name)
     return
   }
 }

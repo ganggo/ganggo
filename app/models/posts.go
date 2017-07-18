@@ -64,14 +64,14 @@ func (p *Post) Count() (count int, err error) {
   return
 }
 
-func (p *Post) Create(post, reshare *federation.EntityStatusMessage) (err error) {
+func (p *Post) Create(entity *federation.EntityStatusMessage, reshare bool) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
     return
   }
   defer db.Close()
 
-  err = p.Cast(post, reshare)
+  err = p.Cast(entity, reshare)
   if err != nil {
     return
   }
@@ -79,14 +79,7 @@ func (p *Post) Create(post, reshare *federation.EntityStatusMessage) (err error)
   return db.Create(p).Error
 }
 
-func (p *Post) Cast(post, reshare *federation.EntityStatusMessage) (err error) {
-  entity := post
-  messageType := StatusMessage
-  if entity == nil {
-    entity = reshare
-    messageType = Reshare
-  }
-
+func (p *Post) Cast(entity *federation.EntityStatusMessage, reshare bool) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
     return
@@ -99,13 +92,17 @@ func (p *Post) Cast(post, reshare *federation.EntityStatusMessage) (err error) {
     return
   }
 
+  messageType := StatusMessage
+  if reshare {
+    messageType = Reshare
+  }
   (*p).PersonID = person.ID
   (*p).Public = entity.Public
   (*p).Guid = entity.Guid
   (*p).RootGuid = entity.RootGuid
   (*p).RootHandle = entity.RootHandle
   (*p).Type = messageType
-  (*p).Text = entity.RawMessage
+  (*p).Text = entity.Text
   (*p).ProviderName = entity.ProviderName
 
   return nil

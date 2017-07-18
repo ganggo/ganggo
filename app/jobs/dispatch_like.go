@@ -26,33 +26,27 @@ import (
 // XXX remove and replace with database sort
 const LIKE_SIG_ORDER = "positive guid parent_guid target_type author"
 
-func (d *Dispatcher) Like(like *federation.EntityLike) {
-  authorSig, err := federation.AuthorSignature(
-    *like, LIKE_SIG_ORDER, (*d).User.SerializedPrivateKey)
+func (d *Dispatcher) Like(like federation.EntityLike) {
+  authorSig, err := federation.AuthorSignature(like, LIKE_SIG_ORDER,
+    (*d).User.SerializedPrivateKey)
   if err != nil {
     revel.ERROR.Println(err)
     return
   }
-  (*like).AuthorSignature = authorSig
+  like.AuthorSignature = authorSig
 
   // if parent user is local generate a signature
   if d.ParentUser != nil {
-    parentAuthorSig, err := federation.AuthorSignature(
-      *like, LIKE_SIG_ORDER, d.ParentUser.SerializedPrivateKey)
+    parentAuthorSig, err := federation.AuthorSignature(like,
+      LIKE_SIG_ORDER, d.ParentUser.SerializedPrivateKey)
     if err != nil {
       revel.ERROR.Println(err)
       return
     }
-    (*like).ParentAuthorSignature = parentAuthorSig
+    like.ParentAuthorSignature = parentAuthorSig
   }
 
-  entity := federation.Entity{
-    Post: federation.EntityPost{
-      Like: like,
-    },
-  }
-
-  entityXml, err := xml.Marshal(entity)
+  entityXml, err := xml.Marshal(like)
   if err != nil {
     revel.ERROR.Println(err)
     return

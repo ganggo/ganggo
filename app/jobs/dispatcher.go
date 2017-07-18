@@ -37,11 +37,11 @@ type Dispatcher struct {
 func (d *Dispatcher) Run() {
   switch entity := d.Message.(type) {
   case federation.EntityStatusMessage:
-    d.Post(&entity)
+    d.Post(entity)
   case federation.EntityComment:
     d.Comment(&entity)
   case federation.EntityLike:
-    d.Like(&entity)
+    d.Like(entity)
   default:
     revel.ERROR.Println("Unknown entity type in dispatcher!")
   }
@@ -115,14 +115,11 @@ func send(wg *sync.WaitGroup, host, guid string, payload []byte) {
     return
   }
 
-  if host == localhost {
-    // skip own pod
-    return
-  }
+  // skip own pod
+  if host == localhost { return }
 
   revel.TRACE.Println("Sending payload to", guid, host, "with", string(payload))
-
-  if string(payload[:4]) == "xml=" {
+  if guid == "" {
     err = federation.PushFormToPrivate(host, guid, bytes.NewBuffer(payload))
   } else {
     if guid == "" {
@@ -132,11 +129,6 @@ func send(wg *sync.WaitGroup, host, guid string, payload []byte) {
     }
   }
 
-  if err != nil {
-    revel.ERROR.Println(err, host)
-  }
-
-  if wg != nil {
-    wg.Done()
-  }
+  if err != nil { revel.ERROR.Println(err, host) }
+  if wg != nil { wg.Done() }
 }

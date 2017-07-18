@@ -28,6 +28,7 @@ import (
   _ "github.com/jinzhu/gorm/dialects/sqlite"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/jobs"
+  "io/ioutil"
 )
 
 type Receiver struct {
@@ -35,10 +36,6 @@ type Receiver struct {
 }
 
 func (r Receiver) Public() revel.Result {
-  var xml string
-
-  revel.TRACE.Println("REQUEST", r.Request, r.Request.ContentType)
-
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
     revel.WARN.Println(err)
@@ -46,52 +43,41 @@ func (r Receiver) Public() revel.Result {
   }
   defer db.Close()
 
-  r.Params.Bind(&xml, "xml")
-  r.Response.ContentType = "application/json"
-
-  request, err := federation.PreparePublicRequest(xml)
+  content, err := ioutil.ReadAll(r.Request.Body)
   if err != nil {
     r.Response.Status = http.StatusNotAcceptable
     return r.Render()
   }
 
-  // NOTE investigate whether this is a
+  revel.TRACE.Println("public", string(content))
+
+  // in case it succeeds reply with status 202
+  r.Response.Status = http.StatusAccepted
+
+  message, err := federation.ParseDecryptedRequest(content)
+  if err != nil {
+    revel.ERROR.Println(err)
+    // NOTE Send accept code even tho the entity is not
+    // known otherwise the sender pod will throw an error
+    //r.Response.Status = http.StatusNotAcceptable
+    return r.Render()
+  }
+
+  // XXX investigate whether this is a
   // d* problem in production mode as well
-  go func() {
-    // check if author is already known
-    fetchAuthor := jobs.FetchAuthor{
-      Author: request.Header.AuthorId,
-    }
-    fetchAuthor.Run()
-    if fetchAuthor.Err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
+  receiverJob := jobs.Receiver{Entity: message.Entity}
+  go receiverJob.Run()
 
-    entity, err := request.Parse(
-      []byte(fetchAuthor.Person.SerializedPublicKey))
-    if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-
-    receiverJob := jobs.Receiver{
-      Entity: entity,
-    }
-    go receiverJob.Run()
-  }()
   return r.Render()
 }
 
 func (r Receiver) Private() revel.Result {
   var (
     guid string
-    xml string
+    wrapper federation.AesWrapper
     person models.Person
     user models.User
   )
-
-  revel.TRACE.Println("REQUEST", r.Request, r.Request.ContentType)
 
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
@@ -100,9 +86,11 @@ func (r Receiver) Private() revel.Result {
   }
   defer db.Close()
 
-  r.Params.Bind(&xml, "xml")
+  r.Params.BindJSON(&wrapper)
   r.Params.Bind(&guid, "guid")
-  r.Response.ContentType = "application/json"
+  r.Response.Status = http.StatusAccepted
+
+  revel.TRACE.Println("aes request", wrapper)
 
   err = db.Where("guid like ?", guid).First(&person).Error
   if err != nil {
@@ -118,39 +106,22 @@ func (r Receiver) Private() revel.Result {
     return r.Render()
   }
 
-  request, err := federation.PreparePrivateRequest(xml,
-    []byte(user.SerializedPrivateKey))
+  message, err := federation.ParseEncryptedRequest(wrapper, []byte(user.SerializedPrivateKey))
   if err != nil {
     revel.ERROR.Println(err)
-    r.Response.Status = http.StatusNotAcceptable
+    // NOTE Send accept code even tho the entity is not
+    // known otherwise the sender pod will throw an error
+    //r.Response.Status = http.StatusNotAcceptable
     return r.Render()
   }
 
+  receiverJob := jobs.Receiver{
+    Entity: message.Entity,
+    Guid: guid,
+  }
   // XXX investigate whether this is a
   // d* problem in production mode as well
-  go func() {
-    // check if author is already known
-    fetchAuthor := jobs.FetchAuthor{
-      Author: request.DecryptedHeader.AuthorId,
-    }
-    fetchAuthor.Run()
-    if fetchAuthor.Err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
+  go receiverJob.Run()
 
-    entity, err := request.ParsePrivate(
-      []byte(fetchAuthor.Person.SerializedPublicKey))
-    if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-
-    receiverJob := jobs.Receiver{
-      Entity: entity,
-      Guid: guid,
-    }
-    go receiverJob.Run()
-  }()
   return r.Render()
 }
