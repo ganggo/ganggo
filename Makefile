@@ -43,7 +43,7 @@ endif
 		github.com/revel/cmd/revel \
 		github.com/ganggo/cmd/revel
 
-	# Document Parser
+	# Document Parser required by the federation lib
 	go get github.com/PuerkitoBio/goquery
 
 	# Captcha generator
