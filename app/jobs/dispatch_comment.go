@@ -99,19 +99,14 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
 
   revel.TRACE.Println("entityXml", string(entityXml))
 
-  if helpers.IsLocalHandle(d.ParentPerson.Author) {
-    var visibility models.AspectVisibility
-    err = visibility.FindByParentGuid(comment.ParentGuid)
-    if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
+  var visibility models.AspectVisibility
+  err = visibility.FindByParentGuid(comment.ParentGuid)
+  if err == nil && helpers.IsLocalHandle(d.ParentPerson.Author) {
     sendToAspect(visibility.AspectID, d.User.SerializedPrivateKey, comment.Author, entityXml)
   } else {
     payload, err := federation.MagicEnvelope(
-      (*d).User.SerializedPrivateKey,
-      (*comment).Author,
-      entityXml,
+      d.User.SerializedPrivateKey,
+      comment.Author, entityXml,
     ); if err != nil {
       revel.ERROR.Println(err)
       return
