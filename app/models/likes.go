@@ -90,6 +90,10 @@ func (l *Like) Cast(entity *federation.EntityLike) (err error) {
   return
 }
 
+func (l *Like) ParentIsLocal() (User, bool) {
+  return parentIsLocal(l.TargetID)
+}
+
 func (l *Likes) FindByPostID(id uint) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
