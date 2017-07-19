@@ -117,7 +117,7 @@ func (posts *Posts) FindAll(userID uint, offset int) (err error) {
 
   return db.Offset(offset).Limit(10).Table("posts").
     Joins(`left join shareables on shareables.shareable_id = posts.id`).
-    Where("posts.public = True").
+    Where("posts.public = true").
     Or(`posts.id = shareables.shareable_id
       and shareables.shareable_type = ?
       and shareables.user_id = ?`,
