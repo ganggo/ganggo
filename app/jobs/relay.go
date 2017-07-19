@@ -27,10 +27,11 @@ import (
   _ "github.com/jinzhu/gorm/dialects/mssql"
   _ "github.com/jinzhu/gorm/dialects/mysql"
   _ "github.com/jinzhu/gorm/dialects/sqlite"
+  "errors"
   "encoding/xml"
   "sync"
 )
-func (r *Receiver) RelayPublicComment(user models.User) {
+func (r *Receiver) RelayPublic(user models.User) {
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
     revel.WARN.Println(err)
@@ -55,7 +56,7 @@ func (r *Receiver) RelayPublicComment(user models.User) {
   sendPublic(payload)
 }
 
-func (r *Receiver) RelayPrivateComment(user models.User, visibilities models.AspectVisibilities) {
+func (r *Receiver) RelayPrivate(user models.User, visibilities models.AspectVisibilities) {
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
     revel.WARN.Println(err)
@@ -112,24 +113,41 @@ func (r *Receiver) RelayPrivateComment(user models.User, visibilities models.Asp
   }
 }
 
-func (r *Receiver) appendParentAuthorSignature(user models.User) (entity []byte, err error) {
-  commentEntity := r.Entity.Data.(federation.EntityComment)
-
+func (r *Receiver) appendParentAuthorSignature(user models.User) (entityXML []byte, err error) {
   // always generate a parent author signature
   // if the original post is local
-  parentSignature, err := federation.AuthorSignature(commentEntity,
-    commentEntity.SignatureOrder(), user.SerializedPrivateKey)
-  if err != nil {
-    revel.ERROR.Println(err)
+  switch entity := r.Entity.Data.(type) {
+  case federation.EntityLike:
+    parentSignature, err := federation.AuthorSignature(
+      entity, entity.SignatureOrder(), user.SerializedPrivateKey)
+    if err != nil {
+      revel.ERROR.Println(err)
+      return entityXML, err
+    }
+    entity.ParentAuthorSignature = parentSignature
+
+    entityXML, err = xml.Marshal(entity)
+    if err != nil {
+      revel.ERROR.Println(err)
+      return entityXML, err
+    }
+  case federation.EntityComment:
+    parentSignature, err := federation.AuthorSignature(
+      entity, entity.SignatureOrder(), user.SerializedPrivateKey)
+    if err != nil {
+      revel.ERROR.Println(err)
+      return entityXML, err
+    }
+    entity.ParentAuthorSignature = parentSignature
+
+    entityXML, err = xml.Marshal(entity)
+    if err != nil {
+      revel.ERROR.Println(err)
+      return entityXML, err
+    }
+  default:
+    err = errors.New("Cannot relay unsupported type entity!")
     return
   }
-  commentEntity.ParentAuthorSignature = parentSignature
-
-  entity, err = xml.Marshal(commentEntity)
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  return federation.SortByEntityOrder(r.Entity.SignatureOrder, entity), nil
+  return federation.SortByEntityOrder(r.Entity.SignatureOrder, entityXML), nil
 }

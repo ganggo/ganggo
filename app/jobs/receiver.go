@@ -156,24 +156,7 @@ func (r *Receiver) Run() {
   case federation.Comment:
     r.Comment(r.Entity.Data.(federation.EntityComment))
   case federation.Like:
-    var (
-      like models.Like
-      likeEntity = r.Entity.Data.(federation.EntityLike)
-    )
-
-    revel.TRACE.Println("Found a like entity", likeEntity)
-
-    err := like.Cast(&likeEntity)
-    if err != nil {
-      revel.WARN.Println(err)
-      return
-    }
-
-    err = db.Create(&like).Error
-    if err != nil {
-      revel.WARN.Println(err, like.TargetType, like.TargetID, like.PersonID)
-      return
-    }
+    r.Like(r.Entity.Data.(federation.EntityLike))
   case federation.Contact:
     r.Contact(r.Entity.Data.(federation.EntityContact))
   default:

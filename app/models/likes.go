@@ -40,9 +40,26 @@ type Like struct {
   Guid string `gorm:"size:191"`
   AuthorSignature string `gorm:"type:text"`
   TargetType string `gorm:"size:60"`
+
+  Signature LikeSignature
 }
 
 type Likes []Like
+
+type LikeSignature struct {
+  ID uint `gorm:"primary_key"`
+  CreatedAt time.Time
+  UpdatedAt time.Time
+
+  LikeID int
+  AuthorSignature string `gorm:"type:text"`
+  SignatureOrderID uint
+  AdditionalData string
+
+  SignatureOrder SignatureOrder
+}
+
+type LikeSignatures []LikeSignature
 
 func (l *Like) Create(entity *federation.EntityLike) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)

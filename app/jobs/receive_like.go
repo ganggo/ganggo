@@ -28,7 +28,8 @@ import (
   _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-func (r *Receiver) Comment(entity federation.EntityComment) {
+func (r *Receiver) Like(entity federation.EntityLike) {
+  var like models.Like
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
     revel.WARN.Println(err)
@@ -36,21 +37,19 @@ func (r *Receiver) Comment(entity federation.EntityComment) {
   }
   defer db.Close()
 
-  var comment models.Comment
+  revel.TRACE.Println("Found a like entity", entity)
 
-  revel.TRACE.Println("Found a comment entity", entity)
-
-  err = comment.Cast(&entity)
+  err = like.Cast(&entity)
   if err != nil {
-    revel.ERROR.Println(err)
+    revel.WARN.Println(err)
     return
   }
 
-  user, local := comment.ParentIsLocal()
+  user, local := like.ParentIsLocal()
   // if parent post is local we have
-  // to relay the comment to all recipiens
+  // to relay the entity to all recipiens
   if local {
-    revel.TRACE.Println("Parent post is local! Relaying it..")
+    revel.TRACE.Println("Parent is local! Relaying it..")
 
     sigOrder := models.SignatureOrder{
       Order: r.Entity.SignatureOrder,
@@ -59,13 +58,13 @@ func (r *Receiver) Comment(entity federation.EntityComment) {
       revel.ERROR.Println(err)
       return
     }
-    comment.Signature.SignatureOrderID = sigOrder.ID
+    like.Signature.SignatureOrderID = sigOrder.ID
 
     var visibilities models.AspectVisibilities
     err = db.Where(
       "shareable_id = ? and shareable_type = ?",
-      comment.ShareableID,
-      comment.ShareableType,
+      like.TargetID,
+      like.TargetType,
     ).Find(&visibilities).Error
     if err != nil {
       revel.ERROR.Println(err)
@@ -81,9 +80,9 @@ func (r *Receiver) Comment(entity federation.EntityComment) {
     }
   }
 
-  err = db.Create(&comment).Error
+  err = db.Create(&like).Error
   if err != nil {
-    revel.ERROR.Println(err)
+    revel.WARN.Println(err)
     return
   }
 }
