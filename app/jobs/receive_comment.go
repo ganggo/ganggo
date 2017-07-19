@@ -47,7 +47,11 @@ func (r *Receiver) Comment(entity federation.EntityComment) {
   }
 
   user, local := comment.ParentIsLocal()
-  if !local {
+  // if parent post is local we have
+  // to relay the comment to all recipiens
+  if local {
+    revel.TRACE.Println("Parent post is local! Relaying it..")
+
     sigOrder := models.SignatureOrder{
       Order: r.Entity.SignatureOrder,
     }
@@ -56,20 +60,7 @@ func (r *Receiver) Comment(entity federation.EntityComment) {
       return
     }
     comment.Signature.SignatureOrderID = sigOrder.ID
-  }
 
-  revel.TRACE.Println("DEBUG", comment)
-
-  err = db.Create(&comment).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  // if parent post is local we have
-  // to relay the comment to all recipients
-  if local {
-    revel.TRACE.Println("Parent post is local! Relaying it..")
     var visibilities models.AspectVisibilities
     err = db.Where(
       "shareable_id = ? and shareable_type = ?",
@@ -81,6 +72,18 @@ func (r *Receiver) Comment(entity federation.EntityComment) {
       return
     }
 
-    r.RelayComment(user, visibilities)
+    if len(visibilities) == 0 {
+      revel.TRACE.Println(".. relaying it publicly!")
+      go r.RelayPublicComment(user)
+    } else {
+      revel.TRACE.Println(".. relaying it privately!")
+      go r.RelayPrivateComment(user, visibilities)
+    }
+  }
+
+  err = db.Create(&comment).Error
+  if err != nil {
+    revel.ERROR.Println(err)
+    return
   }
 }

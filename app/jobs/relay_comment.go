@@ -30,8 +30,7 @@ import (
   "encoding/xml"
   "sync"
 )
-
-func (r *Receiver) RelayComment(user models.User, visibilities models.AspectVisibilities) {
+func (r *Receiver) RelayPublicComment(user models.User) {
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
     revel.WARN.Println(err)
@@ -39,21 +38,34 @@ func (r *Receiver) RelayComment(user models.User, visibilities models.AspectVisi
   }
   defer db.Close()
 
-  commentEntity := r.Entity.Data.(federation.EntityComment)
-
-  // always generate a parent author signature
-  // if the original post is local
-  parentSignature, err := federation.AuthorSignature(commentEntity,
-    r.Entity.LocalSignatureOrder(), user.SerializedPrivateKey)
+  entity, err := r.appendParentAuthorSignature(user)
   if err != nil {
+    revel.WARN.Println(err)
+    return
+  }
+
+  payload, err := federation.MagicEnvelope(
+    user.SerializedPrivateKey,
+    user.Person.Author, entity,
+  ); if err != nil {
     revel.ERROR.Println(err)
     return
   }
-  commentEntity.ParentAuthorSignature = parentSignature
 
-  entityCommentXml, err := xml.Marshal(commentEntity)
+  sendPublic(payload)
+}
+
+func (r *Receiver) RelayPrivateComment(user models.User, visibilities models.AspectVisibilities) {
+  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
-    revel.ERROR.Println(err)
+    revel.WARN.Println(err)
+    return
+  }
+  defer db.Close()
+
+  xml, err := r.appendParentAuthorSignature(user)
+  if err != nil {
+    revel.WARN.Println(err)
     return
   }
 
@@ -77,8 +89,7 @@ func (r *Receiver) RelayComment(user models.User, visibilities models.AspectVisi
       payload, err := federation.EncryptedMagicEnvelope(
         user.SerializedPrivateKey,
         person.SerializedPublicKey,
-        user.Person.Author,
-        entityCommentXml,
+        user.Person.Author, xml,
       ); if err != nil {
         revel.ERROR.Println(err)
         return
@@ -99,4 +110,26 @@ func (r *Receiver) RelayComment(user models.User, visibilities models.AspectVisi
       }
     }
   }
+}
+
+func (r *Receiver) appendParentAuthorSignature(user models.User) (entity []byte, err error) {
+  commentEntity := r.Entity.Data.(federation.EntityComment)
+
+  // always generate a parent author signature
+  // if the original post is local
+  parentSignature, err := federation.AuthorSignature(commentEntity,
+    commentEntity.SignatureOrder(), user.SerializedPrivateKey)
+  if err != nil {
+    revel.ERROR.Println(err)
+    return
+  }
+  commentEntity.ParentAuthorSignature = parentSignature
+
+  entity, err = xml.Marshal(commentEntity)
+  if err != nil {
+    revel.ERROR.Println(err)
+    return
+  }
+
+  return federation.SortByEntityOrder(r.Entity.SignatureOrder, entity), nil
 }
