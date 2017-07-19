@@ -1,4 +1,5 @@
 //= require javascripts/api
+//= require javascripts/stream_editor_box
 
 (function(){
   var infiniteScroll = {
