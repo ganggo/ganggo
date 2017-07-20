@@ -24,24 +24,22 @@ import (
 )
 
 func (d *Dispatcher) Like(like federation.EntityLike) {
-  authorSig, err := federation.AuthorSignature(like,
-    like.SignatureOrder(), d.User.SerializedPrivateKey)
+  err := like.AppendSignature(d.User.SerializedPrivateKey,
+    like.SignatureOrder(), federation.AuthorSignatureType)
   if err != nil {
     revel.ERROR.Println(err)
     return
   }
-  like.AuthorSignature = authorSig
 
   // if parent user is local generate a signature
-  //if d.ParentUser != nil {
-  //  parentAuthorSig, err := federation.AuthorSignature(like,
-  //    LIKE_SIG_ORDER, d.ParentUser.SerializedPrivateKey)
-  //  if err != nil {
-  //    revel.ERROR.Println(err)
-  //    return
-  //  }
-  //  like.ParentAuthorSignature = parentAuthorSig
-  //}
+  if d.ParentUser != nil {
+    err := like.AppendSignature(d.ParentUser.SerializedPrivateKey,
+      like.SignatureOrder(), federation.ParentAuthorSignatureType)
+    if err != nil {
+      revel.ERROR.Println(err)
+      return
+    }
+  }
 
   entityXml, err := xml.Marshal(like)
   if err != nil {
@@ -50,7 +48,7 @@ func (d *Dispatcher) Like(like federation.EntityLike) {
   }
 
   payload, err := federation.MagicEnvelope(
-    (*d).User.SerializedPrivateKey,
+    d.User.SerializedPrivateKey,
     like.Author, entityXml,
   )
 

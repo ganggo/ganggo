@@ -30,8 +30,6 @@ import (
   _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-const COMMENT_SIG_ORDER = "author guid parent_guid text"
-
 func (d *Dispatcher) Comment(comment *federation.EntityComment) {
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
@@ -49,9 +47,8 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
   (*comment).Author = d.User.Person.Author
   (*comment).Guid = guid
 
-  authorSig, err := federation.AuthorSignature(
-    *comment, COMMENT_SIG_ORDER, d.User.SerializedPrivateKey,
-  )
+  err = comment.AppendSignature(d.User.SerializedPrivateKey,
+    comment.SignatureOrder(), federation.AuthorSignatureType)
   if err != nil {
     revel.ERROR.Println(err)
     return
@@ -67,16 +64,13 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
   // if user is local generate a signature
   err = db.First(&parentUser, parentPost.Person.UserID).Error
   if err == nil {
-    parentAuthorSig, err := federation.AuthorSignature(
-      *comment, COMMENT_SIG_ORDER, parentUser.SerializedPrivateKey,
-    )
+    err = comment.AppendSignature(parentUser.SerializedPrivateKey,
+      comment.SignatureOrder(), federation.ParentAuthorSignatureType)
     if err != nil {
       revel.ERROR.Println(err)
       return
     }
-    (*comment).ParentAuthorSignature = parentAuthorSig
   }
-  (*comment).AuthorSignature = authorSig
 
   // save post locally
   var dbComment models.Comment
