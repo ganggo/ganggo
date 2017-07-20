@@ -108,6 +108,10 @@ func (p *Post) Cast(entity *federation.EntityStatusMessage, reshare bool) (err e
   return nil
 }
 
+func (p *Post) IsLocal() (User, bool) {
+  return parentIsLocal(p.ID)
+}
+
 func (posts *Posts) FindAll(userID uint, offset int) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {

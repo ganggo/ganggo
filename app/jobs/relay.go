@@ -114,6 +114,8 @@ func (r *Receiver) RelayPrivate(user models.User, visibilities models.AspectVisi
 }
 
 func (r *Receiver) appendParentAuthorSignature(user models.User) (entityXML []byte, err error) {
+  revel.WARN.Println("signatureorder",r.Entity.SignatureOrder)
+
   // always generate a parent author signature
   // if the original post is local
   switch entity := r.Entity.Data.(type) {
@@ -138,6 +140,13 @@ func (r *Receiver) appendParentAuthorSignature(user models.User) (entityXML []by
       return entityXML, err
     }
 
+    entityXML, err = xml.Marshal(entity)
+    if err != nil {
+      revel.ERROR.Println(err)
+      return entityXML, err
+    }
+  case federation.EntityRetraction:
+    // for retraction we do not have author signatures
     entityXML, err = xml.Marshal(entity)
     if err != nil {
       revel.ERROR.Println(err)

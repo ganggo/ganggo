@@ -60,8 +60,10 @@ func (f *FetchAuthor) Run() {
 
   // add host to pod list
   pod := models.Pod{Host: host}
-  if err := db.Save(&pod).Error; err != nil {
-    revel.TRACE.Println("The host already exists", err)
+  if err := db.FirstOrCreate(&pod).Error; err != nil {
+    revel.ERROR.Println(err)
+    (*f).Err = err
+    return
   }
 
   webFinger := federation.WebFinger{
