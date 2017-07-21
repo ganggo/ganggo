@@ -69,7 +69,9 @@ func (c *Comment) Count() (count int, err error) {
   }
   defer db.Close()
 
-  db.Table("comments").Count(&count)
+  db.Table("comments").Joins(
+    `left join people on comments.person_id = people.id`,
+  ).Where("people.user_id > 0").Count(&count)
   return
 }
 

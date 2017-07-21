@@ -60,7 +60,9 @@ func (p *Post) Count() (count int, err error) {
   }
   defer db.Close()
 
-  db.Table("posts").Count(&count)
+  db.Table("posts").Joins(
+    `left join people on posts.person_id = people.id`,
+  ).Where("people.user_id > 0").Count(&count)
   return
 }
 
