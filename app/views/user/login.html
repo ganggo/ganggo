@@ -1,0 +1,24 @@
+{{set . "title" "Home"}}
+{{template "header.html" .}}
+
+<div class="row">
+  <div class="col-md-4 col-md-offset-4">
+    <div class="main-login main-center">
+      <h1>Login</h1>
+      <hr/>
+      <form class="form-horizontal" method="post" action="/users/sign_in">
+        <div class="form-group">
+          <input type="text" class="form-control" name="username" placeholder="Username" required="required" />
+        </div>
+        <div class="form-group">
+          <input type="password" class="form-control" name="password" placeholder="Password" required="required" />
+        </div>
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary btn-block">Let me in.</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{{template "footer.html" .}}

@@ -188,6 +188,12 @@ func (u User) Login() revel.Result {
     user models.User
     session models.Session
   )
+
+  // render the login screen on GET
+  if u.Request.Method == "GET" {
+    return u.Render()
+  }
+
   u.Params.Bind(&username, "username")
   u.Params.Bind(&password, "password")
 

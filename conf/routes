@@ -21,7 +21,7 @@ GET     /nodeinfo/:version                      NodeInfo.Schema
 GET     /.well-known/x-social-relay             SocialRelay.Index
 
 # Login
-POST    /users/sign_in                          User.Login
+*       /users/sign_in                          User.Login
 *       /users/sign_out                         User.Logout
 GET     /users/sign_up                          User.Index
 POST    /users/sign_up                          User.Create

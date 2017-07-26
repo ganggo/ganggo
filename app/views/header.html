@@ -45,6 +45,7 @@
           {{if ne $user.Username ""}}
           <li><a href="/users/sign_out" data-method="delete">Hi {{$user.Username}}, Logout?</a></li>
           {{else}}
+          <li><a href="/users/sign_in">Login</a></li>
           <li><a href="/users/sign_up">Register</a></li>
           {{end}}
         </ul>
