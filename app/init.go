@@ -23,6 +23,7 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/views"
+  federation "gopkg.in/ganggo/federation.v0"
   "net/http"
   "github.com/shaoshing/train"
   "strings"
@@ -99,6 +100,10 @@ func init() {
   // register startup functions with OnAppStart
   revel.OnAppStart(InitDB)
   revel.OnAppStart(InitSocialRelay)
+  // set federation logger to revel
+  revel.OnAppStart(func() {
+    federation.SetLogger(revel.TRACE)
+  })
 
   train.Config.AssetsPath = "app/assets"
   train.Config.SASS.DebugInfo = false
