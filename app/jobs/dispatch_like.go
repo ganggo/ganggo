@@ -24,7 +24,8 @@ import (
 )
 
 func (d *Dispatcher) Like(like federation.EntityLike) {
-  err := like.AppendSignature(d.User.SerializedPrivateKey,
+  err := like.AppendSignature(
+    []byte(d.User.SerializedPrivateKey),
     like.SignatureOrder(), federation.AuthorSignatureType)
   if err != nil {
     revel.ERROR.Println(err)
@@ -33,7 +34,8 @@ func (d *Dispatcher) Like(like federation.EntityLike) {
 
   // if parent user is local generate a signature
   if d.ParentUser != nil {
-    err := like.AppendSignature(d.ParentUser.SerializedPrivateKey,
+    err := like.AppendSignature(
+      []byte(d.ParentUser.SerializedPrivateKey),
       like.SignatureOrder(), federation.ParentAuthorSignatureType)
     if err != nil {
       revel.ERROR.Println(err)

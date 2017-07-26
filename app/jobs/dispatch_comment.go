@@ -47,7 +47,8 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
   (*comment).Author = d.User.Person.Author
   (*comment).Guid = guid
 
-  err = comment.AppendSignature(d.User.SerializedPrivateKey,
+  err = comment.AppendSignature(
+    []byte(d.User.SerializedPrivateKey),
     comment.SignatureOrder(), federation.AuthorSignatureType)
   if err != nil {
     revel.ERROR.Println(err)
@@ -64,7 +65,8 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
   // if user is local generate a signature
   err = db.First(&parentUser, parentPost.Person.UserID).Error
   if err == nil {
-    err = comment.AppendSignature(parentUser.SerializedPrivateKey,
+    err = comment.AppendSignature(
+      []byte(parentUser.SerializedPrivateKey),
       comment.SignatureOrder(), federation.ParentAuthorSignatureType)
     if err != nil {
       revel.ERROR.Println(err)

@@ -17,19 +17,13 @@ package jobs
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import (
-  "github.com/revel/revel"
-)
+import "github.com/revel/revel"
 
-var (
-  MAX_ASYNC_JOBS int
-)
+var MAX_ASYNC_JOBS int
 
 func init() {
   revel.OnAppStart(func() {
     revel.Config.SetSection("ganggo")
     MAX_ASYNC_JOBS = revel.Config.IntDefault("max_async_jobs", 20)
-
-  //  jobs.Schedule("@every 24h", PodsJob{})
   })
 }

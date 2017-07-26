@@ -120,7 +120,8 @@ func (r *Receiver) appendParentAuthorSignature(user models.User) (entityXML []by
   // if the original post is local
   switch entity := r.Entity.Data.(type) {
   case federation.EntityLike:
-    err = entity.AppendSignature(user.SerializedPrivateKey,
+    err = entity.AppendSignature(
+      []byte(user.SerializedPrivateKey),
       r.Entity.SignatureOrder, federation.ParentAuthorSignatureType)
     if err != nil {
       revel.ERROR.Println(err)
@@ -133,7 +134,8 @@ func (r *Receiver) appendParentAuthorSignature(user models.User) (entityXML []by
       return entityXML, err
     }
   case federation.EntityComment:
-    err = entity.AppendSignature(user.SerializedPrivateKey,
+    err = entity.AppendSignature(
+      []byte(user.SerializedPrivateKey),
       r.Entity.SignatureOrder, federation.ParentAuthorSignatureType)
     if err != nil {
       revel.ERROR.Println(err)
