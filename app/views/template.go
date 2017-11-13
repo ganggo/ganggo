@@ -18,9 +18,11 @@ package views
 //
 
 import (
+  "github.com/shaoshing/train"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
+  "html/template"
   "github.com/jinzhu/gorm"
   "github.com/dchest/captcha"
   _ "github.com/jinzhu/gorm/dialects/postgres"
@@ -101,6 +103,40 @@ var TemplateFuncs = map[string]interface{}{
   },
   // captcha generator
   "CaptchaNew": func() string { return captcha.New() },
+  // custom train script/stylesheet include functions
+  "javascript_include_tag": func(name string) template.HTML {
+    path := "/assets/javascripts/" + name + ".js"
+    src := loadAndFetchManifestEntry(path)
+    tmpl := "<script src=\"/public/" + src + "\"></script>"
+    if src == "" {
+      tmpl = "Cannot load asset '" + name + "'.js"
+      revel.ERROR.Println(tmpl)
+    }
+    return template.HTML(tmpl)
+  },
+  "stylesheet_link_tag": func(name string) template.HTML {
+    path := "/assets/stylesheets/" + name + ".css"
+    src := loadAndFetchManifestEntry(path)
+    tmpl := "<link type=\"text/css\" rel=\"stylesheet\" href=\"/public/" + src + "\">"
+    if src == "" {
+      tmpl = "Cannot load asset '" + name + "'.css"
+      revel.ERROR.Println(tmpl)
+    }
+    return template.HTML(tmpl)
+  },
+}
+
+func loadAndFetchManifestEntry(path string) (src string) {
+  if len(train.ManifestInfo) <= 0 {
+    train.Config.PublicPath = "src/" + revel.ImportPath + "/public"
+    err := train.LoadManifestInfo()
+    if err != nil {
+      revel.ERROR.Println(err)
+      return
+    }
+  }
+  src = train.ManifestInfo[path]
+  return
 }
 
 func likes(id uint, like bool) (likes []models.Like) {

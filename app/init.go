@@ -25,7 +25,6 @@ import (
   "gopkg.in/ganggo/ganggo.v0/app/views"
   federation "gopkg.in/ganggo/federation.v0"
   "net/http"
-  "github.com/shaoshing/train"
   "strings"
   "fmt"
 )
@@ -81,7 +80,6 @@ func InitSocialRelay() {
 func init() {
   // Filters is the default set of global filters.
   revel.Filters = []revel.Filter{
-    AssetsFilter,
     revel.PanicFilter,             // Recover from panics and display an error page instead.
     revel.RouterFilter,            // Use the routing table to select the right Action
     revel.FilterConfiguringFilter, // A hook for adding or removing per-Action filters.
@@ -105,17 +103,6 @@ func init() {
     federation.SetLogger(revel.TRACE)
   })
 
-  train.Config.AssetsPath = "app/assets"
-  train.Config.SASS.DebugInfo = false
-  train.Config.SASS.LineNumbers = false
-  train.Config.Verbose = false
-  train.Config.BundleAssets = true
-
-  // assets
-  train.ConfigureHttpHandler(nil)
-  revel.TemplateFuncs["javascript_include_tag"] = train.JavascriptTag
-  revel.TemplateFuncs["stylesheet_link_tag"] = train.StylesheetTag
-
   // append custom template functions to revel
   for key, val := range views.TemplateFuncs {
     revel.TemplateFuncs[key] = val
@@ -132,15 +119,6 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
   c.Response.Out.Header().Add("X-Content-Type-Options", "nosniff")
 
   fc[0](c, fc[1:]) // Execute the next filter stage.
-}
-
-var AssetsFilter = func(c *revel.Controller, fc []revel.Filter) {
-  path := c.Request.URL.Path
-  if strings.HasPrefix(path, "/assets") {
-    train.ServeRequest(c.Response.Out, c.Request.Request)
-  } else {
-    fc[0](c, fc[1:])
-  }
 }
 
 var JsonParamsFilter = func(c *revel.Controller, fc []revel.Filter) {
