@@ -43,7 +43,8 @@ func (r Receiver) Public() revel.Result {
   }
   defer db.Close()
 
-  content, err := ioutil.ReadAll(r.Request.Body)
+  request := r.Request.In.GetRaw().(*http.Request)
+  content, err := ioutil.ReadAll(request.Body)
   if err != nil {
     r.Response.Status = http.StatusNotAcceptable
     return r.Render()

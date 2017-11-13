@@ -124,7 +124,8 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 var JsonParamsFilter = func(c *revel.Controller, fc []revel.Filter) {
   if strings.Contains(c.Request.ContentType, "application/json") {
     data := map[string]string{}
-    content, _ := ioutil.ReadAll(c.Request.Body)
+    request := c.Request.In.GetRaw().(*http.Request)
+    content, _ := ioutil.ReadAll(request.Body)
     json.Unmarshal(content, &data)
     for k, v := range data {
       revel.TRACE.Println("application/json", k, v)
