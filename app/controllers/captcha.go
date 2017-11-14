@@ -45,7 +45,7 @@ func (name DisplayImageByName) Apply(req *revel.Request, resp *revel.Response) {
     status = http.StatusInternalServerError
   }
   resp.WriteHeader(status, "image/png")
-  resp.Out.Write(content.Bytes())
+  resp.GetWriter().Write(content.Bytes())
 }
 
 func (c Captcha) Index(name string) revel.Result {
