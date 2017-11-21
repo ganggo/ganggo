@@ -1,6 +1,8 @@
 /*
  *= require stylesheets/reshare_box
  *= require stylesheets/stream_editor_box
+ *= require stylesheets/revealjs
+ *= require stylesheets/post_panel
  */
 
 html {

@@ -1,0 +1,18 @@
+.reveal p {
+  font-size: 0.7em;
+}
+
+.thumbnail {
+  background-color: transparent;
+}
+.scrollable_parent {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+.scrollable_child {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  padding-right: 20px;
+}

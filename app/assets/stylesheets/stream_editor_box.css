@@ -1,3 +1,7 @@
+textarea {
+  min-height: 200px;
+}
+
 .nopadding-right {
   padding-right: 0 !important;
   margin-right: 0 !important;

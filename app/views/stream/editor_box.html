@@ -1,25 +1,31 @@
-<form action="/api/v0/posts" method="post">
-  <div class="form-group">
-    <div class="row">
-      <div class="col-md-12">
-        <textarea class="form-control compressed" name="post" placeholder="I like cats !!"></textarea>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-10 nopadding-right">
-        <button class="btn btn-primary btn-large btn-block" type="submit">
-          <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span> Post It
-        </button>
-      </div>
-      <div class="col-md-2">
+<section>
+  <div class="row">
+    <div class="col-md-12">
+      <form action="/api/v0/posts" method="post">
         <div class="form-group">
-          <select id="aspect-list" name="aspectID" class="form-control">
-            <option value="0">Public</option>
-          </select>
+          <div class="row">
+            <div class="col-md-12">
+              <textarea class="form-control compressed" name="post" placeholder="I like cats !!"></textarea>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-10 nopadding-right">
+              <button class="btn btn-primary btn-large btn-block" type="submit">
+                <i class="fa fa-share-square-o"></i> Post It
+              </button>
+            </div>
+            <div class="col-md-2">
+              <div class="form-group">
+                <select id="aspect-list" name="aspectID" class="form-control">
+                  <option value="0">Public</option>
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </form>
     </div>
   </div>
-</form>
+</section>
 
 {{javascript_include_tag "aspects_editor_box"}}

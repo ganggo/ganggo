@@ -146,5 +146,7 @@ func (membership *AspectMembership) Delete() (err error) {
   }
   defer db.Close()
 
-  return db.Delete(membership).Error
+  return db.Where("aspect_id = ? and person_id = ?",
+    membership.AspectID, membership.PersonID,
+  ).Delete(membership).Error
 }

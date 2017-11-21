@@ -10,6 +10,7 @@ module:api
 GET     /                                       App.Index
 
 GET     /stream                                 Stream.Index
+GET     /stream/:page                           Stream.Index
 POST    /search                                 Search.Create
 GET     /profiles/:guid                         Profile.Index
 
