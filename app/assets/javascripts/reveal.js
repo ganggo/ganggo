@@ -83,7 +83,7 @@ Reveal.addEventListener('ready', function(event) {
     var elem = $(elem);
     var ts = elem.attr("datetime").split(/\s/);
     var i = elem.find("i");
-    var text = parseTime(ts[0] + " " + ts[1]);
+    var text = parseTime(ts[0] + " " + ts[1] + "Z");
     elem.text(" " + text + " ago");
     elem.prepend(i);
   });

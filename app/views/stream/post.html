@@ -16,7 +16,7 @@
               <div class="comment-user">
                 <i class="fa fa-user-o"></i> {{.Person.Profile.Author}}
               </div>
-              <time class="comment-date" datetime="{{.CreatedAt}}">
+              <time class="comment-date" datetime="{{.CreatedAt.UTC}}">
                 <i class="fa fa-clock-o"></i>
               </time>
             </header>
