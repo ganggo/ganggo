@@ -7,25 +7,16 @@
 <div class="row">
   <div class="col-md-12">
     <div class="main-login main-center">
-      <header class="text-left">
-        <div class="comment-user pull-right">
-          <img src="{{$profile.ImageUrl}}" border="0" />
-        </div>
-      </header>
+      <img src="{{$profile.ImageUrl}}" border="0" />
       <h2>{{$profile.Author}}</h2>
       <hr/>
-      <form id="create-aspect">
-        <input type="text" style="display:none" id="personId" value="{{.person.ID}}">
-        <input type="text" style="display:none" id="aspectName" class="create-aspect" placeholder="Family">
+      <h3>Aspects</h3>
+      <ul id="aspectList"></ul>
+      <form id="aspect-form">
+        <input type="text" style="display:none" name="personID" value="{{.person.ID}}">
+        <input type="text" name="aspectName" placeholder="Add/Remove from aspects..">
         <input type="submit" style="display:none">
       </form>
-      <div class="dropdown create-aspect">
-        <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Add to Aspects <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" name="aspectID">
-          <li><a class="toggle-create-aspect" href="#">Create Aspect..</a></li>
-        </ul>
-      </div>
       <h3>{{$profile.FullName}}</h3>
       {{if ne $profile.Bio ""}}
       <p class="markdown">{{$profile.Bio}}</p>
@@ -45,6 +36,6 @@
   </div>
 </div>
 
-{{javascript_include_tag "aspect"}}
+{{javascript_include_tag "profile"}}
 
 {{template "footer.html" .}}

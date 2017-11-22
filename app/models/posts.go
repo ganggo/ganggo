@@ -48,7 +48,7 @@ type Post struct {
   InteractedAt string
 
   Person Person `gorm:"ForeignKey:PersonID";json:",omitempty"`
-  Comments []Comment `json:",omitempty"`
+  Comments []Comment `gorm:"ForeignKey:ShareableID";json:",omitempty"`
 }
 
 type Posts []Post
@@ -121,7 +121,7 @@ func (posts *Posts) FindAll(userID uint, offset int) (err error) {
   }
   defer db.Close()
 
-  return db.Offset(offset).Limit(10).Table("posts").
+  err = db.Offset(offset).Limit(10).Table("posts").
     Joins(`left join shareables on shareables.shareable_id = posts.id`).
     Where("posts.public = true").
     Or(`posts.id = shareables.shareable_id
@@ -129,6 +129,24 @@ func (posts *Posts) FindAll(userID uint, offset int) (err error) {
       and shareables.user_id = ?`,
         ShareablePost, userID,
     ).Order("posts.updated_at desc").Find(posts).Error
+  if err != nil {
+    return err
+  }
+
+  // TODO that should be handled automatically outside of this function
+  for index := range *posts {
+    var p *Post = &(*posts)[index]
+    db.Model(p).Related(&p.Person)
+    db.Model(&p.Person).Related(&p.Person.Profile)
+
+    db.Preload("Comments").First(&(*posts)[index])
+    for index := range p.Comments {
+      var c *Comment = &p.Comments[index]
+      db.Model(c).Related(&c.Person)
+      db.Model(&c.Person).Related(&c.Person.Profile)
+    }
+  }
+  return
 }
 
 func (post *Post) FindByID(id uint, withRelations bool) (err error) {

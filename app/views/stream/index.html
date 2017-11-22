@@ -2,23 +2,20 @@
 
 {{template "header.html" .}}
 
-<div class="row">
-  <div class="col-md-12">
+<div class="reveal">
+  <div class="slides">
     {{template "stream/editor_box.html"}}
+
+    {{range .posts}}
+      {{template "stream/post.html" .}}
+    {{end}}
   </div>
 </div>
-<div class="row">
-  <div class="col-md-12">
-    <h2 class="page-header">{{.title}}</h2>
-    <section id="post-list" class="comment-list">
-      <script>
-        var PostTemplate = `{{template "stream/post.html"}}`;
-        var CommentTemplate = `{{template "stream/comment.html"}}`;
-        var EditorCommentTemplate = `{{template "stream/editor_comment_box.html"}}`;
-      </script>
-    </section>
-    {{javascript_include_tag "stream"}}
-  </div>
-</div>
+
+<script src="/public/vendor/js/marked.min.js"></script>
+<script src="/public/vendor/js/reveal-3.5.0.js"></script>
+{{javascript_include_tag "reveal"}}
+<!-- requires reveal initialization -->
+<script src="/public/vendor/js/markdown.js"></script>
 
 {{template "footer.html" .}}

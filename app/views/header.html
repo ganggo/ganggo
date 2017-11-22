@@ -7,12 +7,19 @@
     <title>{{.title}}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="/public/vendor/js/jquery-2.2.4.min.js"></script>
-    <script src="/public/vendor/js/rest-client.min.js"></script>
     <link rel="shortcut icon" type="image/png" href="/public/img/favicon.png?v=2">
+    <!-- javascript libs -->
+    <script src="/public/vendor/js/jquery-2.2.4.min.js"></script>
+    <script src="/public/vendor/js/jquery-ui.min.js"></script>
+    <script src="/public/vendor/js/rest-client.min.js"></script>
+    <!-- stylesheets -->
     <link rel="stylesheet" type="text/css" href="/public/vendor/css/bootstrap-3.3.6.min.css">
+    <link rel="stylesheet" type="text/css" href="/public/vendor/css/jquery-ui.min.css">
+    <link rel="stylesheet" href="/public/vendor/css/reveal-3.5.0.css">
+    <link rel="stylesheet" href="/public/vendor/css/reveal-theme-white.css">
+    <link rel="stylesheet" href="/public/vendor/css/font-awesome.min.css">
+
     {{stylesheet_link_tag "main"}}
-    {{stylesheet_link_tag "post_panel"}}
   </head>
   <body>
   <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -24,12 +31,17 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="/">GangGo</a>
+        <a class="navbar-brand" href="#">GangGo</a>
       </div>
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
           {{if ne $user.Username ""}}
-          <li class="active"><a href="/stream">Stream</a></li>
+          <li{{if eq .title "Stream"}} class="active"{{end}}>
+            <a href="/stream">Stream</a>
+          </li>
+            {{if eq .title "Stream"}}
+            <li><a href="#" id="writePost">Write a post..</a></li>
+            {{end}}
           {{end}}
         </ul>
         <form class="navbar-form navbar-right" method="post" action="/search">
@@ -53,10 +65,4 @@
     </div>
   </nav>
 
-  <div id="main_stream" class="container">
-    <div class="row">
-      <div class="col-md-12">
-        {{template "flash.html" .}}
-      </div>
-    </div>
 

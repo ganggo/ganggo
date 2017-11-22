@@ -1,3 +1,5 @@
+//= require javascripts/parse_time
+
 (function($) {
   var origAppend = $.fn.append;
   $.fn.append = function () {

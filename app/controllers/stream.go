@@ -27,8 +27,9 @@ type Stream struct {
   *revel.Controller
 }
 
-func (s Stream) Index() revel.Result {
+func (s Stream) Index(page int) revel.Result {
   var posts models.Posts
+  var offset int = ((page - 1) * 10)
 
   user, err := models.GetCurrentUser(s.Session["TOKEN"])
   if err != nil {
@@ -36,7 +37,7 @@ func (s Stream) Index() revel.Result {
     return s.RenderError(err)
   }
 
-  err = posts.FindAll(user.ID, 0)
+  err = posts.FindAll(user.ID, offset)
   if err != nil {
     s.Response.Status = http.StatusInternalServerError
     revel.WARN.Println(err)

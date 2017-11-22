@@ -117,6 +117,7 @@ func InitDB() {
   aspect := &Aspect{}
   //db.Model(aspect).AddIndex("index_aspects_on_user_id_and_contacts_visible", "user_id", "contacts_visible")
   db.Model(aspect).AddIndex("index_aspects_on_user_id", "user_id")
+  db.Model(aspect).AddUniqueIndex("index_aspects_on_user_id_and_name", "user_id", "name")
   db.AutoMigrate(aspect)
 
   aspectMembership := &AspectMembership{}

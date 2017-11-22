@@ -107,7 +107,7 @@ var TemplateFuncs = map[string]interface{}{
   "javascript_include_tag": func(name string) template.HTML {
     path := "/assets/javascripts/" + name + ".js"
     src := loadAndFetchManifestEntry(path)
-    tmpl := "<script src=\"/public/" + src + "\"></script>"
+    tmpl := `<script src="/public` + src + `"></script>`
     if src == "" {
       tmpl = "Cannot load asset '" + name + "'.js"
       revel.ERROR.Println(tmpl)
@@ -117,12 +117,15 @@ var TemplateFuncs = map[string]interface{}{
   "stylesheet_link_tag": func(name string) template.HTML {
     path := "/assets/stylesheets/" + name + ".css"
     src := loadAndFetchManifestEntry(path)
-    tmpl := "<link type=\"text/css\" rel=\"stylesheet\" href=\"/public/" + src + "\">"
+    tmpl := `<link type="text/css" rel="stylesheet" href="/public` + src + `">`
     if src == "" {
       tmpl = "Cannot load asset '" + name + "'.css"
       revel.ERROR.Println(tmpl)
     }
     return template.HTML(tmpl)
+  },
+  "eq": func(a, b interface {}) bool {
+    return a == b
   },
 }
 
