@@ -19,6 +19,7 @@ package controllers
 
 import (
   "github.com/revel/revel"
+  "net/http"
 )
 
 type App struct {
@@ -26,5 +27,6 @@ type App struct {
 }
 
 func (c App) Index() revel.Result {
+  c.Response.Status = http.StatusOK
   return c.Render()
 }
