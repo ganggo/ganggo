@@ -27,6 +27,7 @@ POST    /users/sign_up                          User.Create
 GET     /captcha/:name                          Captcha.Index
 
 # Federation
+*       /.well-known/host-meta                  Webfinger.HostMeta
 *       /.well-known/webfinger                  Webfinger.Webfinger
 *       /hcard/users/:guid                      Hcard.User
 *       /receive/public                         Receiver.Public

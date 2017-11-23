@@ -118,3 +118,33 @@ func (c Webfinger) Webfinger() revel.Result {
 
   return c.RenderJSON(json)
 }
+
+func (c Webfinger) HostMeta() revel.Result {
+  var m federation.WebfingerXml
+  revel.Config.SetSection("ganggo")
+  proto, ok := revel.Config.String("proto")
+  if !ok {
+    c.Response.Status = http.StatusNotFound
+    revel.TRACE.Println("no proto config found")
+    return c.RenderXML(m)
+  }
+  address, ok := revel.Config.String("address")
+  if !ok {
+    c.Response.Status = http.StatusNotFound
+    revel.TRACE.Println("no address config found")
+    return c.RenderXML(m)
+  }
+
+  m = federation.WebfingerXml{
+    Xmlns: "http://docs.oasis-open.org/ns/xri/xrd-1.0",
+    Links: []federation.WebfingerXmlLink{
+      federation.WebfingerXmlLink{
+        Rel: "lrdd",
+        Type: "application/xrd+xml",
+        Template: proto + address + "/webfinger?q={uri}",
+      },
+    },
+  }
+
+  return c.RenderXML(m)
+}
