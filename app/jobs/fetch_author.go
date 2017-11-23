@@ -76,7 +76,7 @@ func (f *FetchAuthor) Run() {
   }
 
   var hcard federation.Hcard
-  for _, link := range webFinger.Xrd.Links {
+  for _, link := range webFinger.Json.Links {
     if link.Rel == federation.WebFingerHcard {
       if err = hcard.Fetch(link.Href); err != nil {
         revel.ERROR.Println(err)
