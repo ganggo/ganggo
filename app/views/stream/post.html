@@ -13,12 +13,14 @@
         <div class="panel panel-default">
           <div class="panel-body">
             <header class="text-left">
-              <div class="comment-user">
-                <i class="fa fa-user-o"></i> {{.Person.Profile.Author}}
-              </div>
-              <time class="comment-date" datetime="{{.CreatedAt.UTC}}">
-                <i class="fa fa-clock-o"></i>
-              </time>
+              <a href="#">
+                <div class="comment-user">
+                  <i class="fa fa-user-o"></i> {{.Person.Profile.Author}}
+                </div>
+                <time class="comment-date" datetime="{{.CreatedAt.UTC}}">
+                  <i class="fa fa-clock-o"></i>
+                </time>
+              </a>
             </header>
             <div class="comment-post post">
               <p data-markdown data-template>{{.Text}}</p>

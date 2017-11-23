@@ -14,6 +14,13 @@ Reveal.addEventListener('slidechanged', function() {
 });
 
 Reveal.addEventListener('ready', function(event) {
+  // add a static link to slide
+  $("header a").click(function() {
+    var indices = Reveal.getIndices();
+    var href = window.location.href.split("#")[0];
+    window.location = href + "#/" + indices.h + "/" + indices.v;
+    return false;
+  });
   // the first slide is alway the textarea field
   if (Reveal.getSlides().length > 0) {
     Reveal.slide(1, 0);
