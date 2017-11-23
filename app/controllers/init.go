@@ -33,6 +33,7 @@ func init() {
   revel.InterceptFunc(redirectIfLoggedIn, revel.BEFORE, &App{})
   // requires login
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &Stream{})
+  revel.InterceptFunc(requiresLogin, revel.BEFORE, &Post{})
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &Search{})
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &Profile{})
   // API

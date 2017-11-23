@@ -83,7 +83,7 @@ func (visibility *AspectVisibility) Create() (err error) {
   return db.Create(visibility).Error
 }
 
-func (visibility *AspectVisibility) FindByParentGuid(guid string) (err error) {
+func (visibility *AspectVisibility) FindByGuid(guid string) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
     return err
@@ -91,7 +91,7 @@ func (visibility *AspectVisibility) FindByParentGuid(guid string) (err error) {
   defer db.Close()
 
   var post Post
-  err = post.FindByParentGuid(guid)
+  err = post.FindByGuid(guid)
   if err != nil {
     return err
   }

@@ -1,7 +1,9 @@
 .reveal p {
   font-size: 0.7em;
 }
-
+.reveal .alert {
+  padding: 15px;
+}
 .thumbnail {
   background-color: transparent;
 }

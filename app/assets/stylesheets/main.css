@@ -1,6 +1,5 @@
 /*
  *= require stylesheets/reshare_box
- *= require stylesheets/stream_editor_box
  *= require stylesheets/revealjs
  *= require stylesheets/post_panel
  */
@@ -40,7 +39,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .main-center{
   margin-top: 30px;
-  margin: 0 auto;
+  margin: 0 0 20px 0;
   padding: 40px 40px;
 }
 

@@ -1,0 +1,47 @@
+{{set . "title" "Post"}}
+
+{{template "header.html" .}}
+
+{{$person := .post.Person}}
+
+<div class="container comment-list">
+  <div class="row">
+    <div class="col-md-2 col-sm-2 hidden-xs">
+      <a href="/profiles/{{$person.Guid}}" target="_self">
+        <figure class="thumbnail">
+          <img class="img-responsive" src="{{$person.Profile.ImageUrl}}" />
+          <figcaption class="text-center">{{$person.Profile.FullName}}</figcaption>
+        </figure>
+      </a>
+    </div>
+    <div class="col-md-10 col-sm-10">
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <header class="text-left">
+            <a href="#">
+              <div class="comment-user">
+                <i class="fa fa-user-o"></i> {{$person.Profile.Author}}
+              </div>
+              <time class="comment-date" datetime="{{.post.CreatedAt.UTC}}">
+                <i class="fa fa-clock-o"></i>
+              </time>
+            </a>
+          </header>
+          <div class="comment-post post">
+            <p data-markdown data-template>{{.post.Text}}</p>
+          </div>
+          <div class="comment-footer">
+            <i data-id="{{.post.ID}}" class="fa fa-thumbs-o-down dislike"></i>
+            <i data-id="{{.post.ID}}" class="fa fa-thumbs-o-up like"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{range .post.Comments}}
+  {{template "post/comment.html" .}}
+  {{end}}
+  {{template "post/editor_comment_box.html" .post.ID}}
+</div>
+
+{{template "footer.html"}}

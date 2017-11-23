@@ -18,40 +18,23 @@ package controllers
 //
 
 import (
+  "net/http"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
 )
 
-type Profile struct {
+type Post struct {
   *revel.Controller
 }
 
-func (p Profile) Index(guid string) revel.Result {
-  return p.IndexPagination(guid, 0)
-}
+func (p Post) Index(guid string) revel.Result {
+  var post models.Post
 
-func (p Profile) IndexPagination(guid string, page int) revel.Result {
-  var (
-    offset int = ((page - 1) * 10)
-    posts models.Posts
-    person models.Person
-  )
-
-  err := person.FindByGuid(guid)
+  err := post.FindByGuid(guid)
   if err != nil {
-    revel.ERROR.Println(err)
-    return p.Redirect(Stream.Index)
+    p.Response.Status = http.StatusInternalServerError
+    revel.WARN.Println(err)
   }
 
-  err = posts.FindAllByPersonID(person.ID, offset)
-  if err != nil {
-    revel.ERROR.Println(err)
-    return p.Redirect(Stream.Index)
-  }
-
-  p.ViewArgs["posts"] = posts
-  p.ViewArgs["person"] = person
-  p.ViewArgs["page"] = page
-
-  return p.RenderTemplate("profile/index.html")
+  return p.Render(post)
 }

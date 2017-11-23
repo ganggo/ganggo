@@ -15,8 +15,11 @@
     <!-- stylesheets -->
     <link rel="stylesheet" type="text/css" href="/public/vendor/css/bootstrap-3.3.6.min.css">
     <link rel="stylesheet" type="text/css" href="/public/vendor/css/jquery-ui.min.css">
+    {{if eq .title "Stream"}}
     <link rel="stylesheet" href="/public/vendor/css/reveal-3.5.0.css">
     <link rel="stylesheet" href="/public/vendor/css/reveal-theme-white.css">
+    {{stylesheet_link_tag "stream_editor_box"}}
+    {{end}}
     <link rel="stylesheet" href="/public/vendor/css/font-awesome.min.css">
 
     {{stylesheet_link_tag "main"}}

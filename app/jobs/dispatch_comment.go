@@ -96,7 +96,7 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
   revel.TRACE.Println("entityXml", string(entityXml))
 
   var visibility models.AspectVisibility
-  err = visibility.FindByParentGuid(comment.ParentGuid)
+  err = visibility.FindByGuid(comment.ParentGuid)
   if err == nil && helpers.IsLocalHandle(d.ParentPerson.Author) {
     sendToAspect(visibility.AspectID, d.User.SerializedPrivateKey, comment.Author, entityXml)
   } else {

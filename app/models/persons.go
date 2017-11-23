@@ -62,5 +62,9 @@ func (person *Person) FindByGuid(guid string) (err error) {
   }
   defer db.Close()
 
-  return db.Where("guid = ?", guid).First(person).Error
+  err = db.Where("guid = ?", guid).First(person).Error
+  if err != nil {
+    return
+  }
+  return db.Model(person).Related(&person.Profile).Error
 }

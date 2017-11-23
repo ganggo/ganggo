@@ -132,22 +132,25 @@ func (posts *Posts) FindAll(userID uint, offset int) (err error) {
   if err != nil {
     return err
   }
-
-  // TODO that should be handled automatically outside of this function
-  for index := range *posts {
-    var p *Post = &(*posts)[index]
-    db.Model(p).Related(&p.Person)
-    db.Model(&p.Person).Related(&p.Person.Profile)
-
-    db.Preload("Comments").First(&(*posts)[index])
-    for index := range p.Comments {
-      var c *Comment = &p.Comments[index]
-      db.Model(c).Related(&c.Person)
-      db.Model(&c.Person).Related(&c.Person.Profile)
-    }
-  }
-  return
+  return posts.addRelations(db)
 }
+
+func (posts *Posts) FindAllByPersonID(id uint, offset int) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  err = db.Offset(offset).Limit(10).Table("posts").
+    Where("person_id = ?", id).
+    Order("posts.updated_at desc").Find(posts).Error
+  if err != nil {
+    return
+  }
+  return posts.addRelations(db)
+}
+
 
 func (post *Post) FindByID(id uint, withRelations bool) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
@@ -162,12 +165,12 @@ func (post *Post) FindByID(id uint, withRelations bool) (err error) {
   }
   // add relations only if it is required
   if withRelations {
-    db.Model(post).Related(&post.Person)
+    return post.addRelations(db)
   }
   return
 }
 
-func (post *Post) FindByParentGuid(guid string) (err error) {
+func (post *Post) FindByGuid(guid string) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
     return err
@@ -178,7 +181,39 @@ func (post *Post) FindByParentGuid(guid string) (err error) {
   if err != nil {
     return
   }
-  // XXX need relations !?
-  //db.Model(post).Related(&post.Person)
-  return
+  return post.addRelations(db)
+}
+
+func (posts *Posts) addRelations(db *gorm.DB) error {
+  for index := range *posts {
+    var p *Post = &(*posts)[index]
+    err := p.addRelations(db)
+    if err != nil {
+      return err
+    }
+  }
+  return nil
+}
+
+func (post *Post) addRelations(db *gorm.DB) error {
+  err := db.Model(post).Related(&post.Person).Error
+  if err != nil {
+    return err
+  }
+  err = db.Model(&post.Person).Related(&post.Person.Profile).Error
+  if err != nil {
+    return err
+  }
+  err = db.Preload("Comments").First(post).Error
+  if err != nil {
+    return err
+  }
+  for index := range post.Comments {
+    var c *Comment = &post.Comments[index]
+    err = c.addRelations(db)
+    if err != nil {
+      return err
+    }
+  }
+  return nil
 }

@@ -1,6 +1,6 @@
 .comment-list header {
   padding: 10px;
-  font-size: 0.4em;
+  font-size: 15px;
   color: #555;
 }
 .comment-list .row {
@@ -38,14 +38,9 @@
 }
 /*Likes and dislikes*/
 .comment-list .comment-footer {
-  font-size: 0.5em;
+  font-size: 18px;
   text-align: right;
   padding: 15px 30px 15px 30px;
-}
-.comment-list .comment-footer i.glyphicon {
-  display: inline;
-  font-size: 1.125em;
-  cursor: pointer;
 }
 .comment-list .comment-footer i.fa-thumbs-o-up {
   color: #1abc9c;

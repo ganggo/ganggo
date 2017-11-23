@@ -117,3 +117,11 @@ func (c *Comments) FindByPostID(id uint) (err error) {
 
   return db.Where("shareable_id = ? and shareable_type = ?", id, ShareablePost).Find(c).Error
 }
+
+func (comment *Comment) addRelations(db *gorm.DB) error {
+  err := db.Model(comment).Related(&comment.Person).Error
+  if err != nil {
+    return err
+  }
+  return db.Model(&comment.Person).Related(&comment.Person.Profile).Error
+}

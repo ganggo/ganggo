@@ -4,38 +4,49 @@
 
 {{template "header.html" .}}
 
-<div class="row">
-  <div class="col-md-12">
-    <div class="main-login main-center">
-      <img src="{{$profile.ImageUrl}}" border="0" />
-      <h2>{{$profile.Author}}</h2>
-      <hr/>
-      <h3>Aspects</h3>
-      <ul id="aspectList"></ul>
-      <form id="aspect-form">
-        <input type="text" style="display:none" name="personID" value="{{.person.ID}}">
-        <input type="text" name="aspectName" placeholder="Add/Remove from aspects..">
-        <input type="submit" style="display:none">
-      </form>
-      <h3>{{$profile.FullName}}</h3>
-      {{if ne $profile.Bio ""}}
-      <p class="markdown">{{$profile.Bio}}</p>
-      <hr/>
-      {{end}}
-      {{$formatedDate := $profile.Birthday.Format "2006-01-02"}}
-      {{if ne $formatedDate "0001-01-01"}}
-      <h4>Birthday: </h4> {{$formatedDate}}
-      {{end}}
-      {{if ne $profile.Gender ""}}
-      <h4>Gender</h4> {{$profile.Gender}}
-      {{end}}
-      {{if ne $profile.Location ""}}
-      <h4>Location</h4> {{$profile.Location}}
-      {{end}}
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="main-login main-center">
+        <img src="{{$profile.ImageUrl}}" border="0" />
+        <h2>{{$profile.Author}}</h2>
+        <hr/>
+        <h3>Aspects</h3>
+        <ul id="aspectList"></ul>
+        <form id="aspect-form">
+          <input type="text" style="display:none" name="personID" value="{{.person.ID}}">
+          <input type="text" name="aspectName" placeholder="Add/Remove from aspects..">
+          <input type="submit" style="display:none">
+        </form>
+        <h3>{{$profile.FullName}}</h3>
+        {{if ne $profile.Bio ""}}
+        <p class="markdown">{{$profile.Bio}}</p>
+        <hr/>
+        {{end}}
+        {{$formatedDate := $profile.Birthday.Format "2006-01-02"}}
+        {{if ne $formatedDate "0001-01-01"}}
+        <h4>Birthday: </h4> {{$formatedDate}}
+        {{end}}
+        {{if ne $profile.Gender ""}}
+        <h4>Gender</h4> {{$profile.Gender}}
+        {{end}}
+        {{if ne $profile.Location ""}}
+        <h4>Location</h4> {{$profile.Location}}
+        {{end}}
+      </div>
     </div>
   </div>
+  {{javascript_include_tag "profile"}}
+  {{range .posts}}
+  {{template "profile/post.html" .}}
+  {{end}}
+  <ul class="pager">
+    {{$prev := sub .page 1}}
+    {{if gt $prev 0}}
+    <li><a href="/profiles/{{.person.Guid}}/{{$prev}}">Previous</a></li>
+    {{end}}
+    <li><a href="/profiles/{{.person.Guid}}/{{add .page 1}}">Next</a></li>
+  </ul>
 </div>
-
-{{javascript_include_tag "profile"}}
 
 {{template "footer.html" .}}

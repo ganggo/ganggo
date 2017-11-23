@@ -13,7 +13,7 @@
         <div class="panel panel-default">
           <div class="panel-body">
             <header class="text-left">
-              <a href="#">
+              <a href="/posts/{{.Guid}}">
                 <div class="comment-user">
                   <i class="fa fa-user-o"></i> {{.Person.Profile.Author}}
                 </div>
@@ -26,6 +26,9 @@
               <p data-markdown data-template>{{.Text}}</p>
             </div>
             <div class="comment-footer">
+              <a href="/posts/{{.Guid}}">
+                <i class="fa fa-comments-o">{{len .Comments}}</i>
+              </a>
               <i data-id="{{.ID}}" class="fa fa-thumbs-o-down dislike"></i>
               <i data-id="{{.ID}}" class="fa fa-thumbs-o-up like"></i>
             </div>
@@ -33,9 +36,5 @@
         </div>
       </div>
     </article>
-    {{template "stream/editor_comment_box.html" .ID}}
   </section>
-  {{range .Comments}}
-    {{template "stream/comment.html" .}}
-  {{end}}
 </section>

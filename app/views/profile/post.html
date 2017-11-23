@@ -1,0 +1,36 @@
+<div class="row comment-list">
+  <div class="col-md-2 col-sm-2 hidden-xs">
+    <a href="/profiles/{{.Person.Guid}}" target="_self">
+      <figure class="thumbnail">
+        <img class="img-responsive" src="{{.Person.Profile.ImageUrl}}" />
+        <figcaption class="text-center">{{.Person.Profile.FullName}}</figcaption>
+      </figure>
+    </a>
+  </div>
+  <div class="col-md-10 col-sm-10">
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <header class="text-left">
+          <a href="/posts/{{.Guid}}">
+            <div class="comment-user">
+              <i class="fa fa-user-o"></i> {{.Person.Profile.Author}}
+            </div>
+            <time class="comment-date" datetime="{{.CreatedAt.UTC}}">
+              <i class="fa fa-clock-o"></i>
+            </time>
+          </a>
+        </header>
+        <div class="comment-post post">
+          <p data-markdown data-template>{{.Text}}</p>
+        </div>
+        <div class="comment-footer">
+          <a href="/posts/{{.Guid}}">
+            <i class="fa fa-comments-o">{{len .Comments}}</i>
+          </a>
+          <i data-id="{{.ID}}" class="fa fa-thumbs-o-down dislike"></i>
+          <i data-id="{{.ID}}" class="fa fa-thumbs-o-up like"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
