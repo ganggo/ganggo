@@ -8,7 +8,7 @@ module:api
 GET     /                                       App.Index
 
 GET     /stream                                 Stream.Index
-GET     /stream/:page                           Stream.Index
+GET     /stream/:page                           Stream.IndexPagination
 POST    /search                                 Search.Create
 GET     /profiles/:guid                         Profile.Index
 

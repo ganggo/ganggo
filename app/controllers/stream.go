@@ -27,7 +27,11 @@ type Stream struct {
   *revel.Controller
 }
 
-func (s Stream) Index(page int) revel.Result {
+func (s Stream) Index() revel.Result {
+  return s.IndexPagination(0)
+}
+
+func (s Stream) IndexPagination(page int) revel.Result {
   var posts models.Posts
   var offset int = ((page - 1) * 10)
 
@@ -44,5 +48,5 @@ func (s Stream) Index(page int) revel.Result {
   }
   s.ViewArgs["posts"] = posts
 
-  return s.Render()
+  return s.RenderTemplate("stream/index.html")
 }

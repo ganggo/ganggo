@@ -47,7 +47,7 @@ func init() {
 func redirectIfLoggedIn(c *revel.Controller) revel.Result {
   result := requiresLogin(c)
   if result == nil {
-    return c.Redirect("/stream")
+    return c.Redirect(Stream.Index)
   }
   return nil
 }
