@@ -34,37 +34,38 @@ type Webfinger struct {
 }
 
 func (c Webfinger) Webfinger() revel.Result {
-  var(
-    q string
-    m federation.WebfingerXml
+  var (
+    resource string
+    json federation.WebfingerJson
   )
 
-  c.Params.Bind(&q, "q")
+  c.Params.Bind(&resource, "resource")
+
   revel.Config.SetSection("ganggo")
   proto, ok := revel.Config.String("proto")
   if !ok {
     c.Response.Status = http.StatusNotFound
     revel.TRACE.Println("no proto config found")
-    return c.RenderXML(m)
+    return c.RenderJSON(json)
   }
   address, ok := revel.Config.String("address")
   if !ok {
     c.Response.Status = http.StatusNotFound
     revel.TRACE.Println("no address config found")
-    return c.RenderXML(m)
+    return c.RenderJSON(json)
   }
 
-  username, err := federation.ParseWebfingerHandle(q)
+  username, err := federation.ParseWebfingerHandle(resource)
   if err != nil {
     c.Response.Status = http.StatusNotFound
     revel.TRACE.Println(err)
-    return c.RenderXML(m)
+    return c.RenderJSON(json)
   }
 
   db, err := gorm.Open(models.DB.Driver, models.DB.Url)
   if err != nil {
     revel.WARN.Println(err)
-    return c.Render()
+    return c.RenderJSON(json)
   }
   defer db.Close()
 
@@ -73,55 +74,47 @@ func (c Webfinger) Webfinger() revel.Result {
   if err != nil {
     c.Response.Status = http.StatusNotFound
     revel.TRACE.Println(err)
-    return c.RenderXML(m)
+    return c.RenderJSON(json)
   }
 
-  m = federation.WebfingerXml{
-    Xmlns: "http://docs.oasis-open.org/ns/xri/xrd-1.0",
+  json = federation.WebfingerJson{
     Subject: "acct:" + username + "@" + address,
-    Links: []federation.WebfingerXmlLink{
-      federation.WebfingerXmlLink {
+    Aliases: []string{proto + address + "/people/" + person.Guid},
+    Links: []federation.WebfingerJsonLink{
+      federation.WebfingerJsonLink {
         Rel: "http://microformats.org/profile/hcard",
         Type: "text/html",
         Href: proto + address + "/hcard/users/" + person.Guid,
       },
-      federation.WebfingerXmlLink {
+      federation.WebfingerJsonLink {
         Rel: "http://joindiaspora.com/seed_location",
         Type: "text/html",
         Href: proto + address + "/",
       },
-    },
-  }
-
-  return c.RenderXML(m)
-}
-
-func (c Webfinger) HostMeta() revel.Result {
-  var m federation.WebfingerXml
-  revel.Config.SetSection("ganggo")
-  proto, ok := revel.Config.String("proto")
-  if !ok {
-    c.Response.Status = http.StatusNotFound
-    revel.TRACE.Println("no proto config found")
-    return c.RenderXML(m)
-  }
-  address, ok := revel.Config.String("address")
-  if !ok {
-    c.Response.Status = http.StatusNotFound
-    revel.TRACE.Println("no address config found")
-    return c.RenderXML(m)
-  }
-
-  m = federation.WebfingerXml{
-    Xmlns: "http://docs.oasis-open.org/ns/xri/xrd-1.0",
-    Links: []federation.WebfingerXmlLink{
-      federation.WebfingerXmlLink{
-        Rel: "lrdd",
-        Type: "application/xrd+xml",
-        Template: proto + address + "/webfinger?q={uri}",
+      federation.WebfingerJsonLink {
+        Rel: "http://webfinger.net/rel/profile-page",
+        Type: "text/html",
+        Href: proto + address + "/u/" + username,
+      },
+      federation.WebfingerJsonLink {
+        Rel: "http://schemas.google.com/g/2010#updates-from",
+        Type: "application/atom+xml",
+        Href: proto + address + "/public/" + username + ".atom",
+      },
+      federation.WebfingerJsonLink {
+        Rel: "salmon",
+        Href: proto + address + "/receive/users/" + person.Guid,
+      },
+      federation.WebfingerJsonLink {
+        Rel: "http://ostatus.org/schema/1.0/subscribe",
+        Template: proto + address + "/people?q={uri}",
+      },
+      federation.WebfingerJsonLink {
+        Rel: "http://openid.net/specs/connect/1.0/issuer",
+        Href: proto + address,
       },
     },
   }
 
-  return c.RenderXML(m)
+  return c.RenderJSON(json)
 }
