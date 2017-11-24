@@ -65,7 +65,7 @@ $(".comment-footer i").each(function(i, elem) {
 $("[data-markdown]").each(function() {
   var html = $(this).html();
   // parse hashtags
-  html = html.replace(/#([^\s<>]{2,})/ig, '[#$1](/tags/$1)');
+  html = html.replace(/#([^#\s<>]{2,})/ig, '[#$1](/tags/$1)');
   // parse markdown
   html = marked(html);
   $(this).html(html);
