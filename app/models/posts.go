@@ -142,7 +142,7 @@ func (posts *Posts) FindAllByPersonID(id uint, offset int) (err error) {
   }
   defer db.Close()
 
-  err = db.Offset(offset).Limit(10).Table("posts").
+  err = db.Offset(offset).Limit(10).
     Where("person_id = ?", id).
     Order("posts.updated_at desc").Find(posts).Error
   if err != nil {
@@ -182,6 +182,21 @@ func (post *Post) FindByGuid(guid string) (err error) {
     return
   }
   return post.addRelations(db)
+}
+
+func (posts *Posts) FindByTagName(name string, offset int) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  err = db.Offset(offset).Limit(10).
+    Where("text like ?", "%#"+name+"%").Find(posts).Error
+  if err != nil {
+    return
+  }
+  return posts.addRelations(db)
 }
 
 func (posts *Posts) addRelations(db *gorm.DB) error {

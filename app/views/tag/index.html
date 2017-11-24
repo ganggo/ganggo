@@ -1,0 +1,9 @@
+{{set . "title" "Tag"}}
+
+{{template "header.html" .}}
+
+{{range .posts}}
+{{template "tag/post.html" .}}
+{{end}}
+
+{{template "footer.html"}}

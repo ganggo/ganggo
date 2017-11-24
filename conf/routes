@@ -10,6 +10,7 @@ GET     /                                       App.Index
 GET     /stream                                 Stream.Index
 GET     /stream/:page                           Stream.IndexPagination
 GET     /posts/:guid                            Post.Index
+GET     /tags/:name                             Tag.Index
 POST    /search                                 Search.Create
 GET     /profiles/:guid                         Profile.Index
 GET     /profiles/:guid/:page                   Profile.IndexPagination
