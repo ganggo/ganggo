@@ -46,6 +46,8 @@ func (s Stream) IndexPagination(page int) revel.Result {
     s.Response.Status = http.StatusInternalServerError
     revel.WARN.Println(err)
   }
+
+  s.ViewArgs["currentUser"] = user
   s.ViewArgs["posts"] = posts
 
   return s.RenderTemplate("stream/index.html")

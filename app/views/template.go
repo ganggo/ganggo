@@ -42,14 +42,6 @@ var TemplateFuncs = map[string]interface{}{
   "IsShareablePost": func(a string) bool {
     return (a == models.ShareablePost)
   },
-  // session helper
-  "IsLoggedIn": func(in interface {}) (user models.User) {
-    switch token := in.(type) {
-    case string:
-      user, _ = models.GetCurrentUser(token)
-    }
-    return
-  },
   "LikesByTargetID": func(id uint) []models.Like {
     return likes(id, true)
   },

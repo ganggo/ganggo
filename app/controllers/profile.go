@@ -53,5 +53,10 @@ func (p Profile) IndexPagination(guid string, page int) revel.Result {
   p.ViewArgs["person"] = person
   p.ViewArgs["page"] = page
 
+  user, err := models.GetCurrentUser(p.Session["TOKEN"])
+  if err == nil {
+    p.ViewArgs["currentUser"] = user
+  }
+
   return p.RenderTemplate("profile/index.html")
 }

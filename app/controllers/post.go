@@ -36,5 +36,11 @@ func (p Post) Index(guid string) revel.Result {
     revel.WARN.Println(err)
   }
 
+  user, err := models.GetCurrentUser(p.Session["TOKEN"])
+  if err == nil {
+    p.ViewArgs["currentUser"] = user
+  }
+
+
   return p.Render(post)
 }

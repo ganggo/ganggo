@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 
-{{$user := IsLoggedIn .TOKEN}}
-
 <html>
   <head>
     <title>{{.title}}</title>
@@ -39,7 +37,7 @@
       </div>
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
-          {{if ne $user.Username ""}}
+          {{if .currentUser}}
           <li{{if eq .title "Stream"}} class="active"{{end}}>
             <a href="/stream">Stream</a>
           </li>
@@ -58,7 +56,7 @@
           </div>
         </form>
         <ul class="nav navbar-nav navbar-right">
-          {{if ne $user.Username ""}}
+          {{if .currentUser}}
           <li><a href="/users/sign_out" data-method="delete">Hi {{$user.Username}}, Logout?</a></li>
           {{else}}
           <li><a href="/users/sign_in">Login</a></li>
