@@ -1,4 +1,5 @@
-{{set . "title" "Stream"}}
+{{$title := msg . "stream.title"}}
+{{set . "title" $title}}
 
 {{template "header.html" .}}
 

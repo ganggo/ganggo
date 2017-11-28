@@ -1,0 +1,14 @@
+{{template "header.html" .}}
+
+{{with .Error}}
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <h1><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> {{.Title}}</h1>
+      <p>{{.Description}}</p>
+    </div>
+  </div>
+</div>
+{{end}}
+
+{{template "footer.html"}}

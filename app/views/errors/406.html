@@ -1,16 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>Not found</title>
-	</head>
-	<body>
-	{{with .Error}}
-	<h1>
-		{{.Title}}
-	</h1>
-	<p>
-		{{.Description}}
-	</p>
-	{{end}}
-	</body>
-</html>
+{{$title := msg . "errors.not_acceptable"}}
+
+{{set . "title" $title}}
+
+{{template "errors/default.html" .}}

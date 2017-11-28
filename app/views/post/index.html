@@ -1,4 +1,5 @@
-{{set . "title" "Post"}}
+{{$title := msg . "post.title"}}
+{{set . "title" $title}}
 
 {{template "header.html" .}}
 

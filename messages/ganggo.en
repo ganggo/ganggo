@@ -15,8 +15,18 @@ navigation.write_a_post=Write a post..
 comment.placeholder=Write a comment..
 comment.button=Publish
 
+post.title=Post
 post.public=Public post
 post.limited=Limited post
+
+app.title=Home
+
+stream.title=%(navigation.stream)
+
+tag.title=Tag
+
+user.login_title=Login
+user.sign_up_title=Sign up
 
 profile.title=Profile
 profile.groups=Aspects
@@ -45,3 +55,9 @@ one month=one month
 %d months=%d months
 one year=one year
 %d years=%d years
+
+# error pages
+errors.forbidden=Forbidden
+errors.not_found=Not found
+errors.not_acceptable=Not Acceptable
+errors.internal_server_error=Internal Server Error

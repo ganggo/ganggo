@@ -1,4 +1,6 @@
-{{set . "title" "Home"}}
+{{$title := msg . "user.login_title"}}
+{{set . "title" $title}}
+
 {{template "header.html" .}}
 
 <div class="row">

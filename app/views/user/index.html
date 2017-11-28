@@ -1,4 +1,5 @@
-{{set . "title" "Sign Up"}}
+{{$title := msg . "user.sign_up_title"}}
+{{set . "title" $title}}
 {{set . "captchaID" CaptchaNew}}
 
 {{template "header.html" .}}
