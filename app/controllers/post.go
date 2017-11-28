@@ -30,17 +30,16 @@ type Post struct {
 func (p Post) Index(guid string) revel.Result {
   var post models.Post
 
-  err := post.FindByGuid(guid)
-  if err != nil {
-    p.Response.Status = http.StatusInternalServerError
-    revel.WARN.Println(err)
-  }
-
   user, err := models.GetCurrentUser(p.Session["TOKEN"])
   if err == nil {
     p.ViewArgs["currentUser"] = user
   }
 
+  err = post.FindByGuidUser(guid, user)
+  if err != nil {
+    p.Response.Status = http.StatusInternalServerError
+    revel.WARN.Println(err)
+  }
 
   return p.Render(post)
 }

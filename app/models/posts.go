@@ -184,6 +184,30 @@ func (post *Post) FindByGuid(guid string) (err error) {
   return post.addRelations(db)
 }
 
+func (post *Post) FindByGuidUser(guid string, user User) (err error) {
+  db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  query := db.Joins(`left join shareables on shareables.shareable_id = posts.id`).
+    Where(`posts.public = true`).Where("guid = ?", guid)
+
+  if user.SerializedPrivateKey != "" {
+    query = query.Or(`posts.id = shareables.shareable_id
+        and shareables.shareable_type = ?
+        and shareables.user_id = ?`, ShareablePost, user.ID).
+      Where("guid = ?", guid)
+  }
+
+  err = query.Find(post).Error
+  if err != nil {
+    return
+  }
+  return post.addRelations(db)
+}
+
 func (posts *Posts) FindByTagName(name string, user User, offset int) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
