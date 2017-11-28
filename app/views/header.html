@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 
+{{$stream := msg . "stream.title"}}
+
 <html>
   <head>
     <title>{{.title}}</title>
@@ -14,7 +16,7 @@
     <!-- stylesheets -->
     <link rel="stylesheet" type="text/css" href="/public/vendor/css/bootstrap-3.3.6.min.css">
     <link rel="stylesheet" type="text/css" href="/public/vendor/css/jquery-ui.min.css">
-    {{if eq .title "Stream"}}
+    {{if eq .title $stream}}
     <link rel="stylesheet" href="/public/vendor/css/reveal-3.5.0.css">
     <link rel="stylesheet" href="/public/vendor/css/reveal-theme-white.css">
     {{stylesheet_link_tag "stream_editor_box"}}
@@ -38,10 +40,10 @@
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
           {{if .currentUser}}
-          <li{{if eq .title "Stream"}} class="active"{{end}}>
+          <li{{if eq .title $stream}} class="active"{{end}}>
             <a href="/stream">{{msg . "navigation.stream"}}</a>
           </li>
-            {{if eq .title "Stream"}}
+            {{if eq .title $stream}}
             <li><a href="#" id="writePost">{{msg . "navigation.write_a_post"}}</a></li>
             {{end}}
           {{end}}

@@ -21,7 +21,8 @@ post.limited=Limited post
 
 app.title=Home
 
-stream.title=%(navigation.stream)
+# see https://revel.github.io/manual/i18n-messages.html
+stream.title=%(navigation.stream)s
 
 tag.title=Tag
 
