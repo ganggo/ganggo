@@ -184,17 +184,28 @@ func (post *Post) FindByGuid(guid string) (err error) {
   return post.addRelations(db)
 }
 
-func (posts *Posts) FindByTagName(name string, offset int) (err error) {
+func (posts *Posts) FindByTagName(name string, user User, offset int) (err error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
   if err != nil {
     return err
   }
   defer db.Close()
 
-  err = db.Offset(offset).Limit(10).
-    Where("text like ?", "%#"+name+"%").Find(posts).Error
+  query := db.Offset(offset).Limit(10).
+    Joins(`left join shareables on shareables.shareable_id = posts.id`).
+    Where(`posts.public = true`).
+    Where("text like ?", "%#"+name+"%")
+
+  if user.SerializedPrivateKey != "" {
+    query = query.Or(`posts.id = shareables.shareable_id
+        and shareables.shareable_type = ?
+        and shareables.user_id = ?`, ShareablePost, user.ID).
+      Where("text like ?", "%#"+name+"%")
+  }
+
+  err = query.Order("posts.updated_at desc").Find(posts).Error
   if err != nil {
-    return
+    return err
   }
   return posts.addRelations(db)
 }

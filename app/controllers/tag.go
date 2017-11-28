@@ -30,10 +30,15 @@ type Tag struct {
 func (t Tag) Index(name string) revel.Result {
   var posts models.Posts
 
-  err := posts.FindByTagName(name, 0)
+  user, _ := models.GetCurrentUser(t.Session["TOKEN"])
+
+  err := posts.FindByTagName(name, user, 0)
   if err != nil {
     t.Response.Status = http.StatusInternalServerError
     revel.WARN.Println(err)
   }
+
+  t.ViewArgs["currentUser"] = user
+
   return t.Render(posts)
 }
