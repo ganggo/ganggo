@@ -23,7 +23,7 @@
                 <i class="fa fa-user-o"></i> {{$person.Profile.Author}}
               </div>
               <time class="comment-date" datetime="{{.post.CreatedAt.UTC}}">
-                <i class="fa fa-clock-o"></i>
+                <i class="fa fa-clock-o"></i> {{timeago .post.CreatedAt .}}
               </time>
             </a>
           </header>
@@ -31,6 +31,12 @@
             <p data-markdown data-template>{{.post.Text}}</p>
           </div>
           <div class="comment-footer">
+            <i class="fa fa-{{if .post.Public}}un{{end}}lock pull-left" title="
+            {{- if .post.Public}}
+              {{- msg . "post.public"}}
+            {{- else}}
+              {{- msg . "post.limited"}}
+            {{- end}}"></i>
             <i data-id="{{.post.ID}}" class="fa fa-thumbs-o-down dislike"></i>
             <i data-id="{{.post.ID}}" class="fa fa-thumbs-o-up like"></i>
           </div>
@@ -38,10 +44,12 @@
       </div>
     </div>
   </div>
+  {{$root := .}}
   {{range .post.Comments}}
-  {{template "post/comment.html" .}}
+    {{set $root "comment" .}}
+    {{template "post/comment.html" $root}}
   {{end}}
-  {{template "post/editor_comment_box.html" .post.ID}}
+  {{template "post/editor_comment_box.html" .}}
 </div>
 
 {{template "footer.html"}}

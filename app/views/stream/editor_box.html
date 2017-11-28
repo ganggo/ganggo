@@ -5,19 +5,19 @@
         <div class="form-group">
           <div class="row">
             <div class="col-md-12">
-              <textarea class="form-control compressed" name="post" placeholder="I like cats !!"></textarea>
+              <textarea class="form-control compressed" name="post" placeholder="{{msg . "editor.placeholder"}}"></textarea>
             </div>
           </div>
           <div class="row">
             <div class="col-md-10 nopadding-right">
               <button class="btn btn-primary btn-large btn-block" type="submit">
-                <i class="fa fa-share-square-o"></i> Post It
+                <i class="fa fa-share-square-o"></i> {{msg . "editor.button"}}
               </button>
             </div>
             <div class="col-md-2">
               <div class="form-group">
                 <select id="aspect-list" name="aspectID" class="form-control">
-                  <option value="0">Public</option>
+                  <option value="0">{{msg . "editor.default_group"}}</option>
                 </select>
               </div>
             </div>

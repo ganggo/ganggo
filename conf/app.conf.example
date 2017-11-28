@@ -121,7 +121,7 @@ i18n.default_language = en
 
 # The default format when message is missing.
 # The original message shows in %s
-#i18n.unknown_format = "??? %s ???"
+i18n.unknown_format = "Translation missing: %s"
 
 # Module to serve static content such as CSS, JavaScript and Media files
 # Allows Routes like this:

@@ -1,10 +1,10 @@
 <div class="container comment-list">
   <div class="row">
     <div class="col-md-2 col-sm-2 hidden-xs">
-      <a href="/profiles/{{.Person.Guid}}" target="_self">
+      <a href="/profiles/{{.post.Person.Guid}}" target="_self">
         <figure class="thumbnail">
-          <img class="img-responsive" src="{{.Person.Profile.ImageUrl}}" />
-          <figcaption class="text-center">{{.Person.Profile.FullName}}</figcaption>
+          <img class="img-responsive" src="{{.post.Person.Profile.ImageUrl}}" />
+          <figcaption class="text-center">{{.post.Person.Profile.FullName}}</figcaption>
         </figure>
       </a>
     </div>
@@ -14,26 +14,34 @@
           <header class="text-left">
             <a href="#">
               <div class="comment-user">
-                <i class="fa fa-user-o"></i> {{.Person.Profile.Author}}
+                <i class="fa fa-user-o"></i> {{.post.Person.Profile.Author}}
               </div>
-              <time class="comment-date" datetime="{{.CreatedAt.UTC}}">
-                <i class="fa fa-clock-o"></i>
+              <time class="comment-date" datetime="{{.post.CreatedAt.UTC}}">
+                <i class="fa fa-clock-o"></i> {{timeago .post.CreatedAt .}}
               </time>
             </a>
           </header>
           <div class="comment-post post">
-            <p data-markdown data-template>{{.Text}}</p>
+            <p data-markdown data-template>{{.post.Text}}</p>
           </div>
           <div class="comment-footer">
-            <i data-id="{{.ID}}" class="fa fa-thumbs-o-down dislike"></i>
-            <i data-id="{{.ID}}" class="fa fa-thumbs-o-up like"></i>
+            <i class="fa fa-{{if .post.Public}}un{{end}}lock pull-left" title="
+            {{- if .post.Public}}
+              {{- msg . "post.public"}}
+            {{- else}}
+              {{- msg . "post.limited"}}
+            {{- end}}"></i>
+            <i data-id="{{.post.ID}}" class="fa fa-thumbs-o-down dislike"></i>
+            <i data-id="{{.post.ID}}" class="fa fa-thumbs-o-up like"></i>
           </div>
         </div>
       </div>
     </div>
   </div>
-  {{range .Comments}}
-  {{template "post/comment.html" .}}
+  {{$root := .}}
+  {{range .post.Comments}}
+    {{set $root "comment" .}}
+    {{template "post/comment.html" $root}}
   {{end}}
-  {{template "post/editor_comment_box.html" .ID}}
+  {{template "post/editor_comment_box.html" .}}
 </div>

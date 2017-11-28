@@ -1,0 +1,48 @@
+# Sample messages file for the English language (en)
+# Message file extensions should be ISO 639-1 codes (http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
+# Sections within each message file can optionally override the defaults using ISO 3166-1 alpha-2 codes (http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
+# See also:
+# - http://www.rfc-editor.org/rfc/bcp/bcp47.txt
+# - http://www.w3.org/International/questions/qa-accept-lang-locales
+
+navigation.toggle=Toggle navigation
+navigation.login=Login
+navigation.logout=Hi %s, Logout?
+navigation.register=Register
+navigation.stream=Stream
+navigation.write_a_post=Write a post..
+
+comment.placeholder=Write a comment..
+comment.button=Publish
+
+post.public=Public post
+post.limited=Limited post
+
+profile.title=Profile
+profile.groups=Aspects
+profile.birthday=Birthday
+profile.gender=Gender
+profile.location=Location
+profile.previous=Previous
+profile.next=Next
+
+editor.default_group=Public
+editor.button=Publish
+editor.placeholder=I like cats !!
+
+# timeago plugin
+ago=ago
+in=in
+about a second=about a second
+%d seconds=%d seconds
+about a minute=about a minute
+%d minutes=%d minutes
+about an hour=about an hour
+%d hours=%d hours
+one day=one day
+%d days=%d days
+one month=one month
+%d months=%d months
+one year=one year
+%d years=%d years
+

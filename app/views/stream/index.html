@@ -4,10 +4,11 @@
 
 <div class="reveal">
   <div class="slides">
-    {{template "stream/editor_box.html"}}
-
+    {{template "stream/editor_box.html" .}}
+    {{$root := .}}
     {{range .posts}}
-      {{template "stream/post.html" .}}
+      {{set $root "post" .}}
+      {{template "stream/post.html" $root}}
     {{end}}
   </div>
 </div>

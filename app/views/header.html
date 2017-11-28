@@ -28,7 +28,7 @@
     <div class="container">
       <div class="navbar-header">
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-          <span class="sr-only">Toggle navigation</span>
+          <span class="sr-only">{{msg . "navigation.toggle"}}</span>
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
@@ -39,10 +39,10 @@
         <ul class="nav navbar-nav">
           {{if .currentUser}}
           <li{{if eq .title "Stream"}} class="active"{{end}}>
-            <a href="/stream">Stream</a>
+            <a href="/stream">{{msg . "navigation.stream"}}</a>
           </li>
             {{if eq .title "Stream"}}
-            <li><a href="#" id="writePost">Write a post..</a></li>
+            <li><a href="#" id="writePost">{{msg . "navigation.write_a_post"}}</a></li>
             {{end}}
           {{end}}
         </ul>
@@ -57,10 +57,10 @@
         </form>
         <ul class="nav navbar-nav navbar-right">
           {{if .currentUser}}
-          <li><a href="/users/sign_out" data-method="delete">Hi {{$user.Username}}, Logout?</a></li>
+          <li><a href="/users/sign_out" data-method="delete">{{msg . "navigation.logout" .currentUser.Username}}</a></li>
           {{else}}
-          <li><a href="/users/sign_in">Login</a></li>
-          <li><a href="/users/sign_up">Register</a></li>
+          <li><a href="/users/sign_in">{{msg . "navigation.login"}}</a></li>
+          <li><a href="/users/sign_up">{{msg . "navigation.register"}}</a></li>
           {{end}}
         </ul>
       </div><!--/.nav-collapse -->

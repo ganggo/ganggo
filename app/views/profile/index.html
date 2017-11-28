@@ -1,6 +1,7 @@
-{{set . "title" "Profile"}}
-
 {{$profile := .person.Profile}}
+{{$title := msg . "profile.title"}}
+
+{{set . "title" $title}}
 
 {{template "header.html" .}}
 
@@ -8,10 +9,10 @@
   <div class="row">
     <div class="col-md-12">
       <div class="main-login main-center">
-        <img src="{{$profile.ImageUrl}}" border="0" />
+        <img src="{{$profile.ImageUrl}}" border="0"/>
         <h2>{{$profile.Author}}</h2>
         <hr/>
-        <h3>Aspects</h3>
+        <h3>{{msg . "profile.groups"}}</h3>
         <ul id="aspectList"></ul>
         <form id="aspect-form">
           <input type="text" style="display:none" name="personID" value="{{.person.ID}}">
@@ -25,27 +26,29 @@
         {{end}}
         {{$formatedDate := $profile.Birthday.Format "2006-01-02"}}
         {{if ne $formatedDate "0001-01-01"}}
-        <h4>Birthday: </h4> {{$formatedDate}}
+        <h4>{{msg . "profile.birthday"}}: </h4> {{$formatedDate}}
         {{end}}
         {{if ne $profile.Gender ""}}
-        <h4>Gender</h4> {{$profile.Gender}}
+        <h4>{{msg . "profile.gender"}}</h4> {{$profile.Gender}}
         {{end}}
         {{if ne $profile.Location ""}}
-        <h4>Location</h4> {{$profile.Location}}
+        <h4>{{msg . "profile.location"}}</h4> {{$profile.Location}}
         {{end}}
       </div>
     </div>
   </div>
   {{javascript_include_tag "profile"}}
+  {{$root := .}}
   {{range .posts}}
-  {{template "profile/post.html" .}}
+  {{set $root "post" .}}
+    {{template "profile/post.html" $root}}
   {{end}}
   <ul class="pager">
     {{$prev := sub .page 1}}
     {{if gt $prev 0}}
-    <li><a href="/profiles/{{.person.Guid}}/{{$prev}}">Previous</a></li>
+    <li><a href="/profiles/{{.person.Guid}}/{{$prev}}">{{msg . "profile.previous"}}</a></li>
     {{end}}
-    <li><a href="/profiles/{{.person.Guid}}/{{add .page 1}}">Next</a></li>
+    <li><a href="/profiles/{{.person.Guid}}/{{add .page 1}}">{{msg . "profile.next"}}</a></li>
   </ul>
 </div>
 

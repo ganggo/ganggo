@@ -5,23 +5,23 @@
         <div class="panel-body">
           <header class="text-right">
             <div class="comment-user">
-              <i class="fa fa-user-o"></i> {{.Person.Author}}
+              <i class="fa fa-user-o"></i> {{.comment.Person.Author}}
             </div>
-            <time class="comment-date" datetime="{{.CreatedAt.UTC}}">
-              <i class="fa fa-clock-o"></i>
+            <time class="comment-date" datetime="{{.comment.CreatedAt.UTC}}">
+              <i class="fa fa-clock-o"></i> {{timeago .comment.CreatedAt .}}
             </time>
           </header>
           <div class="comment-post comment">
-            <p data-markdown data-template>{{.Text}}</p>
+            <p data-markdown data-template>{{.comment.Text}}</p>
           </div>
         </div>
       </div>
     </div>
     <div class="col-md-2 col-sm-2 hidden-xs">
-      <a href="/profiles/{{.Person.Guid}}" target="_self">
+      <a href="/profiles/{{.comment.Person.Guid}}" target="_self">
         <figure class="thumbnail">
-          <img class="img-responsive" src="{{.Person.Profile.ImageUrl}}" />
-          <figcaption class="text-center">{{.Person.Profile.FullName}}</figcaption>
+          <img class="img-responsive" src="{{.comment.Person.Profile.ImageUrl}}" />
+          <figcaption class="text-center">{{.comment.Person.Profile.FullName}}</figcaption>
         </figure>
       </a>
     </div>

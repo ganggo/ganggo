@@ -1,5 +1,4 @@
 //= require javascripts/api
-//= require javascripts/parse_time
 
 (function($) {
   var origAppend = $.fn.append;
@@ -12,16 +11,6 @@
     });
   });
 })(jQuery);
-
-// parse all time fields in slides
-$("time").each(function(index, elem) {
-  var elem = $(elem);
-  var ts = elem.attr("datetime").split(/\s/);
-  var i = elem.find("i");
-  var text = parseTime(ts[0] + " " + ts[1] + "Z");
-  elem.text(" " + text + " ago");
-  elem.prepend(i);
-});
 
 // find all like buttons and handle events
 $(".comment-footer i").each(function(i, elem) {

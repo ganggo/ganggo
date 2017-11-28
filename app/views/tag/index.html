@@ -2,8 +2,10 @@
 
 {{template "header.html" .}}
 
+{{$root := .}}
 {{range .posts}}
-{{template "tag/post.html" .}}
+  {{set $root "post" .}}
+  {{template "tag/post.html" $root}}
 {{end}}
 
 {{template "footer.html"}}
