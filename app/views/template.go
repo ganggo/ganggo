@@ -99,15 +99,12 @@ var TemplateFuncs = map[string]interface{}{
   // captcha generator
   "CaptchaNew": func() string { return captcha.New() },
   "FindAvailableLocales": func () (list []string) {
-    directory, err := filepath.Abs("messages")
-    if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-    re := regexp.MustCompile(`ganggo\..+$`)
-    err = filepath.Walk(directory, func(path string, f os.FileInfo, err error) error {
-      if re.MatchString(path) {
-        list = append(list, path[len(path)-2:len(path)])
+    directory := filepath.Join(revel.BasePath, "messages")
+    re := regexp.MustCompile(`ganggo\.([\w-_]{1,})$`)
+    err := filepath.Walk(directory, func(path string, f os.FileInfo, err error) error {
+      result := re.FindAllStringSubmatch(path, 1)
+      if len(result) > 0 && len(result[0]) > 0 {
+        list = append(list, result[0][1])
       }
       return nil
     })
