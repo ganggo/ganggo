@@ -18,6 +18,9 @@ package views
 //
 
 import (
+  "regexp"
+  "path/filepath"
+  "os"
   "github.com/shaoshing/train"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
@@ -95,6 +98,25 @@ var TemplateFuncs = map[string]interface{}{
   },
   // captcha generator
   "CaptchaNew": func() string { return captcha.New() },
+  "FindAvailableLocales": func () (list []string) {
+    directory, err := filepath.Abs("messages")
+    if err != nil {
+      revel.ERROR.Println(err)
+      return
+    }
+    re := regexp.MustCompile(`ganggo\..+$`)
+    err = filepath.Walk(directory, func(path string, f os.FileInfo, err error) error {
+      if re.MatchString(path) {
+        list = append(list, path[len(path)-2:len(path)])
+      }
+      return nil
+    })
+    if err != nil {
+      revel.ERROR.Println(err)
+      return
+    }
+    return
+  },
   // custom train script/stylesheet include functions
   "javascript_include_tag": func(name string) template.HTML {
     path := "/assets/javascripts/" + name + ".js"
