@@ -152,7 +152,7 @@ func (posts *Posts) FindAllByPersonID(id uint, offset int) (err error) {
 }
 
 
-func (post *Post) FindByID(id uint, withRelations bool) (err error) {
+func (post *Post) FindByID(id uint) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return err
@@ -163,11 +163,7 @@ func (post *Post) FindByID(id uint, withRelations bool) (err error) {
   if err != nil {
     return
   }
-  // add relations only if it is required
-  if withRelations {
-    return post.addRelations(db)
-  }
-  return
+  return post.addRelations(db)
 }
 
 func (post *Post) FindByGuid(guid string) (err error) {
