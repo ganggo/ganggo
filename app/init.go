@@ -21,6 +21,7 @@ import (
   "io/ioutil"
   "encoding/json"
   "github.com/revel/revel"
+  "gopkg.in/ganggo/ganggo.v0/app/helpers"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/views"
   federation "gopkg.in/ganggo/federation.v0"
@@ -98,9 +99,12 @@ func init() {
   // register startup functions with OnAppStart
   revel.OnAppStart(InitDB)
   revel.OnAppStart(InitSocialRelay)
+
   // set federation logger to revel
   revel.OnAppStart(func() {
-    federation.SetLogger(revel.TRACE)
+    federation.SetLogger(helpers.AppLogWrapper{
+      Name: "federation",
+    })
   })
 
   // append custom template functions to revel
