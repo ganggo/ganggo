@@ -25,6 +25,7 @@ import (
   _ "github.com/jinzhu/gorm/dialects/mssql"
   _ "github.com/jinzhu/gorm/dialects/mysql"
   _ "github.com/jinzhu/gorm/dialects/sqlite"
+  "fmt"
 )
 
 type Database struct {
@@ -48,6 +49,31 @@ func OpenDatabase() (*gorm.DB, error) {
   db.SetLogger(helpers.AppLogWrapper{Name: "gorm"})
   db.LogMode(true)
   return db, err
+}
+
+func GetCurrentUser(token string) (user User, err error) {
+  db, err := OpenDatabase()
+  if err != nil {
+    revel.WARN.Println(err)
+    return user, err
+  }
+  defer db.Close()
+
+  var session Session
+  err = db.Where("token = ?", token).First(&session).Error
+  if err != nil {
+    revel.ERROR.Println(err)
+    return user, err
+  }
+
+  err = db.First(&user, session.UserID).Error
+  if err != nil {
+    revel.ERROR.Println(err)
+    return user, err
+  }
+  db.Model(&user).Related(&user.Person, "Person")
+  db.Model(&user).Related(&user.Aspects)
+  return
 }
 
 func parentIsLocal(postID uint) (user User, found bool) {
@@ -79,27 +105,28 @@ func parentIsLocal(postID uint) (user User, found bool) {
   return
 }
 
-func GetCurrentUser(token string) (user User, err error) {
-  db, err := OpenDatabase()
-  if err != nil {
-    revel.WARN.Println(err)
-    return user, err
-  }
-  defer db.Close()
+// This is required since gorm.ModifyColumn only supports postgres engine
+// see https://github.com/jinzhu/gorm/blob/0a51f6cdc55d1650d9ed3b4c13026cfa9133b01e/scope.go#L1142
+func advancedColumnModify(s *gorm.DB, column, dataType string) {
+  var format string
+  var scope = s.NewScope(s.Value)
 
-  var session Session
-  err = db.Where("token = ?", token).First(&session).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return user, err
+  switch DB.Driver {
+    case "postgres":
+      format = "ALTER TABLE %v ALTER COLUMN %v TYPE %v"
+    case "mysql":
+      format = "ALTER TABLE %v MODIFY %v %v"
+    case "mssql":
+      format = "ALTER TABLE %v ALTER COLUMN %v %v"
+    default:
+      revel.AppLog.Warn("Database doesn't support alter! Please do it manually",
+        "driver", DB.Driver, "table", scope.QuotedTableName(),
+        "column", column, "type", dataType)
+      return
   }
-
-  err = db.First(&user, session.UserID).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return user, err
-  }
-  db.Model(&user).Related(&user.Person, "Person")
-  db.Model(&user).Related(&user.Aspects)
-  return
+  // modify column in scope
+  scope.Raw(fmt.Sprintf(
+    format, scope.QuotedTableName(),
+    scope.Quote(column), dataType,
+  )).Exec()
 }

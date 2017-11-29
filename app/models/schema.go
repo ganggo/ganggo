@@ -17,16 +17,57 @@ package models
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-func InitDB() {
-  // XXX WARNING: AutoMigrate will ONLY create tables,
-  // missing columns and missing indexes, and WON'T
-  // change existing column's type or delete unused
-  // columns to protect your data.
-  db, err := OpenDatabase()
+import (
+  "github.com/revel/revel"
+  "github.com/jinzhu/gorm"
+)
+
+type SchemaMigration struct {
+  Commit string `gorm:"size:191"`
+}
+
+type SchemaMigrations []SchemaMigration
+
+func migrateSchema(db *gorm.DB) error {
+  var structMigrations SchemaMigrations
+  var migrations map[string]string = make(map[string]string)
+
+  err := db.Find(&structMigrations).Error
   if err != nil {
-    panic("failed to connect database" + DB.Driver + DB.Url + err.Error())
+    return err
   }
-  defer db.Close()
+
+  for _, m := range structMigrations {
+    migrations[m.Commit] = m.Commit
+  }
+  structMigrations = SchemaMigrations{}
+
+  //// Migrations Start ////
+
+  // related to ganggo/ganggo@2aec1bdfd61cfca7723b94cef3b09719cfb8e6f3
+  var commit = "2aec1bdfd61cfca7723b94cef3b09719cfb8e6f3"
+  if _, ok := migrations[commit]; !ok {
+    advancedColumnModify(db.Model(Aspect{}), "name", "varchar(191)")
+    advancedColumnModify(db.Model(Pod{}), "host", "varchar(191)")
+    structMigrations = append(structMigrations, SchemaMigration{Commit: commit})
+  }
+
+  //// Migrations End ////
+
+  for _, m := range structMigrations {
+    err = db.Create(&m).Error
+    if err != nil {
+      return err
+    }
+    revel.AppLog.Debug("Migration applied", "commit", m.Commit)
+  }
+  return nil
+}
+
+func loadSchema(db *gorm.DB) {
+  schemaMigration := &SchemaMigration{}
+  db.Model(schemaMigration).AddUniqueIndex("index_schema_migrations_on_commit", "commit")
+  db.AutoMigrate(schemaMigration)
 
   post := &Post{}
   db.Model(post).AddUniqueIndex("index_posts_on_guid", "guid")
@@ -123,4 +164,20 @@ func InitDB() {
   signatureOrder := &SignatureOrder{}
   db.Model(signatureOrder).AddUniqueIndex("index_signature_orders_on_order", "order")
   db.AutoMigrate(signatureOrder)
+}
+
+func InitDB() {
+  db, err := OpenDatabase()
+  if err != nil {
+    panic(err)
+  }
+  defer db.Close()
+
+  loadSchema(db) // initial schema
+  if err = migrateSchema(db); err != nil {
+    revel.AppLog.Error("Something went wrong while migrating", "error", err.Error())
+  }
+  // re-run loadSchema in case something
+  // broke cause of missing migrations
+  loadSchema(db)
 }
