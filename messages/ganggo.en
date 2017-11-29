@@ -62,3 +62,5 @@ errors.forbidden=Forbidden
 errors.not_found=Not found
 errors.not_acceptable=Not Acceptable
 errors.internal_server_error=Internal Server Error
+
+errors.controller.post_not_found=No post available

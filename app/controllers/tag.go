@@ -18,7 +18,6 @@ package controllers
 //
 
 import (
-  "net/http"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
 )
@@ -36,10 +35,10 @@ func (t Tag) Index(name string) revel.Result {
   }
 
   err = posts.FindByTagName(name, user, 0)
-  if err != nil {
-    t.Response.Status = http.StatusInternalServerError
-    revel.WARN.Println(err)
+  if err != nil || len(posts) <= 0 {
+    return t.NotFound(
+      revel.MessageFunc(t.Request.Locale, "errors.controller.post_not_found"),
+    )
   }
-
   return t.Render(posts)
 }
