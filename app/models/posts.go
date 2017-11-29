@@ -188,13 +188,13 @@ func (post *Post) FindByGuidUser(guid string, user User) (err error) {
   defer db.Close()
 
   query := db.Joins(`left join shareables on shareables.shareable_id = posts.id`).
-    Where(`posts.public = true`).Where("guid = ?", guid)
+    Where(`posts.public = true and guid = ?`, guid)
 
   if user.SerializedPrivateKey != "" {
     query = query.Or(`posts.id = shareables.shareable_id
         and shareables.shareable_type = ?
-        and shareables.user_id = ?`, ShareablePost, user.ID).
-      Where("guid = ?", guid)
+        and shareables.user_id = ?
+        and guid = ?`, ShareablePost, user.ID, guid)
   }
 
   err = query.Find(post).Error
@@ -213,14 +213,13 @@ func (posts *Posts) FindByTagName(name string, user User, offset int) (err error
 
   query := db.Offset(offset).Limit(10).
     Joins(`left join shareables on shareables.shareable_id = posts.id`).
-    Where(`posts.public = true`).
-    Where("text like ?", "%#"+name+"%")
+    Where(`posts.public = true and text like ?`, "%#"+name+"%")
 
   if user.SerializedPrivateKey != "" {
     query = query.Or(`posts.id = shareables.shareable_id
         and shareables.shareable_type = ?
-        and shareables.user_id = ?`, ShareablePost, user.ID).
-      Where("text like ?", "%#"+name+"%")
+        and shareables.user_id = ?
+        and text like ?`, ShareablePost, user.ID, "%#"+name+"%")
   }
 
   err = query.Order("posts.updated_at desc").Find(posts).Error
