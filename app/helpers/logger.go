@@ -47,7 +47,14 @@ func (wrap AppLogWrapper) Print(v ...interface{}) {
       return
     }
   } else if wrap.Name == "federation" {
-    logType := v[0].(string)
+    var logType string
+    switch log := v[0].(type) {
+    case []interface{}:
+      logType = log[0].(string)
+    case interface{}:
+      logType = log.(string)
+    }
+
     if logType == federation.LOG_C_RED {
       revel.AppLog.Error(fmt.Sprintf("%+v", v))
     } else if logType == federation.LOG_C_YELLOW {
@@ -55,6 +62,7 @@ func (wrap AppLogWrapper) Print(v ...interface{}) {
     } else {
       revel.AppLog.Debug(fmt.Sprintf("%+v", v))
     }
+    return
   }
   revel.AppLog.Debug(fmt.Sprintf("%+v", v))
 }
