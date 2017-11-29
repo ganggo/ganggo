@@ -26,7 +26,7 @@ type Pod struct {
 
   // size should be max 191 with mysql innodb
   // cause asumming we use utf8mb 4*191 = 764 < 767
-  Host string `json:"host";gorm:"size:191"`
+  Host string `gorm:"size:191";json:"host"`
 }
 
 type Pods []Pod
