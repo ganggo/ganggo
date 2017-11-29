@@ -54,7 +54,7 @@ type Post struct {
 type Posts []Post
 
 func (p *Post) Count() (count int, err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return -1, err
   }
@@ -67,7 +67,7 @@ func (p *Post) Count() (count int, err error) {
 }
 
 func (p *Post) Create(entity *federation.EntityStatusMessage, reshare bool) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return
   }
@@ -82,7 +82,7 @@ func (p *Post) Create(entity *federation.EntityStatusMessage, reshare bool) (err
 }
 
 func (p *Post) Cast(entity *federation.EntityStatusMessage, reshare bool) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return
   }
@@ -115,7 +115,7 @@ func (p *Post) IsLocal() (User, bool) {
 }
 
 func (posts *Posts) FindAll(userID uint, offset int) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
@@ -136,7 +136,7 @@ func (posts *Posts) FindAll(userID uint, offset int) (err error) {
 }
 
 func (posts *Posts) FindAllByPersonID(id uint, offset int) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
@@ -153,7 +153,7 @@ func (posts *Posts) FindAllByPersonID(id uint, offset int) (err error) {
 
 
 func (post *Post) FindByID(id uint, withRelations bool) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
@@ -171,7 +171,7 @@ func (post *Post) FindByID(id uint, withRelations bool) (err error) {
 }
 
 func (post *Post) FindByGuid(guid string) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
@@ -185,7 +185,7 @@ func (post *Post) FindByGuid(guid string) (err error) {
 }
 
 func (post *Post) FindByGuidUser(guid string, user User) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
@@ -209,7 +209,7 @@ func (post *Post) FindByGuidUser(guid string, user User) (err error) {
 }
 
 func (posts *Posts) FindByTagName(name string, user User, offset int) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }

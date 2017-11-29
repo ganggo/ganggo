@@ -20,6 +20,7 @@ package models
 import (
   "github.com/revel/revel"
   "github.com/jinzhu/gorm"
+  "gopkg.in/ganggo/ganggo.v0/app/helpers"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"
   _ "github.com/jinzhu/gorm/dialects/mysql"
@@ -39,8 +40,18 @@ const (
 
 var DB Database
 
-func parentIsLocal(postID uint) (user User, found bool) {
+func OpenDatabase() (*gorm.DB, error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
+  if err != nil {
+    return db, err
+  }
+  db.SetLogger(helpers.AppLogWrapper{Name: "gorm"})
+  db.LogMode(true)
+  return db, err
+}
+
+func parentIsLocal(postID uint) (user User, found bool) {
+  db, err := OpenDatabase()
   if err != nil {
     revel.WARN.Println(err)
     return
@@ -69,7 +80,7 @@ func parentIsLocal(postID uint) (user User, found bool) {
 }
 
 func GetCurrentUser(token string) (user User, err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     revel.WARN.Println(err)
     return user, err

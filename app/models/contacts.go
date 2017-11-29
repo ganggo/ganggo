@@ -21,7 +21,6 @@ import (
   "time"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
 )
 
 type Contact struct {
@@ -43,7 +42,7 @@ func (c *Contact) Cast(entity *federation.EntityContact) (err error) {
     sender Person
   )
 
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }

@@ -21,11 +21,6 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   api "gopkg.in/ganggo/api.v0/app/controllers"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 func init() {
@@ -55,7 +50,7 @@ func redirectIfLoggedIn(c *revel.Controller) revel.Result {
 func requiresLogin(c *revel.Controller) revel.Result {
   var session models.Session
 
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+  db, err := models.OpenDatabase()
   if err != nil {
     revel.WARN.Println(err)
     return c.Render()

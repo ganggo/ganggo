@@ -17,28 +17,16 @@ package models
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import (
-  "github.com/revel/revel"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
-)
-
 func InitDB() {
   // XXX WARNING: AutoMigrate will ONLY create tables,
   // missing columns and missing indexes, and WON'T
   // change existing column's type or delete unused
   // columns to protect your data.
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     panic("failed to connect database" + DB.Driver + DB.Url + err.Error())
   }
   defer db.Close()
-
-  // use revel logger
-  db.SetLogger(gorm.Logger{revel.TRACE})
 
   post := &Post{}
   db.Model(post).AddUniqueIndex("index_posts_on_guid", "guid")

@@ -63,7 +63,7 @@ type CommentSignature struct {
 type CommentSignatures []CommentSignature
 
 func (c *Comment) Count() (count int, err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return -1, err
   }
@@ -76,7 +76,7 @@ func (c *Comment) Count() (count int, err error) {
 }
 
 func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return
   }
@@ -109,7 +109,7 @@ func (c *Comment) ParentIsLocal() (User, bool) {
 }
 
 func (c *Comments) FindByPostID(id uint) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }

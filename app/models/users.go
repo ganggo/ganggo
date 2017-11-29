@@ -42,7 +42,7 @@ type User struct {
 }
 
 func (user *User) FindByID(id uint) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
@@ -52,7 +52,7 @@ func (user *User) FindByID(id uint) (err error) {
 }
 
 func (user *User) Count() (count int, err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return -1, err
   }

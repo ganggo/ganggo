@@ -17,14 +17,7 @@ package models
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import (
-  "time"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
-)
+import "time"
 
 type Pod struct {
   ID uint `gorm:"primary_key"`
@@ -39,7 +32,7 @@ type Pod struct {
 type Pods []Pod
 
 func (pods *Pods) FindAll() (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }

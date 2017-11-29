@@ -17,14 +17,7 @@ package models
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import (
-  "time"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
-)
+import "time"
 
 type Person struct {
   ID uint `gorm:"primary_key"`
@@ -46,7 +39,7 @@ type Person struct {
 }
 
 func (person *Person) FindByID(id uint) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
@@ -56,7 +49,7 @@ func (person *Person) FindByID(id uint) (err error) {
 }
 
 func (person *Person) FindByGuid(guid string) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }

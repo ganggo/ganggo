@@ -17,14 +17,7 @@ package models
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import (
-  "time"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
-)
+import "time"
 
 type Aspect struct {
   ID uint `gorm:"primary_key"`
@@ -64,7 +57,7 @@ type AspectVisibility struct {
 type AspectVisibilities []AspectVisibility
 
 func (aspect *Aspect) Create() (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
@@ -74,7 +67,7 @@ func (aspect *Aspect) Create() (err error) {
 }
 
 func (visibility *AspectVisibility) Create() (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
@@ -84,7 +77,7 @@ func (visibility *AspectVisibility) Create() (err error) {
 }
 
 func (visibility *AspectVisibility) FindByGuid(guid string) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
@@ -100,7 +93,7 @@ func (visibility *AspectVisibility) FindByGuid(guid string) (err error) {
 }
 
 func (aspect *Aspect) FindByID(id uint) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
@@ -117,7 +110,7 @@ func (aspect *Aspect) FindByID(id uint) (err error) {
 }
 
 func (aspects *Aspects) FindByUserPersonID(userID, personID uint) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
@@ -130,7 +123,7 @@ func (aspects *Aspects) FindByUserPersonID(userID, personID uint) (err error) {
 }
 
 func (membership *AspectMembership) Create() (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
@@ -140,7 +133,7 @@ func (membership *AspectMembership) Create() (err error) {
 }
 
 func (membership *AspectMembership) Delete() (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }

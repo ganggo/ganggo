@@ -20,11 +20,6 @@ package models
 import (
   "time"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 type Like struct {
@@ -62,7 +57,7 @@ type LikeSignature struct {
 type LikeSignatures []LikeSignature
 
 func (l *Like) Create(entity *federation.EntityLike) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return
   }
@@ -76,7 +71,7 @@ func (l *Like) Create(entity *federation.EntityLike) (err error) {
 }
 
 func (l *Like) Cast(entity *federation.EntityLike) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return
   }
@@ -112,7 +107,7 @@ func (l *Like) ParentIsLocal() (User, bool) {
 }
 
 func (l *Likes) FindByPostID(id uint) (err error) {
-  db, err := gorm.Open(DB.Driver, DB.Url)
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
