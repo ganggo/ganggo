@@ -20,11 +20,6 @@ package models
 import (
   "time"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 type Post struct {
@@ -52,6 +47,25 @@ type Post struct {
 }
 
 type Posts []Post
+
+func (post *Post) AfterFind() error {
+  if structLoaded(post.Person.CreatedAt) {
+    return nil
+  }
+
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  err = db.Model(post).Related(&post.Person).Error
+  if err != nil {
+    return err
+  }
+
+  return db.Preload("Comments").First(post).Error
+}
 
 func (p *Post) Count() (count int, err error) {
   db, err := OpenDatabase()
@@ -110,6 +124,27 @@ func (p *Post) Cast(entity *federation.EntityStatusMessage, reshare bool) (err e
   return nil
 }
 
+func (p *Post) AfterCreate() error {
+  notify, err := generateNotifications(p)
+  if err == nil && len(notify) > 0 {
+    db, err := OpenDatabase()
+    if err != nil {
+      return err
+    }
+    defer db.Close()
+
+    // batch insert doesn't work for gorm, yet
+    // see https://github.com/jinzhu/gorm/issues/255
+    for _, n := range notify {
+      err = db.Create(&n).Error
+      if err != nil {
+        return err
+      }
+    }
+  }
+  return err
+}
+
 func (p *Post) IsLocal() (User, bool) {
   return parentIsLocal(p.ID)
 }
@@ -121,7 +156,7 @@ func (posts *Posts) FindAll(userID uint, offset int) (err error) {
   }
   defer db.Close()
 
-  err = db.Offset(offset).Limit(10).Table("posts").
+  return db.Offset(offset).Limit(10).Table("posts").
     Joins(`left join shareables on shareables.shareable_id = posts.id`).
     Where("posts.public = true").
     Or(`posts.id = shareables.shareable_id
@@ -129,10 +164,6 @@ func (posts *Posts) FindAll(userID uint, offset int) (err error) {
       and shareables.user_id = ?`,
         ShareablePost, userID,
     ).Order("posts.updated_at desc").Find(posts).Error
-  if err != nil {
-    return err
-  }
-  return posts.addRelations(db)
 }
 
 func (posts *Posts) FindAllByPersonID(id uint, offset int) (err error) {
@@ -142,13 +173,9 @@ func (posts *Posts) FindAllByPersonID(id uint, offset int) (err error) {
   }
   defer db.Close()
 
-  err = db.Offset(offset).Limit(10).
+  return db.Offset(offset).Limit(10).
     Where("person_id = ?", id).
     Order("posts.updated_at desc").Find(posts).Error
-  if err != nil {
-    return
-  }
-  return posts.addRelations(db)
 }
 
 
@@ -159,11 +186,7 @@ func (post *Post) FindByID(id uint) (err error) {
   }
   defer db.Close()
 
-  err = db.Find(post, id).Error
-  if err != nil {
-    return
-  }
-  return post.addRelations(db)
+  return db.Find(post, id).Error
 }
 
 func (post *Post) FindByGuid(guid string) (err error) {
@@ -173,11 +196,7 @@ func (post *Post) FindByGuid(guid string) (err error) {
   }
   defer db.Close()
 
-  err = db.Where("guid = ?", guid).Find(post).Error
-  if err != nil {
-    return
-  }
-  return post.addRelations(db)
+  return db.Where("guid = ?", guid).Find(post).Error
 }
 
 func (post *Post) FindByGuidUser(guid string, user User) (err error) {
@@ -197,11 +216,7 @@ func (post *Post) FindByGuidUser(guid string, user User) (err error) {
         and guid = ?`, ShareablePost, user.ID, guid)
   }
 
-  err = query.Find(post).Error
-  if err != nil {
-    return
-  }
-  return post.addRelations(db)
+  return query.Find(post).Error
 }
 
 func (posts *Posts) FindByTagName(name string, user User, offset int) (err error) {
@@ -222,43 +237,5 @@ func (posts *Posts) FindByTagName(name string, user User, offset int) (err error
         and text like ?`, ShareablePost, user.ID, "%#"+name+"%")
   }
 
-  err = query.Order("posts.updated_at desc").Find(posts).Error
-  if err != nil {
-    return err
-  }
-  return posts.addRelations(db)
-}
-
-func (posts *Posts) addRelations(db *gorm.DB) error {
-  for index := range *posts {
-    var p *Post = &(*posts)[index]
-    err := p.addRelations(db)
-    if err != nil {
-      return err
-    }
-  }
-  return nil
-}
-
-func (post *Post) addRelations(db *gorm.DB) error {
-  err := db.Model(post).Related(&post.Person).Error
-  if err != nil {
-    return err
-  }
-  err = db.Model(&post.Person).Related(&post.Person.Profile).Error
-  if err != nil {
-    return err
-  }
-  err = db.Preload("Comments").First(post).Error
-  if err != nil {
-    return err
-  }
-  for index := range post.Comments {
-    var c *Comment = &post.Comments[index]
-    err = c.addRelations(db)
-    if err != nil {
-      return err
-    }
-  }
-  return nil
+  return query.Order("posts.updated_at desc").Find(posts).Error
 }

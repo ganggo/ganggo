@@ -20,11 +20,6 @@ package models
 import (
   "time"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 type Comment struct {
@@ -62,6 +57,20 @@ type CommentSignature struct {
 
 type CommentSignatures []CommentSignature
 
+func (comment *Comment) AfterFind() error {
+  if structLoaded(comment.Person.CreatedAt) {
+    return nil
+  }
+
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Model(comment).Related(&comment.Person).Error
+}
+
 func (c *Comment) Count() (count int, err error) {
   db, err := OpenDatabase()
   if err != nil {
@@ -73,6 +82,27 @@ func (c *Comment) Count() (count int, err error) {
     `left join people on comments.person_id = people.id`,
   ).Where("people.user_id > 0").Count(&count)
   return
+}
+
+func (c *Comment) AfterCreate() error {
+  notify, err := generateNotifications(c)
+  if err == nil && len(notify) > 0 {
+    db, err := OpenDatabase()
+    if err != nil {
+      return err
+    }
+    defer db.Close()
+
+    // batch insert doesn't work for gorm, yet
+    // see https://github.com/jinzhu/gorm/issues/255
+    for _, n := range notify {
+      err = db.Create(&n).Error
+      if err != nil {
+        return err
+      }
+    }
+  }
+  return err
 }
 
 func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
@@ -116,12 +146,4 @@ func (c *Comments) FindByPostID(id uint) (err error) {
   defer db.Close()
 
   return db.Where("shareable_id = ? and shareable_type = ?", id, ShareablePost).Find(c).Error
-}
-
-func (comment *Comment) addRelations(db *gorm.DB) error {
-  err := db.Model(comment).Related(&comment.Person).Error
-  if err != nil {
-    return err
-  }
-  return db.Model(&comment.Person).Related(&comment.Person.Profile).Error
 }

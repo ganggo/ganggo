@@ -38,6 +38,21 @@ type Person struct {
   Contacts Contacts `json:",omitempty"`
 }
 
+// load relations on default
+func (person *Person) AfterFind() error {
+  if structLoaded(person.Profile.CreatedAt) {
+    return nil
+  }
+
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Model(person).Related(&person.Profile).Error
+}
+
 func (person *Person) FindByID(id uint) (err error) {
   db, err := OpenDatabase()
   if err != nil {
@@ -55,9 +70,15 @@ func (person *Person) FindByGuid(guid string) (err error) {
   }
   defer db.Close()
 
-  err = db.Where("guid = ?", guid).First(person).Error
+  return db.Where("guid = ?", guid).First(person).Error
+}
+
+func (person *Person) FindByAuthor(author string) (err error) {
+  db, err := OpenDatabase()
   if err != nil {
-    return
+    return err
   }
-  return db.Model(person).Related(&person.Profile).Error
+  defer db.Close()
+
+  return db.Where("author = ?", author).First(person).Error
 }

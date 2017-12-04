@@ -32,7 +32,7 @@ type User struct {
   // cause asumming we use utf8mb 4*191 = 764 < 767
   Username string `gorm:"size:191"`
   Email string `gorm:"size:191"`
-  SerializedPrivateKey string `gorm:"type:text"`
+  SerializedPrivateKey string `gorm:"type:text";`
   EncryptedPassword string
 
   PersonID uint
@@ -49,6 +49,16 @@ func (user *User) FindByID(id uint) (err error) {
   defer db.Close()
 
   return db.Find(user, id).Error
+}
+
+func (user *User) FindByUsername(name string) (err error) {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("username = ?", name).Find(user).Error
 }
 
 func (user *User) Count() (count int, err error) {

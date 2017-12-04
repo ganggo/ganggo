@@ -18,6 +18,7 @@ package models
 //
 
 import (
+  "time"
   "errors"
   "github.com/revel/revel"
   "github.com/jinzhu/gorm"
@@ -178,4 +179,11 @@ func advancedColumnModify(s *gorm.DB, column, dataType string) {
     format, scope.QuotedTableName(),
     scope.Quote(column), dataType,
   )).Exec()
+}
+
+// small helper functions to test
+// whether a struct was already loaded
+func structLoaded(createAt time.Time) bool {
+  var unInitialized time.Time
+  return createAt != unInitialized
 }

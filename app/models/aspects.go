@@ -58,6 +58,16 @@ type AspectVisibility struct {
 
 type AspectVisibilities []AspectVisibility
 
+func (aspect *Aspect) AfterFind() error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Model(aspect).Related(&aspect.Memberships).Error
+}
+
 func (aspect *Aspect) Create() (err error) {
   db, err := OpenDatabase()
   if err != nil {
@@ -101,14 +111,7 @@ func (aspect *Aspect) FindByID(id uint) (err error) {
   }
   defer db.Close()
 
-  err = db.Find(aspect, id).Error
-  if err != nil {
-    return err
-  }
-
-  db.Model(aspect).Related(&aspect.Memberships)
-
-  return
+  return db.Find(aspect, id).Error
 }
 
 func (aspects *Aspects) FindByUserPersonID(userID, personID uint) (err error) {
