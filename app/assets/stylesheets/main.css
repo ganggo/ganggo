@@ -2,6 +2,7 @@
  *= require stylesheets/reshare_box
  *= require stylesheets/revealjs
  *= require stylesheets/post_panel
+ *= require stylesheets/notification
  */
 
 html {

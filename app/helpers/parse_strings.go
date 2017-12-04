@@ -22,8 +22,20 @@ import (
   "errors"
 )
 
+
+// Will contain following parts
+//  Index Match
+//  0 @{ganggo@localhost; ganggo@localhost}
+//  1 ganggo@localhost
+//  2 ganggo
+//  3 localhost
+func ParseMentions(text string) [][]string {
+  r := regexp.MustCompile(`@\{\s*([^;]*?)[;\s]*([^@;\s]+?)@([^@;\s]+?)\s*\}`)
+  return r.FindAllStringSubmatch(text, -1)
+}
+
 func ParseAuthor(handle string) (string, string, error) {
-  parts, err := _ParseStringHelper(handle, `^(.+?)@(.+?)$`, 2)
+  parts, err := parseStringHelper(handle, `^(.+?)@(.+?)$`, 2)
   if err != nil {
     return "", "", err
   }
@@ -31,14 +43,14 @@ func ParseAuthor(handle string) (string, string, error) {
 }
 
 func ParseWebfingerHandle(handle string) (string, error) {
-  parts, err := _ParseStringHelper(handle, `^acct:(.+?)@.+?$`, 1)
+  parts, err := parseStringHelper(handle, `^acct:(.+?)@.+?$`, 1)
   if err != nil {
     return "", err
   }
   return parts[1], nil
 }
 
-func _ParseStringHelper(line, regex string, max int) (parts []string, err error) {
+func parseStringHelper(line, regex string, max int) (parts []string, err error) {
   r := regexp.MustCompile(regex)
   parts = r.FindStringSubmatch(line)
   if len(parts) < max {

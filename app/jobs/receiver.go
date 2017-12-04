@@ -23,9 +23,6 @@ import (
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
   federation "gopkg.in/ganggo/federation.v0"
   "strings"
-  //"net/url"
-  //"fmt"
-  //"encoding/xml"
 )
 
 type Receiver struct {

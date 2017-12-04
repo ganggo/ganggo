@@ -164,6 +164,11 @@ func loadSchema(db *gorm.DB) {
   signatureOrder := &SignatureOrder{}
   db.Model(signatureOrder).AddUniqueIndex("index_signature_orders_on_order", "order")
   db.AutoMigrate(signatureOrder)
+
+  notification := &Notification{}
+  db.Model(notification).AddIndex("index_notifications_on_user_id_and_unread", "user_id", "unread")
+  db.Model(notification).AddUniqueIndex("index_notifications_on_target_type_and_target_guid", "target_type", "target_guid")
+  db.AutoMigrate(notification)
 }
 
 func InitDB() {

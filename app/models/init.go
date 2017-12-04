@@ -18,6 +18,7 @@ package models
 //
 
 import (
+  "errors"
   "github.com/revel/revel"
   "github.com/jinzhu/gorm"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
@@ -37,6 +38,7 @@ const (
   Reshare = "Reshare"
   StatusMessage = "StatusMessage"
   ShareablePost = "Post"
+  ShareableComment = "Comment"
 )
 
 var DB Database
@@ -73,6 +75,53 @@ func GetCurrentUser(token string) (user User, err error) {
   }
   db.Model(&user).Related(&user.Person, "Person")
   db.Model(&user).Related(&user.Aspects)
+  return
+}
+
+func generateNotifications(data interface{}) (notify Notifications, err error) {
+  var personID uint
+  var guid, text, dataType string
+  switch model := data.(type) {
+  case *Post:
+    guid = model.Guid
+    personID = model.PersonID
+    text = model.Text
+    dataType = ShareablePost
+  case *Comment:
+    guid = model.Guid
+    personID = model.PersonID
+    text = model.Text
+    dataType = ShareableComment
+  default:
+    return notify, errors.New("Unknown data type for generateNotifications")
+  }
+
+  mentions := helpers.ParseMentions(text)
+  if len(mentions) > 0 {
+    revel.Config.SetSection("ganggo")
+    localhost, found := revel.Config.String("address")
+    if !found {
+      return notify, errors.New("No server address configured")
+    }
+
+    for _, mention := range mentions {
+      if mention[3] == localhost {
+        var user User
+        err = user.FindByUsername(mention[2])
+        if err != nil {
+          return notify, err
+        }
+
+        notify = append(notify, Notification{
+          TargetType: dataType,
+          TargetGuid: guid,
+          UserID: user.ID,
+          PersonID: personID,
+          Unread: true,
+        })
+      }
+    }
+  }
   return
 }
 

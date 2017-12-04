@@ -5,6 +5,9 @@
 # - http://www.rfc-editor.org/rfc/bcp/bcp47.txt
 # - http://www.w3.org/International/questions/qa-accept-lang-locales
 
+notification.unread=%d Notifications
+notification.mentioned_in_post=<a href="%s">%s</a> has mentioned you in a <a href="%s">post</a>
+
 navigation.toggle=Toggle navigation
 navigation.login=Login
 navigation.logout=Hi %s, Logout?

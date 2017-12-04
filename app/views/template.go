@@ -45,6 +45,9 @@ var TemplateFuncs = map[string]interface{}{
   "IsShareablePost": func(a string) bool {
     return (a == models.ShareablePost)
   },
+  "IsShareableComment": func(a string) bool {
+    return (a == models.ShareableComment)
+  },
   "LikesByTargetID": func(id uint) []models.Like {
     return likes(id, true)
   },
@@ -114,6 +117,14 @@ var TemplateFuncs = map[string]interface{}{
     }
     return
   },
+  "FindUnreadNotifications": func(user models.User) (notify models.Notifications) {
+    err := notify.FindUnreadByUserID(user.ID)
+    if err != nil {
+      revel.ERROR.Println(err)
+      return
+    }
+    return
+  },
   // custom train script/stylesheet include functions
   "javascript_include_tag": func(name string) template.HTML {
     path := "/assets/javascripts/" + name + ".js"
@@ -138,11 +149,17 @@ var TemplateFuncs = map[string]interface{}{
   "eq": func(a, b interface {}) bool {
     return a == b
   },
+  "ne": func(a, b interface {}) bool {
+    return a != b
+  },
   "add": func(a, b int) int {
     return a + b
   },
   "sub": func(a, b int) int {
     return a - b
+  },
+  "concat": func(a, b string) string {
+    return a + b
   },
 }
 
