@@ -9,6 +9,9 @@ GET     /                                       App.Index
 
 GET     /stream                                 Stream.Index
 GET     /stream/:page                           Stream.IndexPagination
+GET     /public                                 PublicStream.Index
+GET     /public/:page                           PublicStream.IndexPagination
+
 GET     /posts/:guid                            Post.Index
 GET     /tags/:name                             Tag.Index
 GET     /search/:text                           Search.Create

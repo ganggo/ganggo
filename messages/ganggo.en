@@ -7,12 +7,15 @@
 
 notification.unread=%d Notifications
 notification.mentioned_in_post=<a href="%s">%s</a> has mentioned you in a <a href="%s">post</a>
+notification.mentioned_in_comment=<a href="%s">%s</a> has mentioned you in a <a href="%s">comment</a>
 
 navigation.toggle=Toggle navigation
 navigation.login=Login
 navigation.logout=Hi %s, Logout?
 navigation.register=Register
 navigation.stream=Stream
+navigation.stream.public=Public
+navigation.stream.private=Private
 navigation.write_a_post=Write a post..
 
 comment.placeholder=Write a comment..
@@ -23,6 +26,8 @@ post.public=Public post
 post.limited=Limited post
 
 app.title=Home
+
+public.title=Public
 
 # see https://revel.github.io/manual/i18n-messages.html
 stream.title=%(navigation.stream)s
