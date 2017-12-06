@@ -29,7 +29,6 @@ func init() {
   // requires login
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &Stream{})
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &Search{})
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &Profile{})
   // API
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiComment{})
   revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiLike{})

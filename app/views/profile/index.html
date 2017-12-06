@@ -12,6 +12,7 @@
         <img src="{{$profile.ImageUrl}}" border="0"/>
         <h2>{{$profile.Author}}</h2>
         <hr/>
+        {{if .currentUser}}
         <h3>{{msg . "profile.groups"}}</h3>
         <ul id="aspectList"></ul>
         <form id="aspect-form">
@@ -19,6 +20,7 @@
           <input type="text" name="aspectName" placeholder="Add/Remove from aspects..">
           <input type="submit" style="display:none">
         </form>
+        {{end}}
         <h3>{{$profile.FullName}}</h3>
         {{if ne $profile.Bio ""}}
         <p class="markdown">{{$profile.Bio}}</p>
@@ -37,7 +39,9 @@
       </div>
     </div>
   </div>
-  {{javascript_include_tag "profile"}}
+  {{if .currentUser}}
+    {{javascript_include_tag "profile"}}
+  {{end}}
   {{$root := .}}
   {{range .posts}}
   {{set $root "post" .}}

@@ -43,7 +43,12 @@ func (p Profile) IndexPagination(guid string, page int) revel.Result {
     return p.RenderError(err)
   }
 
-  err = posts.FindAllByPersonID(person.ID, offset)
+  user, err := models.GetCurrentUser(p.Session["TOKEN"])
+  if err == nil {
+    p.ViewArgs["currentUser"] = user
+  }
+
+  err = posts.FindAllByUserAndPersonID(user, person.ID, offset)
   if err != nil {
     p.Log.Error("Cannot find posts", "error", err)
     return p.RenderError(err)
@@ -52,11 +57,6 @@ func (p Profile) IndexPagination(guid string, page int) revel.Result {
   p.ViewArgs["posts"] = posts
   p.ViewArgs["person"] = person
   p.ViewArgs["page"] = page
-
-  user, err := models.GetCurrentUser(p.Session["TOKEN"])
-  if err == nil {
-    p.ViewArgs["currentUser"] = user
-  }
 
   return p.RenderTemplate("profile/index.html")
 }
