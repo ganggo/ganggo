@@ -103,12 +103,12 @@ func generateSchema(version string) SchemaJson {
   revel.Config.SetSection("DEFAULT")
   appName, found := revel.Config.String("app.name")
   if !found {
-    revel.ERROR.Println("app.name configuration value not found!")
+    revel.AppLog.Error("app.name configuration value not found!")
     return SchemaJson{}
   }
   appVersion, found := revel.Config.String("app.version")
   if !found {
-    revel.ERROR.Println("app.version configuration value not found!")
+    revel.AppLog.Error("app.version configuration value not found!")
     return SchemaJson{}
   }
 

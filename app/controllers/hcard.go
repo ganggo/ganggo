@@ -18,47 +18,35 @@ package controllers
 //
 
 import (
-  "net/http"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 type Hcard struct {
   *revel.Controller
 }
 
-func (c Hcard) User() revel.Result {
-  var (
-    guid string
-    person models.Person
-  )
-  c.Params.Bind(&guid, "guid")
+func (c Hcard) User(guid string) revel.Result {
+  var person models.Person
 
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+  db, err := models.OpenDatabase()
   if err != nil {
-    revel.WARN.Println(err)
-    return c.Render()
+    c.Log.Error("Cannot open database", "error", err)
+    return c.RenderError(err)
   }
   defer db.Close()
 
   err = db.Where("guid = ?", guid).First(&person).Error
   if err != nil {
-    c.Response.Status = http.StatusNotFound
-    revel.WARN.Println(err)
-    return c.Render()
+    c.Log.Error("Person not found", "error", err)
+    return c.NotFound(err.Error())
   }
 
   var profile models.Profile
   err = db.Where("person_id = ?", person.ID).First(&profile).Error
   if err != nil {
-    c.Response.Status = http.StatusNotFound
-    revel.WARN.Println(err)
-    return c.Render()
+    c.Log.Error("Profile not found", "error", err)
+    return c.NotFound(err.Error())
   }
 
   revel.Config.SetSection("ganggo")

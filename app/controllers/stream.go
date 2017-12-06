@@ -18,7 +18,6 @@ package controllers
 //
 
 import (
-  "net/http"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
 )
@@ -37,14 +36,14 @@ func (s Stream) IndexPagination(page int) revel.Result {
 
   user, err := models.GetCurrentUser(s.Session["TOKEN"])
   if err != nil {
-    revel.ERROR.Println(err)
+    s.Log.Error("Cannot fetch current user", "error", err)
     return s.RenderError(err)
   }
 
   err = posts.FindAll(user.ID, offset)
   if err != nil {
-    s.Response.Status = http.StatusInternalServerError
-    revel.WARN.Println(err)
+    s.Log.Error("Cannot find posts", "error", err)
+    return s.RenderError(err)
   }
 
   s.ViewArgs["currentUser"] = user

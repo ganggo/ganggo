@@ -22,11 +22,6 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 type Webfinger struct {
@@ -45,27 +40,27 @@ func (c Webfinger) Webfinger() revel.Result {
   proto, ok := revel.Config.String("proto")
   if !ok {
     c.Response.Status = http.StatusNotFound
-    revel.TRACE.Println("no proto config found")
+    c.Log.Error("No proto config found")
     return c.RenderJSON(json)
   }
   address, ok := revel.Config.String("address")
   if !ok {
     c.Response.Status = http.StatusNotFound
-    revel.TRACE.Println("no address config found")
+    c.Log.Error("No address config found")
     return c.RenderJSON(json)
   }
 
   username, err := federation.ParseWebfingerHandle(resource)
   if err != nil {
     c.Response.Status = http.StatusNotFound
-    revel.TRACE.Println(err)
+    c.Log.Error("Cannot parse webfinger handle", "error", err)
     return c.RenderJSON(json)
   }
 
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+  db, err := models.OpenDatabase()
   if err != nil {
-    revel.WARN.Println(err)
-    return c.RenderJSON(json)
+    c.Log.Error("Cannot open database", "error", err)
+    return c.RenderError(err)
   }
   defer db.Close()
 
@@ -73,7 +68,7 @@ func (c Webfinger) Webfinger() revel.Result {
   err = db.Where("author = ?", username + "@" + address).First(&person).Error
   if err != nil {
     c.Response.Status = http.StatusNotFound
-    revel.TRACE.Println(err)
+    c.Log.Error("Cannot find person", "error", err)
     return c.RenderJSON(json)
   }
 
@@ -125,13 +120,13 @@ func (c Webfinger) HostMeta() revel.Result {
   proto, ok := revel.Config.String("proto")
   if !ok {
     c.Response.Status = http.StatusNotFound
-    revel.TRACE.Println("no proto config found")
+    c.Log.Error("No proto config found")
     return c.RenderXML(m)
   }
   address, ok := revel.Config.String("address")
   if !ok {
     c.Response.Status = http.StatusNotFound
-    revel.TRACE.Println("no address config found")
+    c.Log.Error("No address config found")
     return c.RenderXML(m)
   }
 

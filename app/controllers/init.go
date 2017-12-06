@@ -52,8 +52,8 @@ func requiresLogin(c *revel.Controller) revel.Result {
 
   db, err := models.OpenDatabase()
   if err != nil {
-    revel.WARN.Println(err)
-    return c.Render()
+    c.Log.Error("Cannot open database", "error", err)
+    return c.RenderError(err)
   }
   defer db.Close()
 

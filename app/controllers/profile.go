@@ -39,14 +39,14 @@ func (p Profile) IndexPagination(guid string, page int) revel.Result {
 
   err := person.FindByGuid(guid)
   if err != nil {
-    revel.ERROR.Println(err)
-    return p.Redirect(Stream.Index)
+    p.Log.Error("Cannot find person", "error", err)
+    return p.RenderError(err)
   }
 
   err = posts.FindAllByPersonID(person.ID, offset)
   if err != nil {
-    revel.ERROR.Println(err)
-    return p.Redirect(Stream.Index)
+    p.Log.Error("Cannot find posts", "error", err)
+    return p.RenderError(err)
   }
 
   p.ViewArgs["posts"] = posts

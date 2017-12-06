@@ -30,14 +30,14 @@ type Search struct {
 func (s Search) Create(text string) revel.Result {
   _, _, err := helpers.ParseAuthor(text)
   if err != nil {
-    return s.Redirect(Stream.Index)
+    return s.NotFound(err.Error())
   }
 
   fetchAuthor := jobs.FetchAuthor{Author: text}
   fetchAuthor.Run()
   if fetchAuthor.Err != nil {
-    revel.WARN.Println(fetchAuthor.Err)
-    return s.Redirect(Stream.Index)
+    s.Log.Error("Cannot fetch author", "error", fetchAuthor.Err)
+    return s.RenderError(fetchAuthor.Err)
   }
 
   guid := fetchAuthor.Person.Guid

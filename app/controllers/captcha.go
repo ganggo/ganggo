@@ -41,7 +41,7 @@ func (name DisplayImageByName) Apply(req *revel.Request, resp *revel.Response) {
 
   err := captcha.WriteImage(&content, id, 250, 100)
   if err != nil {
-    revel.ERROR.Println(err)
+    revel.AppLog.Error("Cannot write captcha image", "error", err)
     status = http.StatusInternalServerError
   }
   resp.WriteHeader(status, "image/png")

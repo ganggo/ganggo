@@ -21,11 +21,6 @@ import (
   "net/http"
   "github.com/revel/revel"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/jobs"
   "io/ioutil"
@@ -36,10 +31,10 @@ type Receiver struct {
 }
 
 func (r Receiver) Public() revel.Result {
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+  db, err := models.OpenDatabase()
   if err != nil {
-    revel.WARN.Println(err)
-    return r.Render()
+    r.Log.Error("Cannot open database", "error", err)
+    return r.RenderError(err)
   }
   defer db.Close()
 
@@ -50,14 +45,14 @@ func (r Receiver) Public() revel.Result {
     return r.Render()
   }
 
-  revel.TRACE.Println("public", string(content))
+  r.Log.Debug("received publicly", "message", string(content))
 
   // in case it succeeds reply with status 202
   r.Response.Status = http.StatusAccepted
 
   message, err := federation.ParseDecryptedRequest(content)
   if err != nil {
-    revel.ERROR.Println(err)
+    r.Log.Error("Cannot parse decrypted request", "error", err)
     // NOTE Send accept code even tho the entity is not
     // known otherwise the sender pod will throw an error
     //r.Response.Status = http.StatusNotAcceptable
@@ -80,10 +75,10 @@ func (r Receiver) Private() revel.Result {
     user models.User
   )
 
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+  db, err := models.OpenDatabase()
   if err != nil {
-    revel.WARN.Println(err)
-    return r.Render()
+    r.Log.Error("Cannot open database", "error", err)
+    return r.RenderError(err)
   }
   defer db.Close()
 
@@ -91,25 +86,25 @@ func (r Receiver) Private() revel.Result {
   r.Params.Bind(&guid, "guid")
   r.Response.Status = http.StatusAccepted
 
-  revel.TRACE.Println("aes request", wrapper)
+  r.Log.Debug("AES request", "message", wrapper)
 
   err = db.Where("guid like ?", guid).First(&person).Error
   if err != nil {
-    revel.ERROR.Println(err)
+    r.Log.Error("Cannot find person", "error", err)
     // diaspora will not process on StatusNotAcceptable
     return r.Render()
   }
 
   err = db.First(&user, person.UserID).Error
   if err != nil {
-    revel.ERROR.Println(err)
+    r.Log.Error("Cannot find user", "error", err)
     r.Response.Status = http.StatusNotAcceptable
     return r.Render()
   }
 
   message, err := federation.ParseEncryptedRequest(wrapper, []byte(user.SerializedPrivateKey))
   if err != nil {
-    revel.ERROR.Println(err)
+    r.Log.Error("Cannot parse encrypted request", "error", err)
     // NOTE Send accept code even tho the entity is not
     // known otherwise the sender pod will throw an error
     //r.Response.Status = http.StatusNotAcceptable
