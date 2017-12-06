@@ -13,6 +13,13 @@
   });
 })(jQuery);
 
+// use custom get request in submit form
+$("form.navbar-form.navbar-right").submit(function() {
+  var text = $(this).find("input[name=search]").val();
+  window.location = "/search/" + text;
+  return false;
+});
+
 // handle language switcher events
 $("ul li.language").each(function(i, elem) {
   $(elem).click(function() {

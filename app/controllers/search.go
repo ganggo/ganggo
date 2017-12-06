@@ -27,16 +27,13 @@ type Search struct {
   *revel.Controller
 }
 
-func (s Search) Create() revel.Result {
-  var searchText string
-  s.Params.Bind(&searchText, "search")
-
-  _, _, err := helpers.ParseAuthor(searchText)
+func (s Search) Create(text string) revel.Result {
+  _, _, err := helpers.ParseAuthor(text)
   if err != nil {
     return s.Redirect(Stream.Index)
   }
 
-  fetchAuthor := jobs.FetchAuthor{Author: searchText}
+  fetchAuthor := jobs.FetchAuthor{Author: text}
   fetchAuthor.Run()
   if fetchAuthor.Err != nil {
     revel.WARN.Println(fetchAuthor.Err)
