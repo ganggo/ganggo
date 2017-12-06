@@ -67,3 +67,15 @@ errors.not_acceptable=Not Acceptable
 errors.internal_server_error=Internal Server Error
 
 errors.controller.post_not_found=No post available
+
+# flash messages
+flash.errors.captcha=Captcha was not correct!
+flash.errors.username=Username already exists!
+flash.errors.password_empty=Password was empty or didn't match!
+flash.errors.password_length=Password length should be greater then four!
+flash.errors.login=Please log in first
+flash.errors.username_not_found=Username '%s' not found!
+flash.errors.login_failed=Login failed
+
+flash.success.registration=The user was successfully created! Please login
+flash.success.login=Login successful

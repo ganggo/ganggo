@@ -59,6 +59,16 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+#flash-container {
+  position: absolute;
+  width: 100%;
+  z-index: 99;
+}
+
+#flash-container > .alert {
+  margin-bottom: 2px;
+}
+
 .main-login{
   background-color: #fff;
   -moz-border-radius: 2px;

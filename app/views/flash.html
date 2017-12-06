@@ -1,23 +1,33 @@
-<!-- PRE-ALPHA WARNING -->
-<div class="alert alert-danger">
-  This is a pre-alpha version and still under heavy development. Please use it for testing purposes only!!
-</div>
-
-{{if .flash.success}}
-<div class="alert alert-success">
-  {{.flash.success}}
-</div>
-{{end}}
-
-{{if or .errors .flash.error}}
-<div class="alert alert-danger">
-  {{if .flash.error}}
-    {{.flash.error}}
+<div id="flash-container">
+  {{$title := msg . "app.title"}}
+  {{if eq .title $title}}
+  <!-- PRE-ALPHA WARNING -->
+  <div class="alert alert-danger">
+    This is a pre-alpha version and still under heavy development. Please use it for testing purposes only!!
+    <i class="fa fa-times fa-lg pull-right" aria-hidden="true"></i>
+  </div>
   {{end}}
-  <ul style="margin-top:10px;">
-    {{range .errors}}
-    <li>{{.}}</li>
+
+  {{if .flash.success}}
+  <div class="alert alert-success">
+    {{.flash.success}}
+    <i class="fa fa-times fa-lg pull-right" aria-hidden="true"></i>
+  </div>
+  {{end}}
+
+  {{if or .errors .flash.error}}
+  <div class="alert alert-danger">
+    {{if .flash.error}}
+      {{.flash.error}}
     {{end}}
-  </ul>
+    {{if .errors}}
+    <ul style="margin-top:10px;">
+      {{range .errors}}
+      <li>{{.}}</li>
+      {{end}}
+    </ul>
+    {{end}}
+    <i class="fa fa-times fa-lg pull-right" aria-hidden="true"></i>
+  </div>
+  {{end}}
 </div>
-{{end}}

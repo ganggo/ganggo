@@ -13,6 +13,14 @@
   });
 })(jQuery);
 
+// clicking the cross icon on any kind of
+// alert should hide the element
+$("#flash-container .alert").click(function() {
+  $(this).hide();
+});
+$("#flash-container .alert-success").fadeOut(2000);
+$("#flash-container .alert-danger").fadeOut(5000);
+
 // use custom get request in submit form
 $("form.navbar-form.navbar-right").submit(function() {
   var text = $(this).find("input[name=search]").val();
