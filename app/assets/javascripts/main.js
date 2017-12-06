@@ -1,4 +1,5 @@
 //= require javascripts/api
+//= require javascripts/markdown
 
 (function($) {
   var origAppend = $.fn.append;
@@ -58,14 +59,4 @@ $(".comment-footer i").each(function(i, elem) {
       });
     });
   });
-});
-
-// parse all markdown text
-$("[data-markdown]").each(function() {
-  var html = $(this).html();
-  // parse hashtags
-  html = html.replace(/#([^#\s<>]{2,})/ig, '[#$1](/tags/$1)');
-  // parse markdown
-  html = marked(html);
-  $(this).html(html);
 });
