@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 {{$stream := msg . "stream.title"}}
+{{$public := msg . "public.title"}}
 
 <html>
   <head>
@@ -35,19 +36,25 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">GangGo</a>
+        <a class="navbar-brand" href="/">GangGo</a>
       </div>
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
-          {{if .currentUser}}
-          <li{{if eq .title $stream}} class="active"{{end}}>
-            <a href="/stream">{{msg . "navigation.stream"}}</a>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{msg . "navigation.stream"}} <b class="caret"></b></a>
+            <ul class="dropdown-menu caret-left">
+              {{if .currentUser}}
+              <li><a href="/stream">{{msg . "navigation.stream.private"}}</a></li>
+              {{end}}
+              <li><a href="/public">{{msg . "navigation.stream.public"}}</a></li>
+            </ul>
           </li>
-          {{if eq .title $stream}}
+          {{if .currentUser}}
+            {{if eq .title $stream}}
           <li><a href="#" id="writePost">{{msg . "navigation.write_a_post"}}</a></li>
-          {{end}}
-          {{$notify := FindUnreadNotifications .currentUser}}
-          {{$lenNotify := len $notify}}
+            {{end}}
+            {{$notify := FindUnreadNotifications .currentUser}}
+            {{$lenNotify := len $notify}}
           <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
               <i class="fa fa-bell"></i>
@@ -62,19 +69,21 @@
               {{range $index, $elem := $notify}}
                 {{$targetUrl := concat "/posts/" .TargetGuid}}
                 {{$profileUrl := concat "/profiles/" .Person.Guid}}
-                {{if IsShareablePost .TargetType}}
               <li>
                 <div class="row">
                   <div class="col-md-2">
                     <img src="{{.Person.Profile.ImageUrl}}"/>
                   </div>
-                  <div class="col-md-10">{{msg $root "notification.mentioned_in_post" $profileUrl .Person.Author $targetUrl}}
-                  </div>
-                </div>
-                  {{$pos := add $index 1}}
-                  {{if ne $pos $lenNotify}}
-              <li role="separator" class="divider"></li>
+                  {{if IsShareablePost .TargetType}}
+                  <div class="col-md-10">{{msg $root "notification.mentioned_in_post" $profileUrl .Person.Author $targetUrl}}</div>
                   {{end}}
+                  {{if IsShareableComment .TargetType}}
+                  <div class="col-md-10">{{msg $root "notification.mentioned_in_comment" $profileUrl .Person.Author $targetUrl}}</div>
+                  {{end}}
+                </div>
+                {{$pos := add $index 1}}
+                {{if ne $pos $lenNotify}}
+              <li class="divider"></li>
                 {{end}}
               {{end}}
             </ul>

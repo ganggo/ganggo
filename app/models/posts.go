@@ -19,6 +19,7 @@ package models
 
 import (
   "time"
+  "github.com/jinzhu/gorm"
   federation "gopkg.in/ganggo/federation.v0"
 )
 
@@ -43,28 +44,69 @@ type Post struct {
   InteractedAt string
 
   Person Person `gorm:"ForeignKey:PersonID";json:",omitempty"`
-  Comments []Comment `gorm:"ForeignKey:ShareableID";json:",omitempty"`
+  Comments Comments `gorm:"ForeignKey:ShareableID";json:",omitempty"`
 }
 
 type Posts []Post
 
-func (post *Post) AfterFind() error {
+func (p Posts) Len() int { return len(p) }
+func (p Posts) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+func (p Posts) Less(i, j int) bool {
+  return p[i].UpdatedAt.After(p[j].UpdatedAt)
+}
+
+func (post *Post) AfterFind(db *gorm.DB) error {
   if structLoaded(post.Person.CreatedAt) {
     return nil
   }
 
-  db, err := OpenDatabase()
-  if err != nil {
-    return err
-  }
-  defer db.Close()
-
-  err = db.Model(post).Related(&post.Person).Error
+  err := db.Model(post).Related(&post.Person).Error
   if err != nil {
     return err
   }
 
   return db.Preload("Comments").First(post).Error
+}
+
+func (p *Post) AfterCreate(db *gorm.DB) error {
+  // batch insert doesn't work for gorm, yet
+  // see https://github.com/jinzhu/gorm/issues/255
+  tags, err := generateTags(p)
+  if err == nil && len(tags) > 0 {
+    for _, tag := range tags {
+      var cnt int
+      db.Where("name = ?", tag.Name).Find(&tag).Count(&cnt)
+      // if tag already exists skip it
+      // and create taggings only
+      if cnt == 0 {
+        err = db.Create(&tag).Error
+        if err != nil {
+          return err
+        }
+      } else {
+        for _, shareable := range tag.ShareableTaggings {
+          shareable.TagID = tag.ID
+          err = db.Create(&shareable).Error
+          if err != nil {
+            return err
+          }
+        }
+      }
+    }
+  } else if err != nil {
+    return err
+  }
+
+  notify, err := generateNotifications(p)
+  if err == nil && len(notify) > 0 {
+    for _, n := range notify {
+      err = db.Create(&n).Error
+      if err != nil {
+        return err
+      }
+    }
+  }
+  return err
 }
 
 func (p *Post) Count() (count int, err error) {
@@ -124,29 +166,21 @@ func (p *Post) Cast(entity *federation.EntityStatusMessage, reshare bool) (err e
   return nil
 }
 
-func (p *Post) AfterCreate() error {
-  notify, err := generateNotifications(p)
-  if err == nil && len(notify) > 0 {
-    db, err := OpenDatabase()
-    if err != nil {
-      return err
-    }
-    defer db.Close()
-
-    // batch insert doesn't work for gorm, yet
-    // see https://github.com/jinzhu/gorm/issues/255
-    for _, n := range notify {
-      err = db.Create(&n).Error
-      if err != nil {
-        return err
-      }
-    }
-  }
-  return err
-}
-
 func (p *Post) IsLocal() (User, bool) {
   return parentIsLocal(p.ID)
+}
+
+func (posts *Posts) FindAllPublic(offset int) (err error) {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  query := db.Offset(offset).Limit(10).
+    Where(`public = ?`, true).Order(`updated_at desc`)
+
+  return query.Find(posts).Error
 }
 
 func (posts *Posts) FindAll(userID uint, offset int) (err error) {
@@ -156,9 +190,9 @@ func (posts *Posts) FindAll(userID uint, offset int) (err error) {
   }
   defer db.Close()
 
-  return db.Offset(offset).Limit(10).Table("posts").
+  return db.Offset(offset).Limit(10).
     Joins(`left join shareables on shareables.shareable_id = posts.id`).
-    Where("posts.public = true").
+    Where(`posts.public = ?`, true).
     Or(`posts.id = shareables.shareable_id
       and shareables.shareable_type = ?
       and shareables.user_id = ?`,
@@ -166,7 +200,7 @@ func (posts *Posts) FindAll(userID uint, offset int) (err error) {
     ).Order("posts.updated_at desc").Find(posts).Error
 }
 
-func (posts *Posts) FindAllByPersonID(id uint, offset int) (err error) {
+func (posts *Posts) FindAllPrivate(userID uint, offset int) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return err
@@ -174,8 +208,31 @@ func (posts *Posts) FindAllByPersonID(id uint, offset int) (err error) {
   defer db.Close()
 
   return db.Offset(offset).Limit(10).
-    Where("person_id = ?", id).
-    Order("posts.updated_at desc").Find(posts).Error
+    Joins(`left join shareables on shareables.shareable_id = posts.id`).
+    Where(`posts.id = shareables.shareable_id
+      and shareables.shareable_type = ?
+      and shareables.user_id = ?`, ShareablePost, userID,
+    ).Order(`posts.updated_at desc`).Find(posts).Error
+}
+
+func (posts *Posts) FindAllByUserAndPersonID(user User, personID uint, offset int) (err error) {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  query := db.Offset(offset).Limit(10).
+    Joins(`left join shareables on shareables.shareable_id = posts.id`).
+    Where(`posts.public = ? and person_id = ?`, true, personID)
+
+  if user.SerializedPrivateKey != "" {
+    query = query.Or(`posts.id = shareables.shareable_id
+      and shareables.shareable_type = ?
+      and shareables.user_id = ?
+      and person_id = ?`, ShareablePost, user.ID, personID)
+  }
+  return query.Order(`posts.updated_at desc`).Find(posts).Error
 }
 
 
@@ -217,25 +274,4 @@ func (post *Post) FindByGuidUser(guid string, user User) (err error) {
   }
 
   return query.Find(post).Error
-}
-
-func (posts *Posts) FindByTagName(name string, user User, offset int) (err error) {
-  db, err := OpenDatabase()
-  if err != nil {
-    return err
-  }
-  defer db.Close()
-
-  query := db.Offset(offset).Limit(10).
-    Joins(`left join shareables on shareables.shareable_id = posts.id`).
-    Where(`posts.public = true and text like ?`, "%#"+name+"%")
-
-  if user.SerializedPrivateKey != "" {
-    query = query.Or(`posts.id = shareables.shareable_id
-        and shareables.shareable_type = ?
-        and shareables.user_id = ?
-        and text like ?`, ShareablePost, user.ID, "%#"+name+"%")
-  }
-
-  return query.Order("posts.updated_at desc").Find(posts).Error
 }

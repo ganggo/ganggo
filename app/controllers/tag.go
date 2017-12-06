@@ -18,6 +18,7 @@ package controllers
 //
 
 import (
+  "sort"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
 )
@@ -27,18 +28,26 @@ type Tag struct {
 }
 
 func (t Tag) Index(name string) revel.Result {
-  var posts models.Posts
+  var (
+    posts models.Posts
+    tag models.Tag
+  )
 
   user, err := models.GetCurrentUser(t.Session["TOKEN"])
   if err == nil {
     t.ViewArgs["currentUser"] = user
   }
 
-  err = posts.FindByTagName(name, user, 0)
-  if err != nil || len(posts) <= 0 {
+  err = tag.FindByName(name, user, 0)
+  if err != nil || len(tag.ShareableTaggings) <= 0 {
     return t.NotFound(
       revel.MessageFunc(t.Request.Locale, "errors.controller.post_not_found"),
     )
   }
+
+  for _, shareable := range tag.ShareableTaggings {
+    posts = append(posts, shareable.Post)
+  }
+  sort.Sort(posts) // sort by UpdatedAt
   return t.Render(posts)
 }

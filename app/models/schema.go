@@ -169,6 +169,19 @@ func loadSchema(db *gorm.DB) {
   db.Model(notification).AddIndex("index_notifications_on_user_id_and_unread", "user_id", "unread")
   db.Model(notification).AddUniqueIndex("index_notifications_on_target_type_and_target_guid", "target_type", "target_guid")
   db.AutoMigrate(notification)
+
+  tags := &Tags{}
+  db.Model(tags).AddUniqueIndex("index_tags_on_name", "name")
+  db.AutoMigrate(tags)
+
+  shareableTagging := &ShareableTagging{}
+  db.Model(shareableTagging).AddIndex("index_shareable_tagging_on_id_and_type", "shareable_id", "shareable_type")
+  db.Model(shareableTagging).AddUniqueIndex("index_shareable_tagging_on_id_and_type_and_tag_id", "shareable_id", "shareable_type", "tag_id")
+  db.AutoMigrate(shareableTagging)
+
+  userTagging := &UserTagging{}
+  db.Model(userTagging).AddUniqueIndex("index_user_tagging_on_user_id_and_tag_id", "user_id", "tag_id")
+  db.AutoMigrate(userTagging)
 }
 
 func InitDB() {

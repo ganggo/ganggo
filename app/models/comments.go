@@ -85,16 +85,42 @@ func (c *Comment) Count() (count int, err error) {
 }
 
 func (c *Comment) AfterCreate() error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  // batch insert doesn't work for gorm, yet
+  // see https://github.com/jinzhu/gorm/issues/255
+  tags, err := generateTags(c)
+  if err == nil && len(tags) > 0 {
+    for _, tag := range tags {
+      var cnt int
+      db.Where("name = ?", tag.Name).Find(&tag).Count(&cnt)
+      // if tag already exists skip it
+      // and create taggings only
+      if cnt == 0 {
+        err = db.Create(&tag).Error
+        if err != nil {
+          return err
+        }
+      } else {
+        for _, shareable := range tag.ShareableTaggings {
+          shareable.TagID = tag.ID
+          err = db.Create(&shareable).Error
+          if err != nil {
+            return err
+          }
+        }
+      }
+    }
+  } else if err != nil {
+    return err
+  }
+
   notify, err := generateNotifications(c)
   if err == nil && len(notify) > 0 {
-    db, err := OpenDatabase()
-    if err != nil {
-      return err
-    }
-    defer db.Close()
-
-    // batch insert doesn't work for gorm, yet
-    // see https://github.com/jinzhu/gorm/issues/255
     for _, n := range notify {
       err = db.Create(&n).Error
       if err != nil {

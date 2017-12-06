@@ -34,6 +34,11 @@ func ParseMentions(text string) [][]string {
   return r.FindAllStringSubmatch(text, -1)
 }
 
+func ParseTags(text string) [][]string {
+  r := regexp.MustCompile(`#([\w\d]{2,})`)
+  return r.FindAllStringSubmatch(text, -1)
+}
+
 func ParseAuthor(handle string) (string, string, error) {
   parts, err := parseStringHelper(handle, `^(.+?)@(.+?)$`, 2)
   if err != nil {

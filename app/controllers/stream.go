@@ -40,7 +40,7 @@ func (s Stream) IndexPagination(page int) revel.Result {
     return s.RenderError(err)
   }
 
-  err = posts.FindAll(user.ID, offset)
+  err = posts.FindAllPrivate(user.ID, offset)
   if err != nil {
     s.Log.Error("Cannot find posts", "error", err)
     return s.RenderError(err)

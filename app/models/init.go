@@ -79,21 +79,60 @@ func GetCurrentUser(token string) (user User, err error) {
   return
 }
 
-func generateNotifications(data interface{}) (notify Notifications, err error) {
+func generateTags(model interface{}) (tags Tags, err error) {
+  var modelID uint
+  var modelType, modelText string
+  var modelPublic bool
+
+  if post, ok := model.(*Post); ok {
+    modelID = post.ID
+    modelType = ShareablePost
+    modelText = post.Text
+    modelPublic = post.Public
+  }
+  if comment, ok := model.(*Comment); ok {
+    modelID = comment.ID
+    modelType = ShareableComment
+    modelText = comment.Text
+  }
+
+  if modelID == 0 && modelType == "" {
+    return tags, errors.New("Unknown model type for generateTags")
+  }
+
+  tagNames := helpers.ParseTags(modelText)
+  for _, match := range tagNames {
+    tags = append(tags, Tag{
+      Name: match[1],
+      ShareableTaggings: ShareableTaggings{
+        ShareableTagging{
+          Public: modelPublic,
+          ShareableID: modelID,
+          ShareableType: modelType,
+        },
+      },
+    })
+  }
+  return
+}
+
+func generateNotifications(model interface{}) (notify Notifications, err error) {
   var personID uint
   var guid, text, dataType string
-  switch model := data.(type) {
-  case *Post:
-    guid = model.Guid
-    personID = model.PersonID
-    text = model.Text
+  if post, ok := model.(*Post); ok {
+    guid = post.Guid
+    personID = post.PersonID
+    text = post.Text
     dataType = ShareablePost
-  case *Comment:
-    guid = model.Guid
-    personID = model.PersonID
-    text = model.Text
+  }
+  if comment, ok := model.(*Comment); ok {
+    guid = comment.Guid
+    personID = comment.PersonID
+    text = comment.Text
     dataType = ShareableComment
-  default:
+  }
+
+  if personID == 0 && dataType == "" {
     return notify, errors.New("Unknown data type for generateNotifications")
   }
 
