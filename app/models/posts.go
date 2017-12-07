@@ -235,6 +235,26 @@ func (posts *Posts) FindAllByUserAndPersonID(user User, personID uint, offset in
   return query.Order(`posts.updated_at desc`).Find(posts).Error
 }
 
+func (posts *Posts) FindAllByUserAndText(user User, text string, offset int) (err error) {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  query := db.Offset(offset).Limit(10).
+    Joins(`left join shareables on shareables.shareable_id = posts.id`).
+    Where(`posts.public = ? and ` + advancedColumnSearch("text", text), true)
+  if user.SerializedPrivateKey != "" {
+    query = query.Or(`posts.id = shareables.shareable_id
+      and shareables.shareable_type = ?
+      and shareables.user_id = ?
+      and ` + advancedColumnSearch("text", text),
+      ShareablePost, user.ID,
+    )
+  }
+  return query.Order(`posts.updated_at desc`).Find(posts).Error
+}
 
 func (post *Post) FindByID(id uint) (err error) {
   db, err := OpenDatabase()

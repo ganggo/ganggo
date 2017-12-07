@@ -45,6 +45,9 @@ profile.location=Location
 profile.previous=Previous
 profile.next=Next
 
+search.title=Search
+search.search_result_for=Search result for: '%s'
+
 editor.default_group=Public
 editor.button=Publish
 editor.placeholder=I like cats !!

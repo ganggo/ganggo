@@ -14,7 +14,10 @@ GET     /public/:page                           PublicStream.IndexPagination
 
 GET     /posts/:guid                            Post.Index
 GET     /tags/:name                             Tag.Index
-GET     /search/:text                           Search.Create
+GET     /search/:text                           Search.Index
+GET     /search/:text/:page                     Search.IndexPagination
+POST    /search                                 Search.Create
+
 GET     /profiles/:guid                         Profile.Index
 GET     /profiles/:guid/:page                   Profile.IndexPagination
 

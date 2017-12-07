@@ -18,28 +18,59 @@ package controllers
 //
 
 import (
+  "strings"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
   "gopkg.in/ganggo/ganggo.v0/app/jobs"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
 )
 
 type Search struct {
   *revel.Controller
 }
 
-func (s Search) Create(text string) revel.Result {
-  _, _, err := helpers.ParseAuthor(text)
+func (s Search) Index(text string) revel.Result {
+  return s.IndexPagination(text, 0)
+}
+
+func (s Search) IndexPagination(text string, page int) revel.Result {
+  var offset int = ((page - 1) * 10)
+  text = strings.Replace(text, "'", "", -1)
+
+  user, err := models.GetCurrentUser(s.Session["TOKEN"])
   if err != nil {
-    return s.NotFound(err.Error())
+    s.Log.Error("Cannot fetch current user", "error", err)
+    return s.RenderError(err)
+  }
+  s.ViewArgs["currentUser"] = user
+
+  var posts models.Posts
+  err = posts.FindAllByUserAndText(user, text, offset)
+  if err != nil {
+    s.Log.Error("Cannot find posts", "error", err)
+    return s.RenderError(err)
+  }
+  s.ViewArgs["posts"] = posts
+  s.ViewArgs["page"] = page
+  s.ViewArgs["searchQuery"] = text
+
+  return s.RenderTemplate("search/index.html")
+}
+
+func (s Search) Create(search string) revel.Result {
+  _, _, err := helpers.ParseAuthor(search)
+  if err != nil {
+    s.Log.Debug("Cannot parse handle author", "error", err)
+    return s.Redirect("/search/%s", search)
   }
 
-  fetchAuthor := jobs.FetchAuthor{Author: text}
+  fetchAuthor := jobs.FetchAuthor{Author: search}
   fetchAuthor.Run()
   if fetchAuthor.Err != nil {
     s.Log.Error("Cannot fetch author", "error", fetchAuthor.Err)
     return s.RenderError(fetchAuthor.Err)
   }
-
   guid := fetchAuthor.Person.Guid
+
   return s.Redirect("/profiles/%s", guid)
 }

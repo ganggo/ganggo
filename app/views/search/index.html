@@ -1,0 +1,28 @@
+{{$root := .}}
+{{$title := msg . "search.title"}}
+{{set . "title" $title}}
+
+{{template "header.html" .}}
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="main-login main-center">
+        <h2>{{msg . "search.search_result_for" .searchQuery}}</h2>
+      </div>
+    </div>
+  </div>
+  {{range .posts}}
+  {{set $root "post" .}}
+    {{template "profile/post.html" $root}}
+  {{end}}
+  <ul class="pager">
+    {{$prev := sub .page 1}}
+    {{if gt $prev 0}}
+    <li><a href="/search/{{.searchQuery}}/{{$prev}}">{{msg . "profile.previous"}}</a></li>
+    {{end}}
+    <li><a href="/search/{{.searchQuery}}/{{add .page 1}}">{{msg . "profile.next"}}</a></li>
+  </ul>
+</div>
+
+{{template "footer.html" .}}

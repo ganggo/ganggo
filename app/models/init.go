@@ -220,6 +220,21 @@ func advancedColumnModify(s *gorm.DB, column, dataType string) {
   )).Exec()
 }
 
+// Returns different methods of searching
+// with regular patterns in a database
+func advancedColumnSearch(column, expr string) string {
+  switch DB.Driver {
+  case "postgres":
+    return fmt.Sprintf("%s ~ '%s'", column, expr)
+  case "mysql":
+    fallthrough
+  case "sqlite":
+    return fmt.Sprintf("%s regexp '%s'", column, expr)
+  default:
+    return fmt.Sprintf("%s like '%s'", column, expr)
+  }
+}
+
 // small helper functions to test
 // whether a struct was already loaded
 func structLoaded(createAt time.Time) bool {
