@@ -256,7 +256,7 @@ func (post *Post) FindByGuid(guid string) (err error) {
   return db.Where("guid = ?", guid).Find(post).Error
 }
 
-func (post *Post) FindByGuidUser(guid string, user User) (err error) {
+func (post *Post) FindByGuidAndUser(guid string, user User) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return err

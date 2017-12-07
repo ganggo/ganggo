@@ -34,7 +34,7 @@ func (p Post) Index(guid string) revel.Result {
     p.ViewArgs["currentUser"] = user
   }
 
-  err = post.FindByGuidUser(guid, user)
+  err = post.FindByGuidAndUser(guid, user)
   if err != nil {
     return p.NotFound(
       revel.MessageFunc(p.Request.Locale, "errors.controller.post_not_found"),
