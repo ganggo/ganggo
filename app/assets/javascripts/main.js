@@ -1,17 +1,14 @@
 //= require javascripts/api
 //= require javascripts/markdown
+//= require javascripts/notification
 
-(function($) {
-  var origAppend = $.fn.append;
-  $.fn.append = function () {
-    return origAppend.apply(this, arguments).trigger("append");
-  };
-  $("section").on("append", "article", function() {
-    $(this).find(".markdown").each(function() {
-      $(this).html(marked($(this).html()));
-    });
-  });
-})(jQuery);
+// change border color if anchor is set
+anchors = /#(.+?)$/.exec(window.location.href);
+if (anchors !== null) {
+  var postElem = $("a[name='" + anchors[1] + "']").closest(".panel-default");
+  postElem.css("border-left-color", "#5bc0de");
+  postElem.css("border-left-width", "5px");
+}
 
 // clicking the cross icon on any kind of
 // alert should hide the element
