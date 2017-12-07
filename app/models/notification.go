@@ -17,7 +17,10 @@ package models
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "time"
+import (
+  "time"
+  "github.com/jinzhu/gorm"
+)
 
 type Notification struct {
   ID uint `gorm:"primary_key"`
@@ -29,30 +32,44 @@ type Notification struct {
   TargetType string `gorm:"size:191"`
   TargetGuid string `gorm:"size:191"`
   UserID uint
-  User User `json:"-"`
   PersonID uint
-  Person Person `json:"-"`
   Unread bool
+
+  Person Person `json:"-"`
+  User User `json:"-"`
+  Comment Comment `json:"-"`
+  Post Post `json:"-"`
 }
 
 type Notifications []Notification
 
-func (n *Notification) AfterFind() error {
-  if structLoaded(n.User.CreatedAt) {
-    return nil
-  }
-
-  db, err := OpenDatabase()
+func (n *Notification) AfterFind(db *gorm.DB) error {
+  err := db.Model(n).Related(&n.User).Error
   if err != nil {
     return err
   }
-  defer db.Close()
 
-  err = db.Model(n).Related(&n.User).Error
+  err = db.Model(n).Related(&n.Person).Error
   if err != nil {
     return err
   }
-  return db.Model(n).Related(&n.Person).Error
+
+  if n.TargetType == ShareablePost {
+    var post Post
+    err = post.FindByGuid(n.TargetGuid)
+    if err != nil {
+      return err
+    }
+    (*n).Post = post
+  } else {
+    var comment Comment
+    err = comment.FindByGuid(n.TargetGuid)
+    if err != nil {
+      return err
+    }
+    (*n).Comment = comment
+  }
+  return nil
 }
 
 func (n *Notifications) FindUnreadByUserID(id uint) error {
@@ -73,4 +90,16 @@ func (n *Notification) Create() error {
   defer db.Close()
 
   return db.Create(n).Error
+}
+
+func (n *Notification) Update() error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Model(n).
+    Where("user_id = ?", n.UserID).
+    Update("unread", n.Unread).Error
 }

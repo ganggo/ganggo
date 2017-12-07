@@ -160,6 +160,22 @@ func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
   return nil
 }
 
+func (c *Comment) FindByGuid(guid string) error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("guid = ?", guid).Find(c).Error
+}
+
+func (c *Comment) ParentPost() (post Post, err error) {
+  // XXX assuming ShareableType is always Post
+  err = post.FindByID(c.ShareableID)
+  return
+}
+
 func (c *Comment) ParentIsLocal() (User, bool) {
   return parentIsLocal(c.ShareableID)
 }

@@ -7,6 +7,7 @@ API.res({
     'comments',
     'likes'
   ],
+  notifications: [],
   people: [
     'profile',
     'aspects'

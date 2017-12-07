@@ -1,57 +1,59 @@
-.dropdown-menu > li > div {
-  padding: 5px;
-}
-.dropdown-menu > li img {
-    max-width: 50px;
-}
-.dropdown ul.dropdown-menu {
-    border-radius:4px;
-    box-shadow:none;
-    margin-top:20px;
-    width:300px;
-}
-.dropdown ul.dropdown-menu:before {
-    content: "";
-    border-bottom: 10px solid #fff;
-    border-right: 10px solid transparent;
-    border-left: 10px solid transparent;
+@media (min-width: 993px) {
+  .dropdown-menu > li > div {
+    padding: 5px;
+  }
+  .dropdown-menu > li img {
+      max-width: 50px;
+  }
+  .dropdown ul.dropdown-menu {
+      border-radius:4px;
+      box-shadow:none;
+      margin-top:20px;
+      width:300px;
+  }
+  .dropdown ul.dropdown-menu:before {
+      content: "";
+      border-bottom: 10px solid #fff;
+      border-right: 10px solid transparent;
+      border-left: 10px solid transparent;
+      position: absolute;
+      top: -10px;
+      z-index: 10;
+  }
+  .dropdown ul.dropdown-menu:after {
+      content: "";
+      border-bottom: 12px solid #ccc;
+      border-right: 12px solid transparent;
+      border-left: 12px solid transparent;
+      position: absolute;
+      top: -12px;
+      z-index: 9;
+  }
+  .dropdown ul.dropdown-menu.caret-right:after {
+    right: 14px;
+  }
+  .dropdown ul.dropdown-menu.caret-right:before {
+    right: 16px;
+  }
+  .dropdown ul.dropdown-menu.caret-left:after {
+    left: 14px;
+  }
+  .dropdown ul.dropdown-menu.caret-left:before {
+    left: 16px;
+  }
+  .navbar .navbar-nav .notification {
     position: absolute;
-    top: -10px;
-    z-index: 10;
-}
-.dropdown ul.dropdown-menu:after {
-    content: "";
-    border-bottom: 12px solid #ccc;
-    border-right: 12px solid transparent;
-    border-left: 12px solid transparent;
-    position: absolute;
-    top: -12px;
-    z-index: 9;
-}
-.dropdown ul.dropdown-menu.caret-right:after {
-  right: 14px;
-}
-.dropdown ul.dropdown-menu.caret-right:before {
-  right: 16px;
-}
-.dropdown ul.dropdown-menu.caret-left:after {
-  left: 14px;
-}
-.dropdown ul.dropdown-menu.caret-left:before {
-  left: 16px;
-}
-.navbar .navbar-nav .notification {
-  position: absolute;
-  background-color: #FB404B;
-  text-align: center;
-  border-radius: 10px;
-  min-width: 18px;
-  padding: 0 5px;
-  height: 18px;
-  font-size: 12px;
-  color: #FFFFFF;
-  font-weight: bold;
-  line-height: 18px;
-  top: 5px;
-  left: 10px;
+    background-color: #FB404B;
+    text-align: center;
+    border-radius: 10px;
+    min-width: 18px;
+    padding: 0 5px;
+    height: 18px;
+    font-size: 12px;
+    color: #FFFFFF;
+    font-weight: bold;
+    line-height: 18px;
+    top: 5px;
+    left: 10px;
+  }
 }

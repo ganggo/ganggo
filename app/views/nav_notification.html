@@ -1,0 +1,47 @@
+{{$root := .}}
+{{$notify := FindUnreadNotifications .currentUser}}
+{{$lenNotify := len $notify}}
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+    <i class="fa fa-bell"></i>
+    {{if gt $lenNotify 0}}
+    <b class="caret hidden-sm hidden-xs"></b>
+    <span class="notification hidden-sm hidden-xs">{{$lenNotify}}</span>
+    {{end}}
+    <p class="hidden-lg hidden-md">
+      {{msg . "notification.unread" $lenNotify}} <b class="caret"></b>
+    </p>
+  </a>
+  {{if gt $lenNotify 0}}
+  <ul class="dropdown-menu caret-left">
+  {{range $index, $elem := $notify}}
+    {{$profileUrl := concat "/profiles/" .Person.Guid}}
+    <li class="notify-element" data-id="{{.ID}}">
+      <div class="row">
+        <div class="col-md-2">
+          <img src="{{.Person.Profile.ImageUrl}}"/>
+        </div>
+      {{if IsShareablePost .TargetType}}
+        {{$targetUrl := concat "/posts/" .TargetGuid}}
+        <div class="col-md-10">
+          <a href="{{$profileUrl}}">{{.Person.Author}}</a> {{msg $root "notification.mentioned_in_post" $targetUrl}}
+        </div>
+      {{end}}
+      {{if IsShareableComment .TargetType}}
+        {{$targetUrl := concat "/posts/" .Comment.ParentPost.Guid}}
+        {{$targetUrl := concat $targetUrl "#"}}
+        {{$targetUrl := concat $targetUrl .TargetGuid}}
+        <div class="col-md-10">
+          <a href="{{$profileUrl}}">{{.Person.Author}}</a> {{msg $root "notification.mentioned_in_comment" $targetUrl}}
+        </div>
+      {{end}}
+      </div>
+    </li>
+    {{$pos := add $index 1}}
+    {{if ne $pos $lenNotify}}
+    <li class="divider"></li>
+    {{end}}
+  {{end}}
+  </ul>
+  {{end}}
+</li>
