@@ -1,4 +1,4 @@
-package models
+package controllers
 //
 // GangGo Application Server
 // Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
@@ -18,26 +18,29 @@ package models
 //
 
 import (
-  "time"
-  "github.com/jinzhu/gorm"
+  "github.com/revel/revel"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
 )
 
-type Session struct {
-  ID uint `gorm:"primary_key"`
-  CreatedAt time.Time
-  UpdatedAt time.Time
-
-  // size should be max 191 with mysql innodb
-  // cause asumming we use utf8mb 4*191 = 764 < 767
-  Token string `gorm:"size:191"`
-  UserID uint `gorm:"size:4"`
-  User User
+type Setting struct {
+  *revel.Controller
 }
 
-func (s *Session) AfterFind(db *gorm.DB) error {
-  if structLoaded(s.User.CreatedAt) {
-    return nil
+func (s Setting) Index() revel.Result {
+  user, err := models.CurrentUser(s.Params, s.Session)
+  if err != nil {
+    s.Log.Error("Cannot fetch current user", "error", err)
+    return s.RenderError(err)
   }
+  s.ViewArgs["currentUser"] = user
 
-  return db.Model(s).Related(&s.User).Error
+  var tokens models.OAuthTokens
+  err = tokens.FindByUserID(user.ID)
+  if err != nil {
+    s.Log.Error("Cannot fetch user tokens", "error", err)
+    return s.RenderError(err)
+  }
+  s.ViewArgs["tokens"] = tokens
+
+  return s.RenderTemplate("user/settings.html")
 }

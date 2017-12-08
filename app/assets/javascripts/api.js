@@ -12,5 +12,8 @@ API.res({
     'profile',
     'aspects'
   ],
-  aspects: []
+  aspects: [],
+  oauth: [
+    'tokens'
+  ],
 });

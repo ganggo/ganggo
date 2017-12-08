@@ -43,7 +43,7 @@ func (p Profile) IndexPagination(guid string, page int) revel.Result {
     return p.RenderError(err)
   }
 
-  user, err := models.GetCurrentUser(p.Session["TOKEN"])
+  user, err := models.CurrentUser(p.Params, p.Session)
   if err == nil {
     p.ViewArgs["currentUser"] = user
   }

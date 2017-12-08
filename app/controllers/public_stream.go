@@ -34,7 +34,7 @@ func (s PublicStream) IndexPagination(page int) revel.Result {
   var posts models.Posts
   var offset int = ((page - 1) * 10)
 
-  user, err := models.GetCurrentUser(s.Session["TOKEN"])
+  user, err := models.CurrentUser(s.Params, s.Session)
   if err == nil {
     s.ViewArgs["currentUser"] = user
   }

@@ -21,14 +21,18 @@ import (
   "time"
   "errors"
   "github.com/revel/revel"
-  "github.com/jinzhu/gorm"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
+  "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/postgres"
   _ "github.com/jinzhu/gorm/dialects/mssql"
   _ "github.com/jinzhu/gorm/dialects/mysql"
   _ "github.com/jinzhu/gorm/dialects/sqlite"
   "fmt"
 )
+
+type BaseController struct {
+  *revel.Controller
+}
 
 type Database struct {
   Driver string
@@ -54,29 +58,37 @@ func OpenDatabase() (*gorm.DB, error) {
   return db, err
 }
 
-func GetCurrentUser(token string) (user User, err error) {
+// XXX Actually I wanted to integrate it in a custom revel controller
+// like described here https://revel.github.io/manual/controllers.html
+// but it will throw me always:
+//   panic: NewRoute: Failed to find controller for route path action
+func CurrentUser(p *revel.Params, s revel.Session) (User, error) {
   db, err := OpenDatabase()
   if err != nil {
     revel.WARN.Println(err)
-    return user, err
+    return User{}, err
   }
   defer db.Close()
 
-  var session Session
-  err = db.Where("token = ?", token).First(&session).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return user, err
+  var accessToken string
+  p.Bind(&accessToken, "access_token")
+  if accessToken != "" {
+    var token OAuthToken
+    err := token.FindByToken(accessToken)
+    if err != nil {
+      revel.AppLog.Error("Cannot find token", "error", err)
+      return User{}, err
+    }
+    return token.User, nil
   }
 
-  err = db.First(&user, session.UserID).Error
+  var session Session
+  err = db.Where("token = ?", s["TOKEN"]).First(&session).Error
   if err != nil {
     revel.ERROR.Println(err)
-    return user, err
+    return User{}, err
   }
-  db.Model(&user).Related(&user.Person, "Person")
-  db.Model(&user).Related(&user.Aspects)
-  return
+  return session.User, nil
 }
 
 func generateTags(model interface{}) (tags Tags, err error) {

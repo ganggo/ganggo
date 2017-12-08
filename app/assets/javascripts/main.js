@@ -18,16 +18,6 @@ $("#flash-container .alert").click(function() {
 $("#flash-container .alert-success").fadeOut(2000);
 $("#flash-container .alert-danger").fadeOut(5000);
 
-// handle language switcher events
-$("ul li.language").each(function(i, elem) {
-  $(elem).click(function() {
-    var cookie = "REVEL_LANG=" + $(this).attr("value");
-    document.cookie = cookie;
-    window.location.reload();
-    return false;
-  });
-});
-
 // find all like buttons and handle events
 $(".comment-footer i").each(function(i, elem) {
   var postID = $(elem).attr("data-id");

@@ -27,26 +27,45 @@ func init() {
   // redirect if logged-in
   revel.InterceptFunc(redirectIfLoggedIn, revel.BEFORE, &App{})
   // requires login
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &Stream{})
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &Search{})
+  revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Stream{})
+  revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Setting{})
+  revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Search{})
   // API
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiComment{})
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiLike{})
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiPost{})
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiPeople{})
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiProfile{})
-  revel.InterceptFunc(requiresLogin, revel.BEFORE, &api.ApiAspect{})
+  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiComment{})
+  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiLike{})
+  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiPost{})
+  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiPeople{})
+  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiProfile{})
+  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiAspect{})
+  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiNotification{})
 }
 
 func redirectIfLoggedIn(c *revel.Controller) revel.Result {
-  result := requiresLogin(c)
+  result := requiresHTTPLogin(c)
   if result == nil {
     return c.Redirect(Stream.Index)
   }
   return nil
 }
 
-func requiresLogin(c *revel.Controller) revel.Result {
+func requiresTokenLogin(c *revel.Controller) revel.Result {
+  var accessToken string
+
+  c.Params.Bind(&accessToken, "access_token")
+  if accessToken != "" {
+    var token models.OAuthToken
+    err := token.FindByToken(accessToken)
+    if err != nil {
+      c.Log.Error("Cannot find token", "error", err)
+      return c.RenderError(err)
+    }
+    return nil
+  }
+  // fallback to http authentication
+  return requiresHTTPLogin(c)
+}
+
+func requiresHTTPLogin(c *revel.Controller) revel.Result {
   var session models.Session
 
   db, err := models.OpenDatabase()
@@ -61,6 +80,5 @@ func requiresLogin(c *revel.Controller) revel.Result {
     c.Flash.Error("Please log in first")
     return c.Redirect(App.Index)
   }
-  c.ViewArgs["TOKEN"] = c.Session["TOKEN"]
   return nil
 }

@@ -1,0 +1,47 @@
+{{$root := .}}
+{{$title := msg . "settings.title"}}
+{{set . "title" $title}}
+
+{{template "header.html" .}}
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="main-login main-center">
+        <h1><i class="fa fa-user-circle fa-lg" aria-hidden="true"></i> {{msg . "settings.title.user"}}</h1>
+        <h2><i class="fa fa-laptop fa-lg" aria-hidden="true"></i> {{msg . "settings.title.oauth"}}</h2>
+        <ul id="tokens" class="list-group">
+          {{range .tokens}}
+          <li value="{{.ID}}" class="list-group-item">
+            <code>{{.ClientID}}</code>
+            <i class="fa fa-times fa-lg pull-right" aria-hidden="true"></i>
+          </li>
+          {{end}}
+          {{$lenTokens := len .tokens}}
+          {{if eq $lenTokens 0}}
+          <li class="list-group-item">
+            <code>{{msg $root "settings.clients.non_found"}}</code>
+          </li>
+          {{end}}
+        </ul>
+        <h2><i class="fa fa-globe fa-lg" aria-hidden="true"></i> {{msg . "settings.title.language"}}</h2>
+        <div class="dropdown">
+          <button class="btn btn-default dropdown-toggle" type="button"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            {{msg . "settings.language.choose_language"}}
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            {{range FindAvailableLocales}}
+            <li value="{{.}}" class="language"><a>{{.}}</a></li>
+            {{end}}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{javascript_include_tag "settings"}}
+
+{{template "footer.html"}}

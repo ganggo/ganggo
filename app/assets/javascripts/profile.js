@@ -24,7 +24,7 @@
       if (aspectID > -1) {
         // NOTE delete workaround cause of:
         // https://github.com/yui/yuicompressor/issues/47
-        promise = API.people(personID).aspects(aspectID)['delete']
+        promise = API.people(personID).aspects(aspectID)['delete'];
         promise().then(function(m) {
           $("[data-id='"+aspectID+"']").remove();
         });

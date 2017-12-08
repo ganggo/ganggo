@@ -17,17 +17,12 @@ package helpers
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import (
-  "fmt"
-  "crypto/rand"
-)
+import "golang.org/x/crypto/bcrypt"
 
-func Uuid() (uuid string, err error) {
-  b := make([]byte, 16)
-  _, err = rand.Read(b)
-  if err != nil {
-    return
+func CheckHash(password, dbPassword string) bool {
+  err := bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(password))
+  if err !=  nil {
+    return false
   }
-  uuid = fmt.Sprintf("%x%x%x%x%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
-  return
+  return true
 }

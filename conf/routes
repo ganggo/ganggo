@@ -33,6 +33,8 @@ GET     /.well-known/x-social-relay             SocialRelay.Index
 *       /users/sign_out                         User.Logout
 GET     /users/sign_up                          User.Index
 POST    /users/sign_up                          User.Create
+GET     /users/settings                         Setting.Index
+
 GET     /captcha/:name                          Captcha.Index
 
 # Federation

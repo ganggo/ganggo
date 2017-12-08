@@ -29,7 +29,7 @@ type Post struct {
 func (p Post) Index(guid string) revel.Result {
   var post models.Post
 
-  user, err := models.GetCurrentUser(p.Session["TOKEN"])
+  user, err := models.CurrentUser(p.Params, p.Session)
   if err == nil {
     p.ViewArgs["currentUser"] = user
   }

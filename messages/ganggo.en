@@ -17,6 +17,7 @@ navigation.stream=Stream
 navigation.stream.public=Public
 navigation.stream.private=Private
 navigation.write_a_post=Write a post..
+navigation.user.settings=Settings
 
 comment.placeholder=Write a comment..
 comment.button=Publish
@@ -36,6 +37,13 @@ tag.title=Tag
 
 user.login_title=Login
 user.sign_up_title=Sign up
+
+settings.title=Settings
+settings.title.user=User Settings
+settings.title.oauth=Applications
+settings.title.language=Language
+settings.clients.non_found=No clients authenticated!
+settings.language.choose_language=Choose your language
 
 profile.title=Profile
 profile.groups=Aspects

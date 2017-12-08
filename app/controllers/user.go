@@ -219,7 +219,7 @@ func (u User) Login() revel.Result {
     return u.Redirect(User.Login)
   }
 
-  if !checkHash(password, user.EncryptedPassword) {
+  if !helpers.CheckHash(password, user.EncryptedPassword) {
     u.Flash.Error(revel.MessageFunc(
       u.Request.Locale,
       "flash.errors.login_failed",
@@ -247,12 +247,4 @@ func (u User) Login() revel.Result {
     "flash.success.login",
   ))
   return u.Redirect(Stream.Index)
-}
-
-func checkHash(password, dbPassword string) bool {
-  err := bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(password))
-  if err !=  nil {
-    return false
-  }
-  return true
 }

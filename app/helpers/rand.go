@@ -1,4 +1,4 @@
-package models
+package helpers
 //
 // GangGo Application Server
 // Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
@@ -18,26 +18,28 @@ package models
 //
 
 import (
-  "time"
-  "github.com/jinzhu/gorm"
+  "fmt"
+  "crypto/rand"
 )
 
-type Session struct {
-  ID uint `gorm:"primary_key"`
-  CreatedAt time.Time
-  UpdatedAt time.Time
-
-  // size should be max 191 with mysql innodb
-  // cause asumming we use utf8mb 4*191 = 764 < 767
-  Token string `gorm:"size:191"`
-  UserID uint `gorm:"size:4"`
-  User User
+func Uuid() (string, error) {
+  b, err := randomBytes(16)
+  if err != nil {
+    return "", err
+  }
+  return fmt.Sprintf("%x%x%x%x%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:]), nil
 }
 
-func (s *Session) AfterFind(db *gorm.DB) error {
-  if structLoaded(s.User.CreatedAt) {
-    return nil
+func Token() (string, error) {
+  b, err := randomBytes(32)
+  if err != nil {
+    return "", err
   }
+  return fmt.Sprintf("%x", b[0:]), nil
+}
 
-  return db.Model(s).Related(&s.User).Error
+func randomBytes(length int) (b []byte, err error) {
+  b = make([]byte, length)
+  _, err = rand.Read(b)
+  return
 }

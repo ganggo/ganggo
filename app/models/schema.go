@@ -182,6 +182,12 @@ func loadSchema(db *gorm.DB) {
   userTagging := &UserTagging{}
   db.Model(userTagging).AddUniqueIndex("index_user_tagging_on_user_id_and_tag_id", "user_id", "tag_id")
   db.AutoMigrate(userTagging)
+
+  oAuthToken := &OAuthToken{}
+  db.Model(oAuthToken).AddUniqueIndex("index_o_auth_token_on_user_id_and_client_id", "user_id", "client_id")
+  db.Model(oAuthToken).AddIndex("index_o_auth_token_on_user_id", "user_id")
+  db.Model(oAuthToken).AddIndex("index_o_auth_token_on_token", "token")
+  db.AutoMigrate(oAuthToken)
 }
 
 func InitDB() {
