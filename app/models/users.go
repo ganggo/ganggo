@@ -17,13 +17,7 @@ package models
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import (
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
-)
+import "github.com/jinzhu/gorm"
 
 type User struct {
   gorm.Model
@@ -36,9 +30,22 @@ type User struct {
   EncryptedPassword string
 
   PersonID uint
-  Person Person
+  Person Person `gorm:"ForeignKey:PersonID"`
 
   Aspects []Aspect `gorm:"AssociationForeignKey:UserID"`
+}
+
+func (user *User) AfterFind(db *gorm.DB) error {
+  if structLoaded(user.Person.CreatedAt) {
+    return nil
+  }
+
+  err := db.Model(user).Related(&user.Person).Error
+  if err != nil {
+    return err
+  }
+
+  return db.Model(user).Related(&user.Aspects).Error
 }
 
 func (user *User) FindByID(id uint) (err error) {
