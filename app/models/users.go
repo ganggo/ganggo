@@ -35,6 +35,10 @@ type User struct {
   Aspects []Aspect `gorm:"AssociationForeignKey:UserID"`
 }
 
+func (user *User) AfterCreate(tx *gorm.DB) error {
+  return tx.Model(&user.Person).Update("user_id", user.ID).Error
+}
+
 func (user *User) AfterFind(db *gorm.DB) error {
   if structLoaded(user.Person.CreatedAt) {
     return nil
