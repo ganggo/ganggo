@@ -68,10 +68,6 @@
         <ul class="nav navbar-nav navbar-right">
           {{if .currentUser}}
           <li><a href="/users/sign_out" data-method="delete">{{msg . "navigation.logout" .currentUser.Username}}</a></li>
-          {{else}}
-          <li><a href="/users/sign_in">{{msg . "navigation.login"}}</a></li>
-          <li><a href="/users/sign_up">{{msg . "navigation.register"}}</a></li>
-          {{end}}
           <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
               <i class="fa fa-user-circle-o"></i>
@@ -80,6 +76,10 @@
               <li><a href="/users/settings">{{msg . "navigation.user.settings"}}</a></li>
             </ul>
           </li>
+          {{else}}
+          <li><a href="/users/sign_in">{{msg . "navigation.login"}}</a></li>
+          <li><a href="/users/sign_up">{{msg . "navigation.register"}}</a></li>
+          {{end}}
         </ul>
       </div><!--/.nav-collapse -->
     </div>
