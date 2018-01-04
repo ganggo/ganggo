@@ -56,8 +56,12 @@ func requiresTokenLogin(c *revel.Controller) revel.Result {
     var token models.OAuthToken
     err := token.FindByToken(accessToken)
     if err != nil {
-      c.Log.Error("Cannot find token", "error", err)
-      return c.RenderError(err)
+      // NOTE in case we change the msg value
+      // this msg is hard-coded in the android app
+      // it is required to identify auth-problems
+      msg := "Cannot find token"
+      c.Log.Error(msg, "error", err)
+      return c.RenderJSON(api.ApiError{msg})
     }
     return nil
   }
