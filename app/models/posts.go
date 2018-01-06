@@ -20,7 +20,6 @@ package models
 import (
   "time"
   "github.com/jinzhu/gorm"
-  "github.com/fatih/structs"
   federation "gopkg.in/ganggo/federation.v0"
 )
 
@@ -108,33 +107,6 @@ func (p *Post) AfterCreate(db *gorm.DB) error {
     }
   }
   return err
-}
-
-// select only a few fields instead of the whole struct
-// this can optimize mobile app performance if on slow networks
-func (p Posts) SelectFields(fields... string) (m map[int]interface{}) {
-  m = make(map[int]interface{}, len(p))
-  for i, post := range p {
-    m[i] = post.SelectFields(fields...)
-  }
-  return
-}
-
-func (p Post) SelectFields(fields... string) (m map[string]interface{}) {
-  // check if first element is empty even if len() == 1
-  // in case empty field parameter was submitted
-  if len(fields) <= 0 || fields[0] == "" {
-    return structs.Map(&p)
-  }
-
-  m = make(map[string]interface{}, len(fields))
-  postMap := structs.Map(&p)
-  for _, field := range fields {
-    if _, ok := postMap[field]; ok {
-      m[field] = postMap[field]
-    }
-  }
-  return
 }
 
 func (p *Post) Count() (count int, err error) {
