@@ -2,7 +2,7 @@
   <div class="col-md-12 col-sm-12">
     <div class="panel panel-default left">
       <div class="panel-body">
-        <form action="/api/v0/posts/{{.post.ID}}/comments" method="post">
+        <form id="comment-editor-form" action="/api/v0/posts/{{.post.ID}}/comments" method="post">
           <div class="form-group">
             <textarea class="form-control" rows="2" name="comment" placeholder="{{msg . "comment.placeholder"}}"></textarea>
             <button class="btn btn-medium btn-block" type="submit">
@@ -14,3 +14,5 @@
     </div>
   </div>
 </div>
+
+{{javascript_include_tag "editor_box"}}
