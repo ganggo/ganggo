@@ -62,7 +62,7 @@ func OpenDatabase() (*gorm.DB, error) {
 // like described here https://revel.github.io/manual/controllers.html
 // but it will throw me always:
 //   panic: NewRoute: Failed to find controller for route path action
-func CurrentUser(p *revel.Params, s revel.Session) (User, error) {
+func CurrentUser(c *revel.Controller) (User, error) {
   db, err := OpenDatabase()
   if err != nil {
     revel.WARN.Println(err)
@@ -70,11 +70,10 @@ func CurrentUser(p *revel.Params, s revel.Session) (User, error) {
   }
   defer db.Close()
 
-  var accessToken string
-  p.Bind(&accessToken, "access_token")
-  if accessToken != "" {
+  accessToken := c.Request.Header.Server.Get("access_token")
+  if len(accessToken) > 0 {
     var token OAuthToken
-    err := token.FindByToken(accessToken)
+    err := token.FindByToken(accessToken[0])
     if err != nil {
       revel.AppLog.Error("Cannot find token", "error", err)
       return User{}, err
@@ -83,7 +82,7 @@ func CurrentUser(p *revel.Params, s revel.Session) (User, error) {
   }
 
   var session Session
-  err = db.Where("token = ?", s["TOKEN"]).First(&session).Error
+  err = db.Where("token = ?", c.Session["TOKEN"]).First(&session).Error
   if err != nil {
     revel.ERROR.Println(err)
     return User{}, err
@@ -192,14 +191,12 @@ func parentIsLocal(postID uint) (user User, found bool) {
   if err != nil {
     return
   }
-  db.Model(&post).Related(&post.Person, "Person")
 
   if post.Person.UserID > 0 {
     err = db.First(&user, post.Person.UserID).Error
     if err != nil {
       return
     }
-    db.Model(&user).Related(&user.Person, "Person")
     found = true
     return
   }

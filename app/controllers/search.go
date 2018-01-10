@@ -37,7 +37,7 @@ func (s Search) IndexPagination(text string, page int) revel.Result {
   var offset int = ((page - 1) * 10)
   text = strings.Replace(text, "'", "", -1)
 
-  user, err := models.CurrentUser(s.Params, s.Session)
+  user, err := models.CurrentUser(s.Controller)
   if err != nil {
     s.Log.Error("Cannot fetch current user", "error", err)
     return s.RenderError(err)

@@ -50,12 +50,10 @@ func redirectIfLoggedIn(c *revel.Controller) revel.Result {
 }
 
 func requiresTokenLogin(c *revel.Controller) revel.Result {
-  var accessToken string
-
-  c.Params.Bind(&accessToken, "access_token")
-  if accessToken != "" {
+  accessToken := c.Request.Header.Server.Get("access_token")
+  if len(accessToken) > 0 {
     var token models.OAuthToken
-    err := token.FindByToken(accessToken)
+    err := token.FindByToken(accessToken[0])
     if err != nil {
       c.Response.Status = http.StatusUnauthorized
       c.Log.Error(api.ERR_UNAUTHORIZED, "err", err)

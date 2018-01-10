@@ -27,7 +27,7 @@ type Setting struct {
 }
 
 func (s Setting) Index() revel.Result {
-  user, err := models.CurrentUser(s.Params, s.Session)
+  user, err := models.CurrentUser(s.Controller)
   if err != nil {
     s.Log.Error("Cannot fetch current user", "error", err)
     return s.RenderError(err)

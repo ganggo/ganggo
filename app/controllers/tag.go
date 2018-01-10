@@ -33,7 +33,7 @@ func (t Tag) Index(name string) revel.Result {
     tag models.Tag
   )
 
-  user, err := models.CurrentUser(t.Params, t.Session)
+  user, err := models.CurrentUser(t.Controller)
   if err == nil {
     t.ViewArgs["currentUser"] = user
   }
