@@ -55,25 +55,6 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
     return
   }
 
-  // parent author signature
-  var (
-    parentPost models.Post
-    parentUser models.User
-  )
-  db.Where("guid = ?", comment.ParentGuid).First(&parentPost)
-  db.First(&parentPost.Person, parentPost.PersonID)
-  // if user is local generate a signature
-  err = db.First(&parentUser, parentPost.Person.UserID).Error
-  if err == nil {
-    err = comment.AppendSignature(
-      []byte(parentUser.SerializedPrivateKey),
-      comment.SignatureOrder(), federation.ParentAuthorSignatureType)
-    if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-  }
-
   // save post locally
   var dbComment models.Comment
   err = dbComment.Cast(comment)
@@ -85,6 +66,26 @@ func (d *Dispatcher) Comment(comment *federation.EntityComment) {
   if err != nil {
     revel.ERROR.Println(err)
     return
+  }
+
+  // parent author signature
+  var parentPost models.Post
+  err = parentPost.FindByGuid(comment.ParentGuid)
+  if err == nil {
+    if parentUser, ok := parentPost.IsLocal(); ok {
+      // notify local user about a new comment
+      go dbComment.TriggerNotification(parentUser)
+
+      err = comment.AppendSignature(
+        []byte(parentUser.SerializedPrivateKey),
+        comment.SignatureOrder(),
+        federation.ParentAuthorSignatureType,
+      )
+      if err != nil {
+        revel.AppLog.Error(err.Error())
+        return
+      }
+    }
   }
 
   entityXml, err := xml.Marshal(comment)

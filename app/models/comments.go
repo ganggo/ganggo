@@ -19,6 +19,7 @@ package models
 
 import (
   "time"
+  "github.com/revel/revel"
   federation "gopkg.in/ganggo/federation.v0"
 )
 
@@ -178,6 +179,28 @@ func (c *Comment) ParentPost() (post Post, err error) {
 
 func (c *Comment) ParentIsLocal() (User, bool) {
   return parentIsLocal(c.ShareableID)
+}
+
+func (c *Comment) TriggerNotification(user User) {
+  revel.AppLog.Debug("TriggerNotification", "user", user, "comment", c)
+
+
+  if c.PersonID == user.Person.ID {
+    // do not send notification
+    // for your own activity
+    return
+  }
+
+  notify := Notification{
+    TargetType: ShareableComment,
+    TargetGuid: c.Guid,
+    UserID: user.ID,
+    PersonID: c.PersonID,
+    Unread: true,
+  }
+  if err := notify.Create(); err != nil {
+    revel.AppLog.Error(err.Error())
+  }
 }
 
 func (c *Comments) FindByPostID(id uint) (err error) {

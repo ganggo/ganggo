@@ -49,6 +49,9 @@ func (r *Receiver) Like(entity federation.EntityLike) {
   // if parent post is local we have
   // to relay the entity to all recipiens
   if local {
+    // notify local user about a new comment
+    go like.TriggerNotification(user)
+
     revel.TRACE.Println("Parent is local! Relaying it..")
 
     sigOrder := models.SignatureOrder{

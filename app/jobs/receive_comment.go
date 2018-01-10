@@ -50,6 +50,9 @@ func (r *Receiver) Comment(entity federation.EntityComment) {
   // if parent post is local we have
   // to relay the comment to all recipiens
   if local {
+    // notify local user about a new comment
+    go comment.TriggerNotification(user)
+
     revel.TRACE.Println("Parent post is local! Relaying it..")
 
     sigOrder := models.SignatureOrder{

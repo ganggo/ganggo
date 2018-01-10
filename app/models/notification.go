@@ -82,6 +82,17 @@ func (n *Notifications) FindUnreadByUserID(id uint) error {
   return db.Where("user_id = ? and unread = ?", id, true).Find(n).Error
 }
 
+func (n *Notifications) FindByUserID(id uint, offset int) error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Offset(offset).Limit(10).
+    Where("user_id = ?", id).Find(n).Error
+}
+
 func (n *Notification) Create() error {
   db, err := OpenDatabase()
   if err != nil {

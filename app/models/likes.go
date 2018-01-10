@@ -19,6 +19,7 @@ package models
 
 import (
   "time"
+  "github.com/revel/revel"
   federation "gopkg.in/ganggo/federation.v0"
 )
 
@@ -104,6 +105,27 @@ func (l *Like) Cast(entity *federation.EntityLike) (err error) {
 
 func (l *Like) ParentIsLocal() (User, bool) {
   return parentIsLocal(l.TargetID)
+}
+
+func (l *Like) TriggerNotification(user User) {
+   revel.AppLog.Debug("TriggerNotification", "user", user, "like", l)
+
+  if l.PersonID == user.Person.ID {
+    // do not send notification
+    // for your own activity
+    return
+  }
+
+  notify := Notification{
+    TargetType: ShareableComment,
+    TargetGuid: l.Guid,
+    UserID: user.ID,
+    PersonID: l.PersonID,
+    Unread: true,
+  }
+  if err := notify.Create(); err != nil {
+    revel.AppLog.Error(err.Error())
+  }
 }
 
 func (l *Likes) FindByPostID(id uint) (err error) {
