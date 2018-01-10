@@ -20,8 +20,6 @@ package controllers
 import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
-  api "gopkg.in/ganggo/api.v0/app/controllers"
-  "net/http"
 )
 
 func init() {
@@ -31,14 +29,6 @@ func init() {
   revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Stream{})
   revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Setting{})
   revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Search{})
-  // API
-  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiComment{})
-  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiLike{})
-  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiPost{})
-  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiPeople{})
-  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiProfile{})
-  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiAspect{})
-  revel.InterceptFunc(requiresTokenLogin, revel.BEFORE, &api.ApiNotification{})
 }
 
 func redirectIfLoggedIn(c *revel.Controller) revel.Result {
@@ -47,22 +37,6 @@ func redirectIfLoggedIn(c *revel.Controller) revel.Result {
     return c.Redirect(Stream.Index)
   }
   return nil
-}
-
-func requiresTokenLogin(c *revel.Controller) revel.Result {
-  accessToken := c.Request.Header.Server.Get("access_token")
-  if len(accessToken) > 0 {
-    var token models.OAuthToken
-    err := token.FindByToken(accessToken[0])
-    if err != nil {
-      c.Response.Status = http.StatusUnauthorized
-      c.Log.Error(api.ERR_UNAUTHORIZED, "err", err)
-      return c.RenderJSON(api.ApiError{api.ERR_UNAUTHORIZED})
-    }
-    return nil
-  }
-  // fallback to http authentication
-  return requiresHTTPLogin(c)
 }
 
 func requiresHTTPLogin(c *revel.Controller) revel.Result {
