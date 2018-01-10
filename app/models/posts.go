@@ -274,13 +274,13 @@ func (post *Post) FindByIDAndUser(id uint, user User) (err error) {
   defer db.Close()
 
   query := db.Joins(`left join shareables on shareables.shareable_id = posts.id`).
-    Where(`posts.public = true and id = ?`, id)
+    Where(`posts.public = true and posts.id = ?`, id)
 
   if user.SerializedPrivateKey != "" {
     query = query.Or(`posts.id = shareables.shareable_id
         and shareables.shareable_type = ?
         and shareables.user_id = ?
-        and id = ?`, ShareablePost, user.ID, id)
+        and posts.id = ?`, ShareablePost, user.ID, id)
   }
 
   return query.Find(post).Error
