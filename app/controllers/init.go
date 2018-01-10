@@ -21,6 +21,7 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   api "gopkg.in/ganggo/api.v0/app/controllers"
+  "net/http"
 )
 
 func init() {
@@ -56,12 +57,9 @@ func requiresTokenLogin(c *revel.Controller) revel.Result {
     var token models.OAuthToken
     err := token.FindByToken(accessToken)
     if err != nil {
-      // NOTE in case we change the msg value
-      // this msg is hard-coded in the android app
-      // it is required to identify auth-problems
-      msg := "Cannot find token"
-      c.Log.Error(msg, "error", err)
-      return c.RenderJSON(api.ApiError{msg})
+      c.Response.Status = http.StatusUnauthorized
+      c.Log.Error(api.ERR_UNAUTHORIZED, "err", err)
+      return c.RenderJSON(api.ApiError{api.ERR_UNAUTHORIZED})
     }
     return nil
   }
