@@ -28,6 +28,8 @@ import (
   _ "github.com/jinzhu/gorm/dialects/mysql"
   _ "github.com/jinzhu/gorm/dialects/sqlite"
   "fmt"
+  "regexp"
+  "runtime"
 )
 
 type BaseController struct {
@@ -88,6 +90,39 @@ func CurrentUser(c *revel.Controller) (User, error) {
     return User{}, err
   }
   return session.User, nil
+}
+
+// BACKEND_ONLY ensures the function
+// is not called by the API for example
+func BACKEND_ONLY() {
+  fpcs := make([]uintptr, 1)
+  // get the caller function
+  // skip 3 levels to get to the caller
+  n := runtime.Callers(3, fpcs)
+  if n == 0 {
+    return
+  }
+  caller := runtime.FuncForPC(fpcs[0])
+  if caller == nil {
+    return
+  }
+  // get the called function
+  n = runtime.Callers(2, fpcs)
+  if n == 0 {
+    return
+  }
+  function := runtime.FuncForPC(fpcs[0])
+  if function == nil {
+    return
+  }
+
+  re := regexp.MustCompile(`\/.+\.(.+)\..+$`)
+  names := re.FindStringSubmatch(caller.Name())
+  if len(names) == 2 && len(names[1]) > 2 {
+    if names[1][:3] == "Api" {
+      panic(names[0] + " is not allowed calling " + function.Name())
+    }
+  }
 }
 
 func generateTags(model interface{}) (tags Tags, err error) {

@@ -31,7 +31,7 @@ type Pod struct {
 
 type Pods []Pod
 
-func (pods *Pods) FindAll() (err error) {
+func (pods *Pods) FindAll() (err error) { BACKEND_ONLY()
   db, err := OpenDatabase()
   if err != nil {
     return err

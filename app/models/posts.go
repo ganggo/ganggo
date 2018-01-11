@@ -21,6 +21,7 @@ import (
   "time"
   "github.com/jinzhu/gorm"
   federation "gopkg.in/ganggo/federation.v0"
+  "github.com/revel/revel"
 )
 
 type Post struct {
@@ -256,7 +257,18 @@ func (posts *Posts) FindAllByUserAndText(user User, text string, offset int) (er
   return query.Order(`posts.updated_at desc`).Find(posts).Error
 }
 
-func (post *Post) FindByID(id uint) (err error) {
+func (post *Post) Exists(id uint) bool {
+  db, err := OpenDatabase()
+  if err != nil {
+    revel.AppLog.Error("Post.Exists", "err", err)
+    return false
+  }
+  defer db.Close()
+
+  return !db.Find(post, id).RecordNotFound()
+}
+
+func (post *Post) FindByID(id uint) (err error) { BACKEND_ONLY()
   db, err := OpenDatabase()
   if err != nil {
     return err
@@ -286,7 +298,7 @@ func (post *Post) FindByIDAndUser(id uint, user User) (err error) {
   return query.Find(post).Error
 }
 
-func (post *Post) FindByGuid(guid string) (err error) {
+func (post *Post) FindByGuid(guid string) (err error) { BACKEND_ONLY()
   db, err := OpenDatabase()
   if err != nil {
     return err

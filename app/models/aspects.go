@@ -88,7 +88,7 @@ func (visibility *AspectVisibility) Create() (err error) {
   return db.Create(visibility).Error
 }
 
-func (visibility *AspectVisibility) FindByGuid(guid string) (err error) {
+func (visibility *AspectVisibility) FindByGuid(guid string) (err error) { BACKEND_ONLY()
   db, err := OpenDatabase()
   if err != nil {
     return err
@@ -104,7 +104,7 @@ func (visibility *AspectVisibility) FindByGuid(guid string) (err error) {
   return db.Where("shareable_id = ? and shareable_type = ?", post.ID, ShareablePost).Find(visibility).Error
 }
 
-func (aspect *Aspect) FindByID(id uint) (err error) {
+func (aspect *Aspect) FindByID(id uint) (err error) { BACKEND_ONLY()
   db, err := OpenDatabase()
   if err != nil {
     return err

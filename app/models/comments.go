@@ -161,7 +161,7 @@ func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
   return nil
 }
 
-func (c *Comment) FindByGuid(guid string) error {
+func (c *Comment) FindByGuid(guid string) error { BACKEND_ONLY()
   db, err := OpenDatabase()
   if err != nil {
     return err
@@ -182,9 +182,6 @@ func (c *Comment) ParentIsLocal() (User, bool) {
 }
 
 func (c *Comment) TriggerNotification(user User) {
-  revel.AppLog.Debug("TriggerNotification", "user", user, "comment", c)
-
-
   if c.PersonID == user.Person.ID {
     // do not send notification
     // for your own activity
@@ -203,7 +200,8 @@ func (c *Comment) TriggerNotification(user User) {
   }
 }
 
-func (c *Comments) FindByPostID(id uint) (err error) {
+func (c *Comments) FindByPostID(id uint) (err error) { BACKEND_ONLY()
+
   db, err := OpenDatabase()
   if err != nil {
     return err

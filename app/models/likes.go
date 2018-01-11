@@ -108,8 +108,6 @@ func (l *Like) ParentIsLocal() (User, bool) {
 }
 
 func (l *Like) TriggerNotification(user User) {
-   revel.AppLog.Debug("TriggerNotification", "user", user, "like", l)
-
   if l.PersonID == user.Person.ID {
     // do not send notification
     // for your own activity
