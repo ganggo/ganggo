@@ -29,8 +29,8 @@ type Notification struct {
 
   // size should be max 191 with mysql innodb
   // cause asumming we use utf8mb 4*191 = 764 < 767
-  TargetType string `gorm:"size:191"`
-  TargetGuid string `gorm:"size:191"`
+  ShareableType string `gorm:"size:191"`
+  ShareableGuid string `gorm:"size:191"`
   UserID uint
   PersonID uint
   Unread bool
@@ -54,16 +54,16 @@ func (n *Notification) AfterFind(db *gorm.DB) error {
     return err
   }
 
-  if n.TargetType == ShareablePost {
+  if n.ShareableType == ShareablePost {
     var post Post
-    err = post.FindByGuid(n.TargetGuid)
+    err = post.FindByGuid(n.ShareableGuid)
     if err != nil {
       return err
     }
     (*n).Post = post
   } else {
     var comment Comment
-    err = comment.FindByGuid(n.TargetGuid)
+    err = comment.FindByGuid(n.ShareableGuid)
     if err != nil {
       return err
     }

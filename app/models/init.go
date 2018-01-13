@@ -199,8 +199,8 @@ func generateNotifications(model interface{}) (notify Notifications, err error) 
         }
 
         notify = append(notify, Notification{
-          TargetType: dataType,
-          TargetGuid: guid,
+          ShareableType: dataType,
+          ShareableGuid: guid,
           UserID: user.ID,
           PersonID: personID,
           Unread: true,

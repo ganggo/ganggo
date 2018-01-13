@@ -121,10 +121,10 @@ func loadSchema(db *gorm.DB) {
   db.AutoMigrate(user)
 
   like := &Like{}
-  db.Model(like).AddUniqueIndex("index_likes_on_target_id_and_person_id_and_target_type", "target_id", "person_id", "target_type")
+  db.Model(like).AddUniqueIndex("index_likes_on_shareable_id_and_person_id_and_shareable_type", "shareable_id", "person_id", "shareable_type")
   db.Model(like).AddUniqueIndex("index_likes_on_guid", "guid")
   db.Model(like).AddIndex("likes_person_id_fk", "person_id")
-  db.Model(like).AddIndex("index_likes_on_post_id", "target_id")
+  db.Model(like).AddIndex("index_likes_on_post_id", "shareable_id")
   db.AutoMigrate(like)
 
   likeSignature := &LikeSignature{}
@@ -167,7 +167,7 @@ func loadSchema(db *gorm.DB) {
 
   notification := &Notification{}
   db.Model(notification).AddIndex("index_notifications_on_user_id_and_unread", "user_id", "unread")
-  db.Model(notification).AddUniqueIndex("index_notifications_on_target_type_and_target_guid", "target_type", "target_guid")
+  db.Model(notification).AddUniqueIndex("index_notifications_on_shareable_type_and_shareable_guid", "shareable_type", "shareable_guid")
   db.AutoMigrate(notification)
 
   tags := &Tags{}

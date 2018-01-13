@@ -21,16 +21,16 @@
         <div class="col-md-2">
           <img src="{{.Person.Profile.ImageUrl}}"/>
         </div>
-      {{if IsShareablePost .TargetType}}
-        {{$targetUrl := concat "/posts/" .TargetGuid}}
+      {{if IsShareablePost .ShareableType}}
+        {{$targetUrl := concat "/posts/" .SharableGuid}}
         <div class="col-md-10">
           <a href="{{$profileUrl}}">{{.Person.Author}}</a> {{msg $root "notification.mentioned_in_post" $targetUrl}}
         </div>
       {{end}}
-      {{if IsShareableComment .TargetType}}
+      {{if IsShareableComment .ShareableType}}
         {{$targetUrl := concat "/posts/" .Comment.ParentPost.Guid}}
         {{$targetUrl := concat $targetUrl "#"}}
-        {{$targetUrl := concat $targetUrl .TargetGuid}}
+        {{$targetUrl := concat $targetUrl .ShareableGuid}}
         <div class="col-md-10">
           <a href="{{$profileUrl}}">{{.Person.Author}}</a> {{msg $root "notification.mentioned_in_comment" $targetUrl}}
         </div>

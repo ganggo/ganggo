@@ -70,7 +70,7 @@ func (r *Receiver) Retraction(entity federation.EntityRetraction) {
 
     user, local := like.ParentIsLocal()
     if local {
-      err = r.RelayRetraction(user, like.TargetID, like.TargetType)
+      err = r.RelayRetraction(user, like.ShareableID, like.ShareableType)
       if err != nil {
         revel.WARN.Println(err)
         return

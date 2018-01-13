@@ -66,8 +66,8 @@ func (r *Receiver) Like(entity federation.EntityLike) {
     var visibilities models.AspectVisibilities
     err = db.Where(
       "shareable_id = ? and shareable_type = ?",
-      like.TargetID,
-      like.TargetType,
+      like.ShareableID,
+      like.ShareableType,
     ).Find(&visibilities).Error
     if err != nil {
       revel.ERROR.Println(err)

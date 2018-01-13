@@ -29,13 +29,13 @@ type Like struct {
   UpdatedAt time.Time
 
   Positive bool
-  TargetID uint `gorm:"size:4"`
+  ShareableID uint `gorm:"size:4"`
   PersonID uint `gorm:"size:4"`
   // size should be max 191 with mysql innodb
   // cause asumming we use utf8mb 4*191 = 764 < 767
   Guid string `gorm:"size:191"`
   AuthorSignature string `gorm:"type:text"`
-  TargetType string `gorm:"size:60"`
+  ShareableType string `gorm:"size:60"`
 
   Signature LikeSignature
 }
@@ -94,17 +94,17 @@ func (l *Like) Cast(entity *federation.EntityLike) (err error) {
   }
 
   (*l).Positive = entity.Positive
-  (*l).TargetID = post.ID
+  (*l).ShareableID = post.ID
   (*l).PersonID = person.ID
   (*l).Guid = entity.Guid
   (*l).AuthorSignature = entity.AuthorSignature
-  (*l).TargetType = entity.TargetType
+  (*l).ShareableType = entity.TargetType
 
   return
 }
 
 func (l *Like) ParentIsLocal() (User, bool) {
-  return parentIsLocal(l.TargetID)
+  return parentIsLocal(l.ShareableID)
 }
 
 func (l *Like) TriggerNotification(user User) {
@@ -115,8 +115,8 @@ func (l *Like) TriggerNotification(user User) {
   }
 
   notify := Notification{
-    TargetType: ShareableComment,
-    TargetGuid: l.Guid,
+    ShareableType: ShareableComment,
+    ShareableGuid: l.Guid,
     UserID: user.ID,
     PersonID: l.PersonID,
     Unread: true,
@@ -133,5 +133,5 @@ func (l *Likes) FindByPostID(id uint) (err error) {
   }
   defer db.Close()
 
-  return db.Where("target_id = ? and target_type = ?", id, ShareablePost).Find(l).Error
+  return db.Where("shareable_id = ? and shareable_type = ?", id, ShareablePost).Find(l).Error
 }

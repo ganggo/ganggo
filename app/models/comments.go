@@ -199,8 +199,8 @@ func (c *Comment) TriggerNotification(user User) {
   }
 
   notify := Notification{
-    TargetType: ShareableComment,
-    TargetGuid: c.Guid,
+    ShareableType: ShareableComment,
+    ShareableGuid: c.Guid,
     UserID: user.ID,
     PersonID: c.PersonID,
     Unread: true,
