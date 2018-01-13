@@ -161,6 +161,16 @@ func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
   return nil
 }
 
+func (c *Comment) FindByID(id uint) error { BACKEND_ONLY()
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.First(c, id).Error
+}
+
 func (c *Comment) FindByGuid(guid string) error { BACKEND_ONLY()
   db, err := OpenDatabase()
   if err != nil {
@@ -168,7 +178,7 @@ func (c *Comment) FindByGuid(guid string) error { BACKEND_ONLY()
   }
   defer db.Close()
 
-  return db.Where("guid = ?", guid).Find(c).Error
+  return db.Where("guid = ?", guid).First(c).Error
 }
 
 func (c *Comment) ParentPost() (post Post, err error) {
@@ -201,7 +211,6 @@ func (c *Comment) TriggerNotification(user User) {
 }
 
 func (c *Comments) FindByPostID(id uint) (err error) { BACKEND_ONLY()
-
   db, err := OpenDatabase()
   if err != nil {
     return err
@@ -209,4 +218,54 @@ func (c *Comments) FindByPostID(id uint) (err error) { BACKEND_ONLY()
   defer db.Close()
 
   return db.Where("shareable_id = ? and shareable_type = ?", id, ShareablePost).Find(c).Error
+}
+
+func (c *Comment) FindByUserAndID(user User, id uint) error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  // if no shareable record for this comment
+  // exists it is a public message
+  if err = c.FindByID(id); err != nil {
+    return err
+  }
+  if db.Where(`shareable_id = ? and shareable_type = ?`,
+    c.ShareableID, ShareablePost).First(&Shareable{}).RecordNotFound() {
+    return nil
+  }
+
+  return db.Joins(`left join shareables
+    on shareables.shareable_id = comments.shareable_id`).
+    Where(`comments.id = ?
+      and shareables.shareable_type = ?
+      and shareables.user_id = ?`, id, ShareablePost, user.ID).
+    Find(c).Error
+}
+
+func (c *Comment) FindByUserAndGuid(user User, guid string) error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  // if no shareable record for this comment
+  // exists it is a public message
+  if err = c.FindByGuid(guid); err != nil {
+    return err
+  }
+  if db.Where(`shareable_id = ? and shareable_type = ?`,
+    c.ShareableID, ShareablePost).First(&Shareable{}).RecordNotFound() {
+    return nil
+  }
+
+  return db.Joins(`left join shareables
+    on shareables.shareable_id = comments.shareable_id`).
+    Where(`comments.guid = ?
+      and shareables.shareable_type = ?
+      and shareables.user_id = ?`, guid, ShareablePost, user.ID).
+    Find(c).Error
 }
