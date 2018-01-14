@@ -224,7 +224,7 @@ func main() {
     Program: prog,
     Fetcher: &fetcher.Github{
       User: "ganggo",
-      Repo: "updater",
+      Repo: "ganggo",
       Asset: AssetValidator,
       Interval: interval,
     },

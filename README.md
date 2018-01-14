@@ -4,7 +4,7 @@ GangGo is a decentralized social network written in [GoLang](https://golang.org/
 
 ## Usage
 
-Fetch the latest updater version from [github.com/ganggo/updater/releases](https://github.com/ganggo/ganggo/releases) and execute it. It will come with a small installation wizard and guide you through the first steps.
+Fetch the latest updater version from [github.com/ganggo/ganggo/releases](https://github.com/ganggo/ganggo/releases) and execute it. It will come with a small installation wizard and guide you through the first steps.
 
 ## Development
 
