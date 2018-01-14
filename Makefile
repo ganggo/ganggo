@@ -1,8 +1,13 @@
-srcdir := src/gopkg.in/ganggo/ganggo.v0
+version := $(shell echo -n $(VERSION) |cut -d- -f1)
+ifndef version
+$(error "Please define a version you want to build e.g. VERSION=v0 make")
+endif
 
-mode := $(shell echo -n $(MODE) 2> /dev/null)
+package := gopkg.in/ganggo/ganggo.$(version)
+srcdir := $(GOPATH)/src/$(package)
 
 go := $(shell command -v go 2> /dev/null)
+gobin := $(shell command -v go-bindata 2> /dev/null)
 npm := $(shell command -v npm 2> /dev/null)
 revel := $(shell command -v revel 2> /dev/null)
 train := $(shell command -v train 2> /dev/null)
@@ -22,7 +27,7 @@ endef
 
 all: clean precompile compile
 
-release: all package-wrapper
+release: all u2d-wrapper
 
 install-deps:
 ifndef go
@@ -34,63 +39,43 @@ endif
 	# Asset pipeline
 	npm install node-sass
 	npm install coffee-script
-	go get github.com/shaoshing/train
+	# GangGo dependencies
+	go get -d \
+		./... \
+		gopkg.in/ganggo/api.$(version)/... \
+		gopkg.in/ganggo/federation.$(version)/...
+
+	## CLI for train asset library / revel webframework
+	go get -d \
+		github.com/shaoshing/train \
+		github.com/revel/cmd/...
 	go build -o $(GOPATH)/bin/train github.com/shaoshing/train/cmd
-
-	# Revel web framework
-	go get \
-		github.com/revel/revel \
-		github.com/revel/cmd/revel \
-		github.com/ganggo/cmd/revel
-
-	# Document Parser required by the federation lib
-	go get github.com/PuerkitoBio/goquery
-
-	# Captcha generator
-	go get github.com/dchest/captcha
-
-	# Bcrypt password hashing
-	go get golang.org/x/crypto/bcrypt
-
-	# ORM
-	go get github.com/jinzhu/gorm
-
-	# GangGo
-	go get -u \
-		gopkg.in/ganggo/federation.v0 \
-		gopkg.in/ganggo/api.v0 || true;
+	go build -o $(GOPATH)/bin/revel github.com/revel/cmd/revel
+	# Embedding binary data e.g. assets
+	go get -u github.com/jteeuwen/go-bindata/...
 
 clean:
-	rm -r test-results || true ; \
-	rm -r routes || true ; \
-	rm log/* || true ; \
-	rm *.tar.gz || true ; \
-	rm -r tmp || true ; \
-	rm -r node_modules || true ;
+	rm -r tmp node_modules || true
+	rm package-lock.json bindata.go updater *.tar.gz || true
 
 precompile:
 ifndef train
 	$(error "train $(train_info)")
 endif
-	train -out public -source app/assets
+	cd $(srcdir) && train -out public -source app/assets
 
 compile:
 ifndef revel
 	$(error "revel $(install_deps_info)")
 endif
-	revel package gopkg.in/ganggo/ganggo.v0 $(mode)
+	cp $(srcdir)/conf/app.conf.example $(srcdir)/conf/app.conf
+	revel package $(package)
 
-package-wrapper:
-	tarball="ganggo.v0-$$GOOS.$$GOARCH.tar.gz" ; \
-	if [[ "$$GOOS" == "" && "$$GOARCH" == "" ]] ; \
-		then tarball="ganggo.v0.tar.gz" ; \
-	fi ; \
-	mkdir -p tmp ; \
-	tar -x -f $$tarball -C tmp ; \
-	cd tmp ; \
-	cp -v $(srcdir)/conf/app.conf.example $(srcdir)/conf/app.conf ; \
-	ln -s $(srcdir)/conf/app.conf ; \
-	ln -s $(srcdir)/public ; \
-	rm -r $(srcdir)/node_modules ; \
-	cd - ; \
-	tar -c -z -C tmp -f $$tarball . ;
+u2d-wrapper:
+ifndef gobin
+	$(error "go-bindata $(install_deps_info)")
+endif
+	mkdir tmp && tar -x -f "ganggo.$(version).tar.gz" -C tmp
+	cd tmp && mv ganggo.$(version)* ganggo && \
+		go-bindata -o ../bindata.go ganggo src/...
+	go build -ldflags "-X main.version=$(version)" -o updater updater.go bindata.go
