@@ -61,6 +61,9 @@ editor.default_group=Public
 editor.button=Publish
 editor.placeholder=I like cats !!
 
+footer.links.report_issue=Report an issue
+footer.links.pod_statistics=Pod statistics
+
 # timeago plugin
 ago=ago
 in=in

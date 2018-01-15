@@ -1,7 +1,12 @@
+html {
+  min-height: 100%;
+  position: relative;
+}
+
 body {
-  width: 100%;
-  height: 100%;
-  padding-top: 5rem;
+  padding-top: 4rem;
+  /* footer height */
+  margin-bottom: 5rem;
 }
 
 .card-img-top{
@@ -14,4 +19,16 @@ body {
   z-index: 999;
   top: 3.5rem;
   width: 100%;
+}
+
+footer {
+  height: 2.5rem;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  color: grey;
+}
+
+footer a, footer a:hover {
+  color: grey;
 }
