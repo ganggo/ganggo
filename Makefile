@@ -71,7 +71,7 @@ endif
 	sed -n '/^.*:node_modules.*/p' .include_vendor \
 		| while read line; do \
 			obj=($${line/:/ }); \
-			dir=public/assets/vendor/$${obj[0]}; \
+			dir=$(srcdir)/public/assets/vendor/$${obj[0]}; \
 			mkdir -p $$dir && echo $$dir; \
 			cp -v $${obj[1]} $$dir; \
 		done
