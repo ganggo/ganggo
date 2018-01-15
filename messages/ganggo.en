@@ -63,6 +63,7 @@ editor.placeholder=I like cats !!
 
 footer.links.report_issue=Report an issue
 footer.links.pod_statistics=Pod statistics
+footer.links.android=Android Application
 
 # timeago plugin
 ago=ago
