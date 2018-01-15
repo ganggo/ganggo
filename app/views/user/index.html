@@ -7,59 +7,59 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      <h1>Register</h1>
+      <h1>{{msg . "user.form.register"}}</h1>
       <hr/>
       <form method="post" action="{{url "User.Create"}}">
         <div class="form-group">
-          <label for="username" class="cols control-label">Username</label>
+          <label for="username" class="cols control-label">{{msg . "user.form.username"}}</label>
           <div class="cols">
             <div class="input-group">
               <span class="input-group-addon">
                 <i class="fa fa-user" aria-hidden="true"></i>
               </span>
-              <input type="text" class="form-control" name="username" id="username"  placeholder="Enter your Username"/>
+              <input type="text" class="form-control" name="username" id="username"  placeholder="{{msg . "user.form.username_hint"}}"/>
             </div>
           </div>
         </div>
         <div class="form-group">
-          <label for="password" class="cols control-label">Password</label>
+          <label for="password" class="cols control-label">{{msg . "user.form.password"}}</label>
           <div class="cols">
             <div class="input-group">
               <span class="input-group-addon">
                 <i class="fa fa-asterisk" aria-hidden="true"></i>
               </span>
-              <input type="password" class="form-control" name="password" id="password"  placeholder="Enter your Password"/>
+              <input type="password" class="form-control" name="password" id="password"  placeholder="{{msg . "user.form.password_hint"}}"/>
             </div>
           </div>
         </div>
         <div class="form-group">
-          <label for="confirm" class="cols control-label">Confirm Password</label>
+          <label for="confirm" class="cols control-label">{{msg . "user.form.confirm"}}</label>
           <div class="cols">
             <div class="input-group">
               <span class="input-group-addon">
                 <i class="fa fa-asterisk" aria-hidden="true"></i>
               </span>
-              <input type="password" class="form-control" name="confirm" id="confirm"  placeholder="Confirm your Password"/>
+              <input type="password" class="form-control" name="confirm" id="confirm"  placeholder="{{msg . "user.form.confirm_hint"}}"/>
             </div>
           </div>
         </div>
         <div class="form-group">
-          <label for="captcha" class="cols control-label">Captcha:</label>
-          <img src="/captcha/{{.captchaID}}.png" alt="Captcha Image">
+          <label for="captcha" class="cols control-label">{{msg . "user.form.captcha"}}</label>
+          <img src="/captcha/{{.captchaID}}.png" title="{{msg . "user.form.captcha_image"}}">
           <input type="hidden" name="captchaID" value="{{.captchaID}}">
           <div class="cols">
             <div class="input-group">
               <span class="input-group-addon">
                 <i class="fa fa-question" aria-hidden="true"></i>
               </span>
-              <input type="text" class="form-control" name="captchaValue" placeholder="Type the numbers you see in the picture"/>
+              <input type="text" class="form-control" name="captchaValue" placeholder="{{msg . "user.form.captcha_hint"}}"/>
             </div>
           </div>
         </div>
         <div class="form-group ">
-          <button type="submit" class="btn btn-primary btn-block">Register</button>
+          <button type="submit" class="btn btn-primary btn-block">{{msg . "user.sign_up_title"}}</button>
         </div>
-        <a href="{{url "User.Login"}}">Login</a>
+        <a href="{{url "User.Login"}}">{{msg . "user.login_title"}}</a>
       </form>
     </div>
   </div>

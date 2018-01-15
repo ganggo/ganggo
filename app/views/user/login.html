@@ -6,7 +6,7 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      <h1>Login</h1>
+      <h1>{{msg . "user.login_title"}}</h1>
       <hr/>
       <form method="post" action="/users/sign_in">
         <div class="form-group">
@@ -14,7 +14,7 @@
             <span class="input-group-addon">
               <i class="fa fa-user" aria-hidden="true"></i>
             </span>
-            <input type="text" class="form-control" name="username" placeholder="Username" required="required" />
+            <input type="text" class="form-control" name="username" placeholder="{{msg . "user.form.username"}}" required="required" />
           </div>
         </div>
         <div class="form-group">
@@ -22,11 +22,11 @@
             <span class="input-group-addon">
               <i class="fa fa-asterisk" aria-hidden="true"></i>
             </span>
-            <input type="password" class="form-control" name="password" placeholder="Password" required="required" />
+            <input type="password" class="form-control" name="password" placeholder="{{msg . "user.form.password"}}" required="required" />
           </div>
         </div>
         <div class="form-group">
-          <button type="submit" class="btn btn-primary btn-block">Let me in.</button>
+          <button type="submit" class="btn btn-primary btn-block">{{msg . "user.login_title"}}</button>
         </div>
       </form>
     </div>

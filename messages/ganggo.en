@@ -40,6 +40,16 @@ tag.title=Tag
 
 user.login_title=Login
 user.sign_up_title=Sign up
+user.form.register=Register
+user.form.username=Username
+user.form.username_hint=Enter your Username
+user.form.password=Password
+user.form.password_hint=Enter your Password
+user.form.confirm=Confirm Password
+user.form.confirm_hint=Confirm your Password
+user.form.captcha=Captcha:
+user.form.captcha_image=Captcha Image
+user.form.captcha_hint=Type the numbers you see in the picture
 
 settings.title=Settings
 settings.title.user=User Settings
