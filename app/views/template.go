@@ -23,16 +23,14 @@ import (
   "os"
   "github.com/shaoshing/train"
   "github.com/revel/revel"
+  "github.com/revel/config"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
   "html/template"
-  "github.com/jinzhu/gorm"
   "github.com/dchest/captcha"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
+
+type I18nMessages map[string]map[string]string
 
 var TemplateFuncs = map[string]interface{}{
   // database types
@@ -55,7 +53,7 @@ var TemplateFuncs = map[string]interface{}{
     return likes(id, false)
   },
   "PostByGuid": func(guid string) (post models.Post) {
-    db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+    db, err := models.OpenDatabase()
     if err != nil {
       revel.ERROR.Println(err)
       return
@@ -70,7 +68,7 @@ var TemplateFuncs = map[string]interface{}{
     return
   },
   "PersonByID": func(id uint) (person models.Person) {
-    db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+    db, err := models.OpenDatabase()
     if err != nil {
       revel.ERROR.Println(err)
       return
@@ -101,7 +99,37 @@ var TemplateFuncs = map[string]interface{}{
   },
   // captcha generator
   "CaptchaNew": func() string { return captcha.New() },
-  "FindAvailableLocales": func () (list []string) {
+  "ParseLocalesToJson": func() (i18n I18nMessages) {
+    i18n = make(I18nMessages)
+    directory := filepath.Join(revel.BasePath, "messages")
+    re := regexp.MustCompile(`ganggo\.([\w-_]{1,})$`)
+    if err := filepath.Walk(directory, func(path string, f os.FileInfo, err error) error {
+      result := re.FindAllStringSubmatch(path, 1)
+      if len(result) > 0 && len(result[0]) > 0 {
+        c, err := config.ReadDefault(path)
+        if err != nil {
+          revel.AppLog.Error("Cannot open config file", "err", err)
+          return err
+        }
+        options, err := c.Options(config.DefaultSection)
+        if err != nil {
+          revel.AppLog.Error("Cannot open config file", "err", err)
+          return err
+        }
+        i18n[result[0][1]] = make(map[string]string)
+        for _, option := range options {
+          value, _ := c.String(config.DefaultSection, option)
+          i18n[result[0][1]][option] = value
+        }
+      }
+      return nil
+    }); err != nil {
+      revel.AppLog.Error(err.Error())
+      return nil
+    }
+    return i18n
+  },
+  "FindAvailableLocales": func() (list []string) {
     directory := filepath.Join(revel.BasePath, "messages")
     re := regexp.MustCompile(`ganggo\.([\w-_]{1,})$`)
     err := filepath.Walk(directory, func(path string, f os.FileInfo, err error) error {
@@ -181,7 +209,7 @@ func loadAndFetchManifestEntry(path string) (src string) {
 }
 
 func likes(id uint, like bool) (likes []models.Like) {
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+  db, err := models.OpenDatabase()
   if err != nil {
     revel.ERROR.Println(err)
     return

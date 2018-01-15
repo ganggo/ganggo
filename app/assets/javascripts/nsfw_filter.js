@@ -1,16 +1,18 @@
 // nsfw filter
 $(".card-text[data-markdown]").each(function() {
-  var elem = $(this);
-  var data = elem.html();
+  var cardText = $(this);
+  var cardBody = cardText.closest(".card-body");
   var re = /#nsfw/i;
-  var nsfw = re.exec(data);
+  var nsfw = re.exec(cardText.text());
   if (nsfw !== null) {
     var div = $("<div class='alert alert-danger'>");
-    div.append("<i class='fa fa-exclamation'>");
-    div.append(" This content is not safe for work and could contain nude pictures!");
-    elem.html(div);
+    div.append("<i class='fa fa-exclamation'>&nbsp;");
+    div.append(msg("javascript.nsfw_warning"));
+    cardBody.prepend(div);
+    cardText.hide();
     div.click(function() {
-      elem.html(data);
+      cardText.show();
+      div.hide();
     });
   }
 });

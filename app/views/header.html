@@ -21,6 +21,22 @@
     {{stylesheet_link_tag "bootstrap-reboot.min"}}
     {{stylesheet_link_tag "font-awesome.min"}}
     {{stylesheet_link_tag "main"}}
+
+    <!--
+      This will add all available i18n messages to JS
+      Usage:
+        msg("comment.button");
+    -->
+    <script>
+      function msg(key) {
+        var currentLocale = "{{.currentLocale}}";
+        var locales = {{ParseLocalesToJson}};
+        if (locales[currentLocale] === undefined) {
+          currentLocale = 'en';
+        }
+        return locales[currentLocale][key];
+      }
+    </script>
   </head>
   <body>
     <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">

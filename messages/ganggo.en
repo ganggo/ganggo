@@ -34,6 +34,8 @@ public.title=Public
 # see https://revel.github.io/manual/i18n-messages.html
 stream.title=%(navigation.stream)s
 
+javascript.nsfw_warning=This content is not safe for work and could contain nude pictures!
+
 tag.title=Tag
 
 user.login_title=Login
