@@ -20,9 +20,9 @@
   });
 
   // handle language switcher events
-  $("ul li.language").each(function(i, elem) {
+  $("div a.language").each(function(i, elem) {
     $(elem).click(function() {
-      var cookie = "REVEL_LANG=" + $(this).attr("value");
+      var cookie = "REVEL_LANG=" + $(this).data("value");
       document.cookie = cookie;
       window.location.reload();
       return false;

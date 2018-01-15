@@ -56,6 +56,7 @@ func (p Profile) IndexPagination(guid string, page int) revel.Result {
 
   p.ViewArgs["posts"] = posts
   p.ViewArgs["person"] = person
+  if page == 0 { page = 1 }
   p.ViewArgs["page"] = page
 
   return p.RenderTemplate("profile/index.html")

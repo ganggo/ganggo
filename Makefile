@@ -36,9 +36,8 @@ endif
 ifndef npm
 	$(error "npm is not available please install it first!")
 endif
-	# Asset pipeline
-	npm install node-sass
-	npm install coffee-script
+	# Install CSS and Javascript dependencies
+	npm install
 	# GangGo dependencies
 	go get -d \
 		./... \
@@ -55,14 +54,23 @@ endif
 	go get -u github.com/jteeuwen/go-bindata/...
 
 clean:
-	rm -r tmp node_modules || true
-	rm package-lock.json bindata.go updater *.tar.gz || true
+	rm -r app/assets/vendor/* \
+		tmp node_modules || true
+	rm bindata.go updater *.tar.gz || true
 
 precompile:
 ifndef train
 	$(error "train $(train_info)")
 endif
 	cd $(srcdir) && train -out public -source app/assets
+	# Append vendor files to manifest
+	sed -n '/^.*:node_modules.*/p' .include_vendor \
+		| while read line; do \
+			obj=($${line/:/ }); \
+			dir=public/assets/vendor/$${obj[0]}; \
+			mkdir -p $$dir && echo $$dir; \
+			cp -v $${obj[1]} $$dir; \
+		done
 
 compile:
 ifndef revel

@@ -1,0 +1,33 @@
+{
+  "name": "ganggo",
+  "version": "1.0.0",
+  "description": "GangGo is a decentralized social network written in [GoLang](https://golang.org/). It uses the same federation library like [Diaspora](https://diasporafoundation.org/) and therefore can participate in conversations like any other [Pod](https://wiki.diasporafoundation.org/Choosing_a_pod#Why_do_I_need_to_choose_a_pod.3F)!",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "another-rest-client": "^0.4.2",
+    "bootstrap": "^4.0.0-alpha.6",
+    "coffee-script": "^1.12.7",
+    "font-awesome": "^4.7.0",
+    "jquery": "^3.2.1",
+    "jquery-form": "^4.2.2",
+    "marked": "^0.3.12",
+    "node-sass": "^4.7.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ganggo/ganggo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ganggo/ganggo/issues"
+  },
+  "homepage": "https://github.com/ganggo/ganggo#readme"
+}

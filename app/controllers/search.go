@@ -51,6 +51,7 @@ func (s Search) IndexPagination(text string, page int) revel.Result {
     return s.RenderError(err)
   }
   s.ViewArgs["posts"] = posts
+  if page == 0 { page = 1 }
   s.ViewArgs["page"] = page
   s.ViewArgs["searchQuery"] = text
 

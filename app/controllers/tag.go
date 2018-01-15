@@ -49,5 +49,10 @@ func (t Tag) Index(name string) revel.Result {
     posts = append(posts, shareable.Post)
   }
   sort.Sort(posts) // sort by UpdatedAt
-  return t.Render(posts)
+
+  t.ViewArgs["posts"] = posts
+  t.ViewArgs["title"] = revel.MessageFunc(
+    t.Request.Locale, "tag.title",
+  )
+  return t.RenderTemplate("stream/index.html")
 }

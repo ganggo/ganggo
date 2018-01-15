@@ -1,20 +1,29 @@
-{{$title := msg . "stream.title"}}
-{{set . "title" $title}}
-
 {{template "header.html" .}}
 
-<div class="reveal">
-  <div class="slides">
+<div class="container">
+  {{if .currentUser}}
     {{template "stream/editor_box.html" .}}
-    {{$root := .}}
-    {{range .posts}}
-      {{set $root "post" .}}
-      {{template "stream/post.html" $root}}
+  {{end}}
+  {{$root := .}}
+  {{range .posts}}
+    {{set $root "post" .}}
+    {{set $root "align" "left"}}
+    {{template "stream/post.html" $root}}
+  {{end}}
+  {{$stream := msg . "stream.title"}}
+  {{$stream := htmlToString $stream}}
+  {{$public := msg . "public.title"}}
+  {{$public := htmlToString $public}}
+  <div class="row mt-4">
+    {{if gt .page 1}}
+    <div class="col">
+      <a type="button" class="btn btn-primary btn-block" href="/{{if eq .title $stream}}stream{{else}}public{{end}}/{{sub .page 1}}">{{msg . "profile.previous"}}</a>
+    </div>
     {{end}}
+    <div class="col">
+      <a type="button" class="btn btn-primary btn-block" href="/{{if eq .title $stream}}stream{{else}}public{{end}}/{{add .page 1}}">{{msg . "profile.next"}}</a>
+    </div>
   </div>
 </div>
-
-<script src="/public/vendor/js/reveal-3.5.0.js"></script>
-{{javascript_include_tag "reveal"}}
 
 {{template "footer.html" .}}

@@ -1,89 +1,76 @@
 <!DOCTYPE html>
-
-{{$stream := msg . "stream.title"}}
-{{$public := msg . "public.title"}}
-
-<html>
+{{- $stream := msg . "stream.title"}}
+{{- $stream := htmlToString $stream}}
+{{- $public := msg . "public.title"}}
+{{- $public := htmlToString $public}}
+<html lang="en">
   <head>
     <title>{{.title}}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="shortcut icon" type="image/png" href="/public/img/favicon.png?v=2">
     <!-- javascript libs -->
-    <script src="/public/vendor/js/jquery-2.2.4.min.js"></script>
-    <script src="/public/vendor/js/jquery.form.min.js"></script>
-    <script src="/public/vendor/js/jquery-ui.min.js"></script>
-    <script src="/public/vendor/js/rest-client.min.js"></script>
-    <script src="/public/vendor/js/marked.min.js"></script>
+    {{javascript_include_tag "jquery.min"}}
+    {{javascript_include_tag "jquery.form.min"}}
+    {{javascript_include_tag "rest-client.min"}}
+    {{javascript_include_tag "marked.min"}}
     <!-- stylesheets -->
-    <link rel="stylesheet" type="text/css" href="/public/vendor/css/bootstrap-3.3.6.min.css">
-    <link rel="stylesheet" type="text/css" href="/public/vendor/css/jquery-ui.min.css">
-    {{if eq .title $stream}}
-    <link rel="stylesheet" href="/public/vendor/css/reveal-3.5.0.css">
-    <link rel="stylesheet" href="/public/vendor/css/reveal-theme-white.css">
-    {{stylesheet_link_tag "stream_editor_box"}}
-    {{end}}
-    <link rel="stylesheet" href="/public/vendor/css/font-awesome.min.css">
-
+    {{stylesheet_link_tag "tether.min"}}
+    {{stylesheet_link_tag "bootstrap.min"}}
+    {{stylesheet_link_tag "bootstrap-grid.min"}}
+    {{stylesheet_link_tag "bootstrap-reboot.min"}}
+    {{stylesheet_link_tag "font-awesome.min"}}
     {{stylesheet_link_tag "main"}}
   </head>
+
   <body>
-  <nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-          <span class="sr-only">{{msg . "navigation.toggle"}}</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
+    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
+      <div class="container">
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="{{msg . "navigation.toggle"}}">
+          <span class="navbar-toggler-icon"></span>
         </button>
         <a class="navbar-brand" href="/">GangGo</a>
-      </div>
-      <div id="navbar" class="collapse navbar-collapse">
-        <ul class="nav navbar-nav">
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{msg . "navigation.stream"}} <b class="caret"></b></a>
-            <ul class="dropdown-menu caret-left">
-              {{if .currentUser}}
-              <li><a href="/stream">{{msg . "navigation.stream.private"}}</a></li>
-              {{end}}
-              <li><a href="/public">{{msg . "navigation.stream.public"}}</a></li>
-            </ul>
-          </li>
-          {{if .currentUser}}
-            {{if eq .title $stream}}
-          <li><a href="#" id="writePost">{{msg . "navigation.write_a_post"}}</a></li>
-            {{end}}
-            {{template "nav_notification.html" .}}
-          {{end}}
-        </ul>
-        <form class="navbar-form navbar-right" action="/search" method="post">
-          <div class="input-group input-group-sm">
-            <input type="text" name="search" class="form-control" placeholder="e.g. lukas@sechat.org">
-            <span class="input-group-addon">
-              <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-            </span>
-            <input type="submit" style="display:none"/>
-          </div>
-        </form>
-        <ul class="nav navbar-nav navbar-right">
-          {{if .currentUser}}
-          <li><a href="/users/sign_out" data-method="delete">{{msg . "navigation.logout" .currentUser.Username}}</a></li>
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-              <i class="fa fa-user-circle-o"></i>
-            </a>
-            <ul class="dropdown-menu caret-right" role="menu">
-              <li><a href="/users/settings">{{msg . "navigation.user.settings"}}</a></li>
-            </ul>
-          </li>
-          {{else}}
-          <li><a href="/users/sign_in">{{msg . "navigation.login"}}</a></li>
-          <li><a href="/users/sign_up">{{msg . "navigation.register"}}</a></li>
-          {{end}}
-        </ul>
-      </div><!--/.nav-collapse -->
-    </div>
-  </nav>
 
-  {{template "flash.html" .}}
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+          <ul class="navbar-nav mr-auto">
+            {{if .currentUser}}
+            <li class="nav-item {{if eq .title $stream}} active{{end}}">
+              <a class="nav-link" href="{{url "Stream.Index"}}">{{msg . "navigation.stream.private"}}</span></a>
+            </li>
+            {{end}}
+            <li class="nav-item{{if eq .title $public}} active{{end}}">
+              <a class="nav-link" href="{{url "PublicStream.Index"}}">{{msg . "navigation.stream.public"}}</span></a>
+            </li>
+            {{if .currentUser}}
+            {{template "nav_notification.html" .}}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fa fa-user-circle-o"></i>
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdown01">
+                <a class="dropdown-item" href="{{url "Setting.Index"}}">{{msg . "navigation.user.settings"}}</a>
+              </div>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-method="delete" href="{{url "User.Logout"}}">{{msg . "navigation.logout" .currentUser.Username}}</a>
+            </li>
+            {{else}}
+            <li class="nav-item">
+              <a class="nav-link" href="{{url "User.Login"}}">{{msg . "navigation.login"}}</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{url "User.Index"}}">{{msg . "navigation.register"}}</a>
+            </li>
+            {{end}}
+          </ul>
+          {{if .currentUser}}
+          <form class="form-inline my-2 my-lg-0" action="/search" method="post">
+            <input type="text" name="search" class="form-control mr-sm-2" placeholder="e.g. lukas@sechat.org">
+            <input type="submit" style="display:none"/>
+          </form>
+          {{end}}
+        </div>
+      </div>
+    </nav>
+    <main role="main">
+    {{template "flash.html" .}}

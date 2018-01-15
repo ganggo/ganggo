@@ -46,7 +46,12 @@ func (s Stream) IndexPagination(page int) revel.Result {
     return s.RenderError(err)
   }
 
+  s.ViewArgs["title"] = revel.MessageFunc(
+    s.Request.Locale, "stream.title",
+  )
   s.ViewArgs["currentUser"] = user
+  if page == 0 { page = 1 }
+  s.ViewArgs["page"] = page
   s.ViewArgs["posts"] = posts
 
   return s.RenderTemplate("stream/index.html")

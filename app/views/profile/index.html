@@ -7,35 +7,44 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12">
-      <div class="main-login main-center">
-        <img src="{{$profile.ImageUrl}}" border="0"/>
-        <h2>{{$profile.Author}}</h2>
-        <hr/>
-        {{if .currentUser}}
-        <h3>{{msg . "profile.groups"}}</h3>
-        <ul id="aspectList"></ul>
-        <form id="aspect-form">
-          <input type="text" style="display:none" name="personID" value="{{.person.ID}}">
-          <input type="text" name="aspectName" placeholder="Add/Remove from aspects..">
-          <input type="submit" style="display:none">
-        </form>
-        {{end}}
-        <h3>{{$profile.FullName}}</h3>
-        {{if ne $profile.Bio ""}}
-        <p class="markdown">{{$profile.Bio}}</p>
-        <hr/>
-        {{end}}
-        {{$formatedDate := $profile.Birthday.Format "2006-01-02"}}
-        {{if ne $formatedDate "0001-01-01"}}
-        <h4>{{msg . "profile.birthday"}}: </h4> {{$formatedDate}}
-        {{end}}
-        {{if ne $profile.Gender ""}}
-        <h4>{{msg . "profile.gender"}}</h4> {{$profile.Gender}}
-        {{end}}
-        {{if ne $profile.Location ""}}
-        <h4>{{msg . "profile.location"}}</h4> {{$profile.Location}}
-        {{end}}
+    <div class="col-12">
+      <div class="card">
+        <div class="card-block">
+          <div class="row">
+            <div class="col-2">
+              <div class="card">
+                <img class="card-img-top" src="{{$profile.ImageUrl}}" title="{{$profile.Author}}">
+              </div>
+            </div>
+            <div class="col-10">
+              <h2>{{$profile.Author}}</h2>
+              {{if .currentUser}}
+              <h3>{{msg . "profile.groups"}}</h3>
+              <ul id="aspectList"></ul>
+              <form id="aspect-form">
+                <input type="text" style="display:none" name="personID" value="{{.person.ID}}">
+                <input type="text" name="aspectName" placeholder="Add/Remove from aspects..">
+                <input type="submit" style="display:none">
+              </form>
+              {{end}}
+              <h3>{{$profile.FullName}}</h3>
+              {{if ne $profile.Bio ""}}
+              <p data-markdown>{{$profile.Bio}}</p>
+              <hr/>
+              {{end}}
+              {{$formatedDate := $profile.Birthday.Format "2006-01-02"}}
+              {{if ne $formatedDate "0001-01-01"}}
+              <h4>{{msg . "profile.birthday"}}: </h4> {{$formatedDate}}
+              {{end}}
+              {{if ne $profile.Gender ""}}
+              <h4>{{msg . "profile.gender"}}</h4> {{$profile.Gender}}
+              {{end}}
+              {{if ne $profile.Location ""}}
+              <h4>{{msg . "profile.location"}}</h4> {{$profile.Location}}
+              {{end}}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -45,15 +54,18 @@
   {{$root := .}}
   {{range .posts}}
   {{set $root "post" .}}
-    {{template "profile/post.html" $root}}
+    {{template "stream/post.html" $root}}
   {{end}}
-  <ul class="pager">
-    {{$prev := sub .page 1}}
-    {{if gt $prev 0}}
-    <li><a href="/profiles/{{.person.Guid}}/{{$prev}}">{{msg . "profile.previous"}}</a></li>
+  <div class="row mt-4">
+    {{if gt .page 1}}
+    <div class="col">
+      <a type="button" class="btn btn-primary btn-block" href="/profiles/{{.person.Guid}}/{{sub .page 1}}">{{msg . "profile.previous"}}</a>
+    </div>
     {{end}}
-    <li><a href="/profiles/{{.person.Guid}}/{{add .page 1}}">{{msg . "profile.next"}}</a></li>
-  </ul>
+    <div class="col">
+      <a type="button" class="btn btn-primary btn-block" href="/profiles/{{.person.Guid}}/{{add .page 1}}">{{msg . "profile.next"}}</a>
+    </div>
+  </div>
 </div>
 
 {{template "footer.html" .}}

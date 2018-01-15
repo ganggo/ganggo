@@ -129,21 +129,19 @@ var TemplateFuncs = map[string]interface{}{
   "javascript_include_tag": func(name string) template.HTML {
     path := "/assets/javascripts/" + name + ".js"
     src := loadAndFetchManifestEntry(path)
-    tmpl := `<script src="/public` + src + `"></script>`
     if src == "" {
-      tmpl = "Cannot load asset '" + name + "'.js"
-      revel.ERROR.Println(tmpl)
+      src = "/assets/vendor/js/" + name + ".js"
     }
+    tmpl := `<script src="/public` + src + `"></script>`
     return template.HTML(tmpl)
   },
   "stylesheet_link_tag": func(name string) template.HTML {
     path := "/assets/stylesheets/" + name + ".css"
     src := loadAndFetchManifestEntry(path)
-    tmpl := `<link type="text/css" rel="stylesheet" href="/public` + src + `">`
     if src == "" {
-      tmpl = "Cannot load asset '" + name + "'.css"
-      revel.ERROR.Println(tmpl)
+      src = "/assets/vendor/css/" + name + ".css"
     }
+    tmpl := `<link type="text/css" rel="stylesheet" href="/public` + src + `">`
     return template.HTML(tmpl)
   },
   "eq": func(a, b interface {}) bool {
@@ -160,6 +158,12 @@ var TemplateFuncs = map[string]interface{}{
   },
   "concat": func(a, b string) string {
     return a + b
+  },
+  "htmlToString": func(a template.HTML) string {
+    return string(a)
+  },
+  "nilValue": func(a interface {}) bool {
+    return a == nil
   },
 }
 

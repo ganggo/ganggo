@@ -45,7 +45,12 @@ func (s PublicStream) IndexPagination(page int) revel.Result {
     return s.RenderError(err)
   }
 
+  s.ViewArgs["title"] = revel.MessageFunc(
+    s.Request.Locale, "public.title",
+  )
   s.ViewArgs["posts"] = posts
+  if page == 0 { page = 1 }
+  s.ViewArgs["page"] = page
 
   return s.RenderTemplate("stream/index.html")
 }

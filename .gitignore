@@ -10,6 +10,7 @@ conf/app.conf
 bindata.go
 
 # assets
+app/assets/vendor
 node_modules
 public/assets
 .js$:.js

@@ -5,9 +5,9 @@
 // change border color if anchor is set
 anchors = /#(.+?)$/.exec(window.location.href);
 if (anchors !== null) {
-  var postElem = $("a[name='" + anchors[1] + "']").closest(".panel-default");
-  postElem.css("border-left-color", "#5bc0de");
-  postElem.css("border-left-width", "5px");
+  var postElem = $("a[name='" + anchors[1] + "']").closest(".card");
+  postElem.addClass("text-white bg-info");
+  postElem.find(".card-header").addClass("text-white bg-info");
 }
 
 // clicking the cross icon on any kind of
@@ -19,7 +19,7 @@ $("#flash-container .alert-success").fadeOut(2000);
 $("#flash-container .alert-danger").fadeOut(5000);
 
 // find all like buttons and handle events
-$(".comment-footer i").each(function(i, elem) {
+$("i.fa-thumbs-o-down, i.fa-thumbs-o-up").each(function(i, elem) {
   var postID = $(elem).attr("data-id");
   if (typeof postID === "undefined") {
     return;

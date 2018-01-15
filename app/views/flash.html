@@ -2,21 +2,21 @@
   {{$title := msg . "app.title"}}
   {{if eq .title $title}}
   <!-- PRE-ALPHA WARNING -->
-  <div class="alert alert-danger">
+  <div class="alert alert-danger mb-1">
     This is a pre-alpha version and still under heavy development. Please use it for testing purposes only!!
     <i class="fa fa-times fa-lg pull-right" aria-hidden="true"></i>
   </div>
   {{end}}
 
   {{if .flash.success}}
-  <div class="alert alert-success">
+  <div class="alert alert-success mb-1">
     {{.flash.success}}
     <i class="fa fa-times fa-lg pull-right" aria-hidden="true"></i>
   </div>
   {{end}}
 
   {{if or .errors .flash.error}}
-  <div class="alert alert-danger">
+  <div class="alert alert-danger mb-1">
     {{if .flash.error}}
       {{.flash.error}}
     {{end}}
