@@ -22,7 +22,7 @@
   // handle language switcher events
   $("div a.language").each(function(i, elem) {
     $(elem).click(function() {
-      var cookie = "REVEL_LANG=" + $(this).data("value");
+      var cookie = "REVEL_LANG=" + $(this).data("value") + ";path=/";
       document.cookie = cookie;
       window.location.reload();
       return false;
