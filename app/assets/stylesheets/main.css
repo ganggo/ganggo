@@ -9,6 +9,10 @@ body {
   margin-bottom: 5rem;
 }
 
+.card img {
+  max-width: 100%;
+}
+
 .card-img-top{
   width: 100%;
   height: auto;
