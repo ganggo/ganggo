@@ -29,9 +29,9 @@ e.g. export PATH=$$PATH:$$(pwd)/node_modules/.bin
 
 endef
 
-all: clean precompile compile
+install: clean install-deps
 
-release: all u2d-wrapper
+release: precompile compile u2d-wrapper
 
 install-deps:
 ifndef go

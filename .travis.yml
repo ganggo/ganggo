@@ -31,7 +31,7 @@ addons:
 #   - gcc-arm-linux-gnueabi
 #   - binutils-arm-linux-gnueabi
 install:
-- make install-deps
+- make install
 script:
 # if we define GOARCH, GOOS and GOARM directly
 # it will be resetted after calling install/script function
