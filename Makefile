@@ -1,3 +1,7 @@
+# use bash instead of shell we'll
+# need the ability to create arrays
+SHELL=/bin/bash
+
 version := $(shell echo -n $(VERSION) |cut -d- -f1)
 ifndef version
 $(error "Please define a version you want to build e.g. VERSION=v0 make")
@@ -37,7 +41,7 @@ ifndef npm
 	$(error "npm is not available please install it first!")
 endif
 	# Install CSS and Javascript dependencies
-	npm install
+	npm install --prefix .
 	# GangGo dependencies
 	go get -d \
 		./... \
