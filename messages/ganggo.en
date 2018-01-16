@@ -66,6 +66,7 @@ profile.gender=Gender
 profile.location=Location
 profile.previous=Previous
 profile.next=Next
+profile.add_remove_aspect=Add or remove from group..
 
 search.title=Search
 search.search_result_for=Search result for: '%s'

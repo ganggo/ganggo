@@ -23,7 +23,7 @@
               <ul id="aspectList"></ul>
               <form id="aspect-form">
                 <input type="text" style="display:none" name="personID" value="{{.person.ID}}">
-                <input type="text" name="aspectName" placeholder="Add/Remove from aspects..">
+                <input type="text" name="aspectName" placeholder="{{msg . "profile.add_remove_aspect"}}">
                 <input type="submit" style="display:none">
               </form>
               {{end}}

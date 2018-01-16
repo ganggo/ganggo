@@ -39,6 +39,16 @@ func (d *Dispatcher) Contact(contact federation.EntityContact) {
     return
   }
 
+  var aspects models.Aspects
+  err = aspects.FindByUserPersonID(d.User.ID, person.ID)
+  if err == nil && len(aspects) > 0 {
+    revel.AppLog.Debug(
+      "Dispatcher.Contact person still is in an Aspect! Aborting..",
+      "personID", person.ID, "userID", d.User.ID,
+    )
+    return
+  }
+
   entityXml, err := xml.Marshal(contact)
   if err != nil {
     revel.AppLog.Error(err.Error())
