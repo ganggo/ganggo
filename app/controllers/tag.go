@@ -28,9 +28,14 @@ type Tag struct {
 }
 
 func (t Tag) Index(name string) revel.Result {
+  return t.IndexPagination(name, 0)
+}
+
+func (t Tag) IndexPagination(name string, page int) revel.Result {
   var (
     posts models.Posts
     tag models.Tag
+    offset int = ((page - 1) * 10)
   )
 
   user, err := models.CurrentUser(t.Controller)
@@ -38,7 +43,7 @@ func (t Tag) Index(name string) revel.Result {
     t.ViewArgs["currentUser"] = user
   }
 
-  err = tag.FindByName(name, user, 0)
+  err = tag.FindByName(name, user, offset)
   if err != nil || len(tag.ShareableTaggings) <= 0 {
     return t.NotFound(
       revel.MessageFunc(t.Request.Locale, "errors.controller.post_not_found"),
@@ -51,6 +56,9 @@ func (t Tag) Index(name string) revel.Result {
   sort.Sort(posts) // sort by UpdatedAt
 
   t.ViewArgs["posts"] = posts
+  if page == 0 { page = 1 }
+  t.ViewArgs["page"] = page
+  t.ViewArgs["tag"] = name
   t.ViewArgs["title"] = revel.MessageFunc(
     t.Request.Locale, "tag.title",
   )

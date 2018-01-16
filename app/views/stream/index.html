@@ -14,14 +14,28 @@
   {{$stream := htmlToString $stream}}
   {{$public := msg . "public.title"}}
   {{$public := htmlToString $public}}
+  {{$tags := msg . "tag.title"}}
+  {{$tags := htmlToString $tags}}
   <div class="row mt-4">
     {{if gt .page 1}}
     <div class="col">
-      <a type="button" class="btn btn-primary btn-block" href="/{{if eq .title $stream}}stream{{else}}public{{end}}/{{sub .page 1}}">{{msg . "profile.previous"}}</a>
+      <a type="button" class="btn btn-primary btn-block" href="/
+        {{- if eq .title $stream}}stream
+        {{- else}}
+          {{- if eq .title $tags}}tags
+          {{- else}}public
+          {{- end}}
+        {{- end}}/{{sub .page 1}}">{{msg . "profile.previous"}}</a>
     </div>
     {{end}}
     <div class="col">
-      <a type="button" class="btn btn-primary btn-block" href="/{{if eq .title $stream}}stream{{else}}public{{end}}/{{add .page 1}}">{{msg . "profile.next"}}</a>
+      <a type="button" class="btn btn-primary btn-block" href="/
+        {{- if eq .title $stream}}stream
+        {{- else}}
+          {{- if eq .title $tags}}tags/{{.tag}}
+          {{- else}}public
+          {{- end}}
+        {{- end}}/{{add .page 1}}">{{msg . "profile.next"}}</a>
     </div>
   </div>
 </div>
