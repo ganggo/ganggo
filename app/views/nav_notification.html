@@ -10,7 +10,7 @@
       {{range $index, $elem := $notify}}
       <li class="notify-element" data-id="{{.ID}}">
         {{if IsShareablePost .ShareableType}}
-        {{$targetUrl := concat "/posts/" .SharableGuid}}
+        {{$targetUrl := concat "/posts/" .ShareableGuid}}
         <a href="/profiles/{{.Person.Guid}}">{{.Person.Author}}</a>
         <p class="small">{{msg $root "notification.mentioned_in_post" $targetUrl}}</p>
         {{end}}
