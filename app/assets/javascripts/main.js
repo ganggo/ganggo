@@ -27,16 +27,17 @@ $("i.fa-thumbs-o-down, i.fa-thumbs-o-up").each(function(i, elem) {
   API.posts(postID).likes.get().then(function(likes) {
     var likeCnt = 0;
     var dislikeCnt = 0;
-    $.each(likes, function(i, like) {
-      if (like.Positive) {
+    var length = Object.keys(likes).length;
+    for (var i = 0; i < length; i++) {
+      if (likes[i].Positive) {
         likeCnt++;
       } else {
         dislikeCnt++;
       }
-    });
+    }
 
     // set db count
-    if ($(elem).hasClass("like")) {
+    if ($(elem).hasClass("fa-thumbs-o-up")) {
       $(elem).html(likeCnt);
     } else {
       $(elem).html(dislikeCnt);
@@ -45,7 +46,7 @@ $("i.fa-thumbs-o-down, i.fa-thumbs-o-up").each(function(i, elem) {
     // register click event
     $(elem).click(function() {
       var positive = false;
-      if ($(elem).hasClass("like")) {
+      if ($(elem).hasClass("fa-thumbs-o-up")) {
         positive = true;
       }
       API.posts(postID).likes(positive).post().then(function () {
