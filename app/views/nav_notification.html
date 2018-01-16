@@ -9,18 +9,22 @@
     <ul class="list-unstyled px-4 py-3" role="menu">
       {{range $index, $elem := $notify}}
       <li class="notify-element" data-id="{{.ID}}">
-        {{if IsShareablePost .ShareableType}}
-        {{$targetUrl := concat "/posts/" .ShareableGuid}}
+        {{- if IsShareablePost .ShareableType}}
+        {{- $targetUrl := concat "/posts/" .ShareableGuid}}
         <a href="/profiles/{{.Person.Guid}}">{{.Person.Author}}</a>
         <p class="small">{{msg $root "notification.mentioned_in_post" $targetUrl}}</p>
-        {{end}}
-        {{if IsShareableComment .ShareableType}}
-        {{$targetUrl := concat "/posts/" .Comment.ParentPost.Guid}}
-        {{$targetUrl := concat $targetUrl "#"}}
-        {{$targetUrl := concat $targetUrl .ShareableGuid}}
+        {{- end}}
+        {{- if IsShareableComment .ShareableType}}
+        {{- $targetUrl := concat "/posts/" .Comment.ParentPost.Guid}}
+        {{- $targetUrl := concat $targetUrl "#"}}
+        {{- $targetUrl := concat $targetUrl .ShareableGuid}}
         <a href="/profiles/{{.Person.Guid}}">{{.Person.Author}}</a>
         <p class="small">{{msg $root "notification.mentioned_in_comment" $targetUrl}}</p>
-        {{end}}
+        {{- end}}
+        {{- if IsShareableContact .ShareableType}}
+        <a href="/profiles/{{.Person.Guid}}">{{.Person.Author}}</a>
+        <p class="small">{{msg $root "notification.started_sharing"}}</p>
+        {{- end}}
       </li>
       {{$pos := add $index 1}}
       {{if ne $pos $lenNotify}}

@@ -19,6 +19,7 @@ package models
 
 import (
   "time"
+  "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
   federation "gopkg.in/ganggo/federation.v0"
 )
@@ -37,10 +38,8 @@ type Contact struct {
 type Contacts []Contact
 
 func (c *Contact) Cast(entity *federation.EntityContact) (err error) {
-  var (
-    recipient User
-    sender Person
-  )
+  var recipient User
+  var sender Person
 
   db, err := OpenDatabase()
   if err != nil {
@@ -52,7 +51,6 @@ func (c *Contact) Cast(entity *federation.EntityContact) (err error) {
   if err != nil {
     return err
   }
-
 
   err = db.Where("username = ?", username).First(&recipient).Error
   if err != nil {
@@ -69,4 +67,19 @@ func (c *Contact) Cast(entity *federation.EntityContact) (err error) {
   (*c).Receiving = entity.Following
   (*c).Sharing = entity.Sharing
   return
+}
+
+func (c *Contact) TriggerNotification(guid string) {
+  if c.Receiving && c.Sharing {
+    notify := Notification{
+      ShareableType: ShareableContact,
+      ShareableGuid: guid,
+      UserID: c.UserID,
+      PersonID: c.PersonID,
+      Unread: true,
+    }
+    if err := notify.Create(); err != nil {
+      revel.AppLog.Error(err.Error())
+    }
+  }
 }

@@ -68,6 +68,7 @@
     for (var i = 0; i < aspects.length; i++) {
       tags.push(aspects[i].Name);
     }
-    $("[name='aspectName']").autocomplete({source: tags});
+    // XXX requires jquery-ui
+    //$("[name='aspectName']").autocomplete({source: tags});
   });
 })();

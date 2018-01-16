@@ -46,6 +46,9 @@ var TemplateFuncs = map[string]interface{}{
   "IsShareableComment": func(a string) bool {
     return (a == models.ShareableComment)
   },
+  "IsShareableContact": func(a string) bool {
+    return (a == models.ShareableContact)
+  },
   "LikesByTargetID": func(id uint) []models.Like {
     return likes(id, true)
   },

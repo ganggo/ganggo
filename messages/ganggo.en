@@ -9,6 +9,7 @@ notification.unread=%d Notifications
 notification.mentioned_in_post=has mentioned you in a <a href="%s">post</a>
 notification.mentioned_in_comment=has mentioned you in a <a href="%s">comment</a>
 notification.no_notification=No new notification available!
+notification.started_sharing=started sharing with you!
 
 navigation.toggle=Toggle navigation
 navigation.login=Login

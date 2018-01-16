@@ -61,7 +61,7 @@ func (n *Notification) AfterFind(db *gorm.DB) error {
       return err
     }
     (*n).Post = post
-  } else {
+  } else if n.ShareableType == ShareableComment {
     var comment Comment
     err = comment.FindByGuid(n.ShareableGuid)
     if err != nil {

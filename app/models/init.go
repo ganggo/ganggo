@@ -46,6 +46,7 @@ const (
   StatusMessage = "StatusMessage"
   ShareablePost = "Post"
   ShareableComment = "Comment"
+  ShareableContact = "Contact"
 )
 
 var DB Database

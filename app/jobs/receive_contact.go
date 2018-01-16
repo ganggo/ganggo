@@ -21,45 +21,54 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 func (r *Receiver) Contact(entity federation.EntityContact) {
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+  db, err := models.OpenDatabase()
   if err != nil {
-    revel.WARN.Println(err)
+    revel.AppLog.Warn(err.Error())
     return
   }
   defer db.Close()
 
-  revel.TRACE.Println("Found a contact entity", entity)
+  revel.AppLog.Debug("Found a contact entity", "entity", entity)
+
+  // Will try fetching author from remote
+  // if he doesn't exist locally
+  author := FetchAuthor{Author: entity.Author}
+  author.Run()
+  if author.Err != nil {
+    revel.AppLog.Error("Cannot fetch author", "error", author.Err)
+    return
+  }
 
   var contact models.Contact
   err = contact.Cast(&entity)
   if err != nil {
-    revel.WARN.Println(err)
+    revel.AppLog.Warn(err.Error())
     return
   }
 
   var oldContact models.Contact
-  if err = db.Where(
-    "user_id = ? AND person_id = ?",
+  err = db.Where("user_id = ? AND person_id = ?",
     contact.UserID, contact.PersonID,
-  ).First(&oldContact).Error; err == nil {
-    err = db.Model(&oldContact).Updates(contact).Error
-    if err != nil {
-      revel.WARN.Println(err)
+  ).First(&oldContact).Error
+  if err == nil {
+    if err = db.Model(&oldContact).Updates(
+      map[string]interface{}{
+        "sharing": contact.Sharing,
+        "receiving": contact.Receiving,
+      },
+    ).Error; err != nil {
+      revel.AppLog.Warn(err.Error())
       return
     }
   } else {
     err = db.Create(&contact).Error
     if err != nil {
-      revel.WARN.Println(err)
+      revel.AppLog.Warn(err.Error())
       return
     }
   }
+  contact.TriggerNotification(author.Person.Guid)
 }
