@@ -3,17 +3,21 @@
 (function() {
   var personID = $("[name='personID']").val();
   API.people(personID).aspects.get().then(function(aspects) {
-    for (var i = 0; i < aspects.length; i++) {
+    var length = Object.keys(aspects).length;
+    for (var i = 0; i < length; i++) {
       var name = aspects[i].Name;
       var id = aspects[i].ID;
       var li = $("<li>").attr("data-id", id).text(name);
       $("#aspectList").append(li);
     }
+  });
 
-    $("#aspect-form").submit(function() {
+  $("#aspect-form").submit(function() {
+    API.people(personID).aspects.get().then(function(aspects) {
+      var length = Object.keys(aspects).length;
       var aspectID = -1;
       var aspectName = $("[name='aspectName']").val();
-      for (var i = 0; i < aspects.length; i++) {
+      for (var i = 0; i < length; i++) {
         var name = aspects[i].Name;
         if (aspectName.toUpperCase() === name.toUpperCase()) {
           aspectID = aspects[i].ID;
@@ -32,7 +36,8 @@
         API.aspects.get().then(function(aspects) {
           var id = -1;
           var aspectName = $("[name='aspectName']").val();
-          for (var i = 0; i < aspects.length; i++) {
+          var length = Object.keys(aspects).length;
+          for (var i = 0; i < length; i++) {
             var name = aspects[i].Name;
             if (aspectName.toUpperCase() === name.toUpperCase()) {
               id = aspects[i].ID;
@@ -59,8 +64,8 @@
           }
         });
       }
-      return false;
     });
+    return false;
   });
 
   API.aspects.get().then(function(aspects) {
