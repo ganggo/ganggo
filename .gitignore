@@ -14,3 +14,4 @@ app/assets/vendor
 node_modules
 public/assets
 .js$:.js
+.css$:.css

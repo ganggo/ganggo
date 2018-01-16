@@ -42,6 +42,8 @@ func (d *Dispatcher) Run() {
     d.Comment(&entity)
   case federation.EntityLike:
     d.Like(entity)
+  case federation.EntityContact:
+    d.Contact(entity)
   default:
     revel.ERROR.Println("Unknown entity type in dispatcher!")
   }
