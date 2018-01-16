@@ -79,7 +79,9 @@ func (c *Contact) TriggerNotification(guid string) {
       Unread: true,
     }
     if err := notify.Create(); err != nil {
-      revel.AppLog.Error(err.Error())
+      if err := notify.Update(); err != nil {
+        revel.AppLog.Error(err.Error())
+      }
     }
   }
 }

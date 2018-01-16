@@ -110,7 +110,8 @@ func (n *Notification) Update() error {
   }
   defer db.Close()
 
-  return db.Model(n).
-    Where("user_id = ?", n.UserID).
-    Update("unread", n.Unread).Error
+  return db.Model(n).Where(
+    "user_id = ? and person_id = ?",
+    n.UserID, n.PersonID,
+  ).Update("unread", n.Unread).Error
 }
