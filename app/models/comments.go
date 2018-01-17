@@ -21,6 +21,7 @@ import (
   "time"
   "github.com/revel/revel"
   federation "gopkg.in/ganggo/federation.v0"
+  "github.com/jinzhu/gorm"
 )
 
 type Comment struct {
@@ -48,7 +49,7 @@ type CommentSignature struct {
   CreatedAt time.Time
   UpdatedAt time.Time
 
-  CommentID int
+  CommentID uint
   AuthorSignature string `gorm:"type:text"`
   SignatureOrderID uint
   AdditionalData string
@@ -57,6 +58,23 @@ type CommentSignature struct {
 }
 
 type CommentSignatures []CommentSignature
+
+// Model Interface Type
+//   FetchID() uint
+//   FetchGuid() string
+//   FetchType() string
+//   FetchPersonID() uint
+//   FetchText() string
+//   HasPublic() bool
+//   IsPublic() bool
+func (c Comment) FetchID() uint { return c.ID }
+func (c Comment) FetchGuid() string { return c.Guid }
+func (Comment) FetchType() string { return ShareableComment }
+func (c Comment) FetchPersonID() uint { return c.PersonID }
+func (c Comment) FetchText() string { return c.Text }
+func (Comment) HasPublic() bool { return true }
+func (Comment) IsPublic() bool { return false }
+// Model Interface Type
 
 func (comment *Comment) AfterFind() error {
   if structLoaded(comment.Person.CreatedAt) {
@@ -85,51 +103,78 @@ func (c *Comment) Count() (count int, err error) {
   return
 }
 
-func (c *Comment) AfterCreate() error {
-  db, err := OpenDatabase()
+func (c *Comment) AfterSave(db *gorm.DB) error {
+  err := searchAndCreateTags(*c, db)
   if err != nil {
     return err
   }
+
+  if _, user, ok := c.ParentPostUser(); ok {
+    return user.Notify(*c)
+  } else {
+    return checkForMentionsInText(*c)
+  }
+}
+
+func (c *Comment) Create(entity *federation.EntityComment) (err error) {
+  db, err := OpenDatabase()
+  if err != nil {
+    return
+  }
   defer db.Close()
 
-  // batch insert doesn't work for gorm, yet
-  // see https://github.com/jinzhu/gorm/issues/255
-  tags, err := generateTags(c)
-  if err == nil && len(tags) > 0 {
-    for _, tag := range tags {
-      var cnt int
-      db.Where("name = ?", tag.Name).Find(&tag).Count(&cnt)
-      // if tag already exists skip it
-      // and create taggings only
-      if cnt == 0 {
-        err = db.Create(&tag).Error
-        if err != nil {
-          return err
-        }
-      } else {
-        for _, shareable := range tag.ShareableTaggings {
-          shareable.TagID = tag.ID
-          err = db.Create(&shareable).Error
-          if err != nil {
-            return err
-          }
-        }
-      }
-    }
-  } else if err != nil {
-    return err
+  err = c.Cast(entity)
+  if err != nil {
+    return
   }
+  return db.Create(c).Error
+}
 
-  notify, err := generateNotifications(c)
-  if err == nil && len(notify) > 0 {
-    for _, n := range notify {
-      err = db.Create(&n).Error
-      if err != nil {
-        return err
-      }
-    }
+func (c *Comment) Delete() (err error) {
+  db, err := OpenDatabase()
+  if err != nil {
+    return
   }
-  return err
+  defer db.Close()
+
+  if c.ID == 0 {
+    // see http://jinzhu.me/gorm/crud.html#delete
+    panic("Setting ID to zero will delete all comment records")
+  }
+  return db.Delete(c).Error
+}
+
+func (c *Comment) AfterDelete(db *gorm.DB) (err error) {
+  // aspect_visibilities
+  err = db.Where("shareable_id = ? and shareable_type = ?",
+    c.ID, ShareableComment).Delete(AspectVisibility{}).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  // shareables
+  err = db.Where("shareable_id = ? and shareable_type = ?",
+    c.ID, ShareableComment).Delete(Shareable{}).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  // shareable_taggings
+  err = db.Where("shareable_id = ? and shareable_type = ?",
+    c.ID, ShareableComment).Delete(ShareableTagging{}).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  // notifications
+  err = db.Where("shareable_guid = ? and shareable_type = ?",
+    c.Guid, ShareableComment).Delete(Notification{}).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  // like_signatures
+  return db.Where("like_id = ?", c.ID).Delete(LikeSignature{}).Error
 }
 
 func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
@@ -150,14 +195,13 @@ func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
     return
   }
 
+  (*c).CreatedAt = entity.CreatedAt.Time
   (*c).Text = entity.Text
   (*c).ShareableID = post.ID
   (*c).PersonID = person.ID
   (*c).Guid = entity.Guid
   (*c).ShareableType = ShareablePost
-  (*c).Signature = CommentSignature{
-    AuthorSignature: entity.AuthorSignature,
-  }
+  (*c).Signature.AuthorSignature = entity.AuthorSignature
   return nil
 }
 
@@ -181,33 +225,37 @@ func (c *Comment) FindByGuid(guid string) error { BACKEND_ONLY()
   return db.Where("guid = ?", guid).First(c).Error
 }
 
-func (c *Comment) ParentPost() (post Post, err error) {
-  // XXX assuming ShareableType is always Post
-  err = post.FindByID(c.ShareableID)
-  return
-}
-
-func (c *Comment) ParentIsLocal() (User, bool) {
-  return parentIsLocal(c.ShareableID)
-}
-
-func (c *Comment) TriggerNotification(user User) {
-  if c.PersonID == user.Person.ID {
-    // do not send notification
-    // for your own activity
-    return
+func (c *Comment) ParentPostUser() (Post, User, bool) {
+  post, ok := c.ParentPost(); if !ok {
+    return post, User{}, ok
+  }
+  if post.Person.UserID <= 0 {
+    return post, User{}, false
   }
 
-  notify := Notification{
-    ShareableType: ShareableComment,
-    ShareableGuid: c.Guid,
-    UserID: user.ID,
-    PersonID: c.PersonID,
-    Unread: true,
-  }
-  if err := notify.Create(); err != nil {
+  db, err := OpenDatabase()
+  if err != nil {
     revel.AppLog.Error(err.Error())
+    return post, User{}, false
   }
+  defer db.Close()
+
+  var user User
+  err = user.FindByID(post.Person.UserID)
+  return post, user, err == nil
+}
+
+func (c *Comment) ParentPost() (Post, bool) {
+  db, err := OpenDatabase()
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return Post{}, false
+  }
+  defer db.Close()
+
+  var post Post
+  err = db.First(&post, c.ShareableID).Error
+  return post, err == nil
 }
 
 func (c *Comments) FindByPostID(id uint) (err error) { BACKEND_ONLY()

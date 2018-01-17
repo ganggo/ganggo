@@ -20,40 +20,40 @@ package jobs
 import (
   "encoding/xml"
   "github.com/revel/revel"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
 )
 
-func (d *Dispatcher) Like(like federation.EntityLike) {
-  err := like.AppendSignature(
-    []byte(d.User.SerializedPrivateKey),
-    like.SignatureOrder(), federation.AuthorSignatureType)
-  if err != nil {
-    revel.ERROR.Println(err)
+func (dispatcher *Dispatcher) Like(like federation.EntityLike) {
+  modelLike, ok := dispatcher.Model.(models.Like)
+  if !ok {
+    revel.AppLog.Error(
+      "Submitted model is not a type of models.Like",
+      "model", modelLike,
+    )
     return
   }
 
-  // if parent user is local generate a signature
-  if d.ParentUser != nil {
-    err := like.AppendSignature(
-      []byte(d.ParentUser.SerializedPrivateKey),
-      like.SignatureOrder(), federation.ParentAuthorSignatureType)
+  if !dispatcher.Relay {
+    err := like.AppendSignature([]byte(
+        dispatcher.User.SerializedPrivateKey,
+      ), like.SignatureOrder(),
+    )
     if err != nil {
-      revel.ERROR.Println(err)
+      revel.AppLog.Error(err.Error())
       return
     }
   }
 
   entityXml, err := xml.Marshal(like)
   if err != nil {
-    revel.ERROR.Println(err)
+    revel.AppLog.Error(err.Error())
     return
   }
 
-  payload, err := federation.MagicEnvelope(
-    d.User.SerializedPrivateKey,
-    like.Author, entityXml,
+  parentPost, parentUser, _ := modelLike.ParentPostUser()
+  dispatcher.Send(
+    parentPost, parentUser, entityXml,
+    modelLike.Signature.SignatureOrderID,
   )
-
-  // send it to the network
-  sendPublic(payload)
 }

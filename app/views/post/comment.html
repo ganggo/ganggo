@@ -12,6 +12,9 @@
             <a href="#{{.comment.Guid}}">
               <i class="fa fa-clock-o"></i> {{timeago .comment.CreatedAt .}}
             </a>
+            {{if eq .currentUser.Person.ID .comment.Person.ID}}
+            <i data-commentID="{{.comment.ID}}" class="pl-2 fa fa-times" title="{{msg . "post.delete_comment_title"}}"></i>
+            {{end}}
           </span>
         </small>
       </div>

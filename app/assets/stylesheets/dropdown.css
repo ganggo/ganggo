@@ -1,0 +1,7 @@
+.notify-element.dropdown-item:active {
+  background-color: #a94442;
+}
+
+.notify-element.dropdown-item:active a {
+  color: #000;
+}

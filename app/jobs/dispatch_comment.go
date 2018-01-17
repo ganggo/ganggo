@@ -21,93 +21,39 @@ import (
   "encoding/xml"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
-  "gopkg.in/ganggo/ganggo.v0/app/helpers"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-func (d *Dispatcher) Comment(comment *federation.EntityComment) {
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-  defer db.Close()
-
-  guid, err := helpers.Uuid()
-  if err != nil {
-    revel.ERROR.Println(err)
+func (dispatcher *Dispatcher) Comment(comment federation.EntityComment) {
+  modelComment, ok := dispatcher.Model.(models.Comment)
+  if !ok {
+    revel.AppLog.Error(
+      "Submitted model is not a type of models.Comment",
+      "model", modelComment,
+    )
     return
   }
 
-  (*comment).Author = d.User.Person.Author
-  (*comment).Guid = guid
-
-  err = comment.AppendSignature(
-    []byte(d.User.SerializedPrivateKey),
-    comment.SignatureOrder(), federation.AuthorSignatureType)
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  // save post locally
-  var dbComment models.Comment
-  err = dbComment.Cast(comment)
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-  err = db.Create(&dbComment).Error
-  if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-
-  // parent author signature
-  var parentPost models.Post
-  err = parentPost.FindByGuid(comment.ParentGuid)
-  if err == nil {
-    if parentUser, ok := parentPost.IsLocal(); ok {
-      // notify local user about a new comment
-      go dbComment.TriggerNotification(parentUser)
-
-      err = comment.AppendSignature(
-        []byte(parentUser.SerializedPrivateKey),
-        comment.SignatureOrder(),
-        federation.ParentAuthorSignatureType,
-      )
-      if err != nil {
-        revel.AppLog.Error(err.Error())
-        return
-      }
+  if !dispatcher.Relay {
+    err := comment.AppendSignature([]byte(
+        dispatcher.User.SerializedPrivateKey,
+      ), comment.SignatureOrder(),
+    )
+    if err != nil {
+      revel.AppLog.Error(err.Error())
+      return
     }
   }
 
   entityXml, err := xml.Marshal(comment)
   if err != nil {
-    revel.ERROR.Println(err)
+    revel.AppLog.Error(err.Error())
     return
   }
 
-  revel.TRACE.Println("entityXml", string(entityXml))
-
-  var visibility models.AspectVisibility
-  err = visibility.FindByGuid(comment.ParentGuid)
-  if err == nil && helpers.IsLocalHandle(d.ParentPerson.Author) {
-    sendToAspect(visibility.AspectID, d.User.SerializedPrivateKey, comment.Author, entityXml)
-  } else {
-    payload, err := federation.MagicEnvelope(
-      d.User.SerializedPrivateKey,
-      comment.Author, entityXml,
-    ); if err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-    sendPublic(payload)
-  }
+  parentPost, parentUser, _ := modelComment.ParentPostUser()
+  dispatcher.Send(
+    parentPost, parentUser, entityXml,
+    modelComment.Signature.SignatureOrderID,
+  )
 }

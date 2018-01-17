@@ -27,6 +27,9 @@
               <a href="/posts/{{.post.Guid}}">
                 <i class="fa fa-clock-o"></i> {{timeago .post.CreatedAt .}}
               </a>
+              {{if eq .currentUser.Person.ID .post.Person.ID}}
+              <i data-postID="{{.post.ID}}" class="pl-2 fa fa-times" title="{{msg . "post.delete_post_title"}}"></i>
+              {{end}}
             </span>
           </small>
         </div>
@@ -34,14 +37,23 @@
           <div class="card-body">
             <p class="card-text" data-markdown>{{.post.Text}}</p>
             <p class="card-text">
-              <i class="fa fa-{{if .post.Public}}un{{end}}lock float-left" title="
-              {{- if .post.Public}}
-                {{- msg . "post.public"}}
-              {{- else}}
-                {{- msg . "post.limited"}}
-              {{- end}}"></i>
-              <i data-id="{{.post.ID}}" class="fa fa-thumbs-o-down float-right">0</i>
-              <i data-id="{{.post.ID}}" class="fa fa-thumbs-o-up float-right">0</i>
+              <p class="p-0 m-0 float-left">
+                <i class="fa fa-{{if .post.Public}}un{{end}}lock float-left" title="
+                {{- if .post.Public}}
+                  {{- msg . "post.public"}}
+                {{- else}}
+                  {{- msg . "post.limited"}}
+                {{- end}}"></i>
+              </p>
+              {{if .currentUser}}
+              <p class="p-0 m-0 float-right">
+                {{if ne .currentUser.Person.ID .post.Person.ID}}
+                <i data-id="{{.post.ID}}" class="pr-1 fa fa-retweet" title="{{msg . "post.reshare_post_title"}}"></i>
+                {{end}}
+                <i data-id="{{.post.ID}}" class="pr-1 fa fa-thumbs-o-down">0</i>
+                <i data-id="{{.post.ID}}" class="fa fa-thumbs-o-up">0</i>
+              </p>
+              {{end}}
             </p>
           </div>
         </div>

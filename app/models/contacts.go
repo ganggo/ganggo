@@ -19,9 +19,9 @@ package models
 
 import (
   "time"
-  "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
   federation "gopkg.in/ganggo/federation.v0"
+  "github.com/jinzhu/gorm"
 )
 
 type Contact struct {
@@ -36,6 +36,35 @@ type Contact struct {
 }
 
 type Contacts []Contact
+
+// Model Interface Type
+//   FetchID() uint
+//   FetchGuid() string
+//   FetchType() string
+//   FetchPersonID() uint
+//   FetchText() string
+//   HasPublic() bool
+//   IsPublic() bool
+func (c Contact) FetchID() uint { return c.ID }
+func (Contact) FetchGuid() string { return "" }
+func (Contact) FetchType() string { return ShareableContact }
+func (c Contact) FetchPersonID() uint { return c.PersonID }
+func (Contact) FetchText() string { return "" }
+func (Contact) HasPublic() bool { return false }
+func (Contact) IsPublic() bool { return false }
+// Model Interface Type
+
+func (c *Contact) AfterSave(db *gorm.DB) error {
+  if c.Sharing && c.Receiving {
+    var user User
+    err := user.FindByID(c.UserID)
+    if err != nil {
+      return err
+    }
+    return user.Notify(*c)
+  }
+  return nil
+}
 
 func (c *Contact) Cast(entity *federation.EntityContact) (err error) {
   var recipient User
@@ -67,21 +96,4 @@ func (c *Contact) Cast(entity *federation.EntityContact) (err error) {
   (*c).Receiving = entity.Following
   (*c).Sharing = entity.Sharing
   return
-}
-
-func (c *Contact) TriggerNotification(guid string) {
-  if c.Receiving && c.Sharing {
-    notify := Notification{
-      ShareableType: ShareableContact,
-      ShareableGuid: guid,
-      UserID: c.UserID,
-      PersonID: c.PersonID,
-      Unread: true,
-    }
-    if err := notify.Create(); err != nil {
-      if err := notify.Update(); err != nil {
-        revel.AppLog.Error(err.Error())
-      }
-    }
-  }
 }

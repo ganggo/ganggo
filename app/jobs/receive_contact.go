@@ -70,5 +70,4 @@ func (r *Receiver) Contact(entity federation.EntityContact) {
       return
     }
   }
-  contact.TriggerNotification(author.Person.Guid)
 }

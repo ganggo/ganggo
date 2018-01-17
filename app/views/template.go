@@ -46,6 +46,9 @@ var TemplateFuncs = map[string]interface{}{
   "IsShareableComment": func(a string) bool {
     return (a == models.ShareableComment)
   },
+  "IsShareableLike": func(a string) bool {
+    return (a == models.ShareableLike)
+  },
   "IsShareableContact": func(a string) bool {
     return (a == models.ShareableContact)
   },
@@ -156,6 +159,15 @@ var TemplateFuncs = map[string]interface{}{
     }
     return
   },
+  "CommentGuid": func(comment models.Comment) string {
+    post, _ := comment.ParentPost()
+    return post.Guid + "#" + comment.Guid
+  },
+  "LikeGuid": func(like models.Like) string {
+    post, _ := like.ParentPost()
+    return post.Guid
+  },
+  "PtrToValue": func(a *string) string { return *a },
   // custom train script/stylesheet include functions
   "javascript_include_tag": func(name string) template.HTML {
     path := "/assets/javascripts/" + name + ".js"

@@ -29,6 +29,7 @@ type SchemaMigration struct {
 type SchemaMigrations []SchemaMigration
 
 func migrateSchema(db *gorm.DB) error {
+  var commit string
   var structMigrations SchemaMigrations
   var migrations map[string]string = make(map[string]string)
 
@@ -44,8 +45,17 @@ func migrateSchema(db *gorm.DB) error {
 
   //// Migrations Start ////
 
+  // related to ganggo/ganggo@0f94958c6b7f727c43031d756ae01d62d1467b74
+  commit = "0f94958c6b7f727c43031d756ae01d62d1467b74"
+  if _, ok := migrations[commit]; !ok {
+    db.Model(&Post{}).Where("root_guid = ?", "").Update("root_guid", gorm.Expr("NULL"))
+    db.Model(&Post{}).DropColumn("root_handle")
+    advancedColumnModify(db.Model(&Post{}), "root_guid", "varchar(187)")
+    structMigrations = append(structMigrations, SchemaMigration{Commit: commit})
+  }
+
   // related to ganggo/ganggo@2aec1bdfd61cfca7723b94cef3b09719cfb8e6f3
-  var commit = "2aec1bdfd61cfca7723b94cef3b09719cfb8e6f3"
+  commit = "2aec1bdfd61cfca7723b94cef3b09719cfb8e6f3"
   if _, ok := migrations[commit]; !ok {
     advancedColumnModify(db.Model(Aspect{}), "name", "varchar(191)")
     advancedColumnModify(db.Model(Pod{}), "host", "varchar(191)")
@@ -71,10 +81,10 @@ func loadSchema(db *gorm.DB) {
 
   post := &Post{}
   db.Model(post).AddUniqueIndex("index_posts_on_guid", "guid")
-  //db.Model(post).AddUniqueIndex("index_posts_on_person_id_and_root_guid", "person_id", "root_guid")
+  db.Model(post).AddUniqueIndex("index_posts_on_person_id_and_root_guid", "person_id", "root_guid")
   db.Model(post).AddIndex("index_posts_on_person_id", "person_id")
   db.Model(post).AddIndex("index_posts_on_id_and_type_and_created_at", "id", "type", "created_at")
-  //db.Model(post).AddIndex("index_posts_on_root_guid", "root_guid")
+  db.Model(post).AddIndex("index_posts_on_root_guid", "root_guid")
   db.Model(post).AddIndex("index_posts_on_id_and_type", "id", "type")
   db.AutoMigrate(post)
 
