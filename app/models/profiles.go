@@ -21,6 +21,7 @@ import (
   "time"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
   federation "gopkg.in/ganggo/federation.v0"
+  "github.com/revel/revel"
 )
 
 type Profile struct {
@@ -94,4 +95,15 @@ func (profile *Profile) FindByPersonID(id uint) (err error) {
   defer db.Close()
 
   return db.Where("person_id = ?", id).First(profile).Error
+}
+
+func (profile *Profile) FindByAuthor(author string) error {
+  db, err := OpenDatabase()
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("author = ?", author).First(profile).Error
 }

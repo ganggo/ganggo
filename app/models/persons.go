@@ -17,7 +17,10 @@ package models
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "time"
+import (
+  "time"
+  "github.com/jinzhu/gorm"
+)
 
 type Person struct {
   ID uint `gorm:"primary_key"`
@@ -39,17 +42,10 @@ type Person struct {
 }
 
 // load relations on default
-func (person *Person) AfterFind() error {
+func (person *Person) AfterFind(db *gorm.DB) error {
   if structLoaded(person.Profile.CreatedAt) {
     return nil
   }
-
-  db, err := OpenDatabase()
-  if err != nil {
-    return err
-  }
-  defer db.Close()
-
   return db.Model(person).Related(&person.Profile).Error
 }
 

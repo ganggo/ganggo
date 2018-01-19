@@ -24,6 +24,8 @@ import (
 )
 
 func (receiver *Receiver) Reshare(entity federation.EntityReshare) {
+  if _, ok := receiver.CheckAuthor(entity.Author); !ok { return }
+
   db, err := models.OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
@@ -65,6 +67,8 @@ func (receiver *Receiver) Reshare(entity federation.EntityReshare) {
 }
 
 func (receiver *Receiver) StatusMessage(entity federation.EntityStatusMessage) {
+  if _, ok := receiver.CheckAuthor(entity.Author); !ok { return }
+
   var (
     post models.Post
     user models.Person

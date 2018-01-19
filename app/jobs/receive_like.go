@@ -24,6 +24,8 @@ import (
 )
 
 func (receiver *Receiver) Like(entity federation.EntityLike) {
+  if _, ok := receiver.CheckAuthor(entity.Author); !ok { return }
+
   var like models.Like
   db, err := models.OpenDatabase()
   if err != nil {
@@ -33,15 +35,6 @@ func (receiver *Receiver) Like(entity federation.EntityLike) {
   defer db.Close()
 
   revel.AppLog.Debug("Found a like entity", "entity", entity)
-
-  // Will try fetching author from remote
-  // if he doesn't exist locally
-  author := FetchAuthor{Author: entity.Author}
-  author.Run()
-  if author.Err != nil {
-    revel.AppLog.Error("Cannot fetch author", "error", author.Err)
-    return
-  }
 
   err = like.Cast(&entity)
   if err != nil {

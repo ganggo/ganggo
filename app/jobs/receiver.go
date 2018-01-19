@@ -19,6 +19,7 @@ package jobs
 
 import (
   "github.com/revel/revel"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
 )
 
@@ -54,4 +55,14 @@ func (receiver *Receiver) Run() {
   default:
     revel.AppLog.Error("No matching entity found", "entity", receiver.Entity)
   }
+}
+
+func (receiver *Receiver) CheckAuthor(author string) (models.Person, bool) {
+  // Will try fetching author from remote
+  // if he doesn't exist locally
+  fetch := FetchAuthor{Author: author}; fetch.Run()
+  if fetch.Err != nil {
+    revel.AppLog.Error("Cannot fetch author", "error", fetch.Err)
+  }
+  return fetch.Person, fetch.Err == nil
 }

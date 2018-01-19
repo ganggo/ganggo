@@ -23,55 +23,40 @@ import (
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 type FetchAuthor struct {
   Author string
-  Person *models.Person
+  Person models.Person
   Err error
 }
 
-func (f *FetchAuthor) Run() {
-  f.Person = &models.Person{}
-
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+func (fetch *FetchAuthor) Run() {
+  var person models.Person
+  _, host, err := helpers.ParseAuthor(fetch.Author)
   if err != nil {
-    revel.ERROR.Println(err)
-    (*f).Err = err
-    return
-  }
-  defer db.Close()
-
-  _, host, err := helpers.ParseAuthor(f.Author)
-  if err != nil {
-    revel.ERROR.Println(err)
-    (*f).Err = err
+    revel.AppLog.Error(err.Error())
+    (*fetch).Err = err
     return
   }
 
-  // skip updating person already known
-  err = db.Where("author = ?", f.Author).First(f.Person).Error
-  if err == nil { return }
+  if err = person.FindByAuthor(fetch.Author); err == nil {
+    // skip person already known
+    return
+  }
 
   // add host to pod list
   pod := models.Pod{Host: host}
   if err := pod.CreateOrFindHost(); err != nil {
-    revel.ERROR.Println(err)
-    (*f).Err = err
+    revel.AppLog.Error(err.Error())
+    (*fetch).Err = err
     return
   }
 
-  webFinger := federation.WebFinger{
-    Host: host, Handle: f.Author,
-  }; err = webFinger.Discovery()
-  if err != nil {
-    revel.ERROR.Println(err)
-    (*f).Err = err
+  webFinger := federation.WebFinger{Host: host, Handle: fetch.Author}
+  if err = webFinger.Discovery(); err != nil {
+    revel.AppLog.Error(err.Error())
+    (*fetch).Err = err
     return
   }
 
@@ -79,26 +64,25 @@ func (f *FetchAuthor) Run() {
   for _, link := range webFinger.Data.Links {
     if link.Rel == federation.WebFingerHcard {
       if err = hcard.Fetch(link.Href); err != nil {
-        revel.ERROR.Println(err)
-        (*f).Err = err
+        revel.AppLog.Error(err.Error())
+        (*fetch).Err = err
         return
       }
     }
   }
 
   if hcard.Guid == "" || hcard.PublicKey == "" {
-    (*f).Err = errors.New("Something went wrong! Hcard struct is empty.")
+    (*fetch).Err = errors.New("Something went wrong! Hcard struct is empty.")
     return
   }
-  revel.TRACE.Println("Fetched hcard", hcard)
 
-  *f.Person = models.Person{
+  (*fetch).Person = models.Person{
     Guid: hcard.Guid,
-    Author: f.Author,
+    Author: fetch.Author,
     SerializedPublicKey: hcard.PublicKey,
     PodID: pod.ID,
     Profile: models.Profile{
-      Author: f.Author,
+      Author: fetch.Author,
       FullName: hcard.FullName,
       Searchable: hcard.Searchable,
       FirstName: hcard.FirstName,
@@ -110,11 +94,19 @@ func (f *FetchAuthor) Run() {
     Contacts: models.Contacts{},
   }
 
-  err = db.Save(f.Person).Error
+  db, err := models.OpenDatabase()
   if err != nil {
-    revel.ERROR.Println(err)
-    (*f).Err = err
+    revel.AppLog.Error(err.Error())
+    (*fetch).Err = err
     return
   }
-  revel.TRACE.Println(f.Person, f.Person.Profile)
+  defer db.Close()
+
+  if err = db.Create(&fetch.Person).Error; err != nil {
+    revel.AppLog.Error(err.Error())
+    (*fetch).Err = err
+    return
+  }
+
+  revel.AppLog.Debug("Added a new identity", "person", fetch.Person)
 }

@@ -24,6 +24,8 @@ import (
 )
 
 func (receiver *Receiver) Comment(entity federation.EntityComment) {
+  if _, ok := receiver.CheckAuthor(entity.Author); !ok { return }
+
   var comment models.Comment
   db, err := models.OpenDatabase()
   if err != nil {
@@ -33,15 +35,6 @@ func (receiver *Receiver) Comment(entity federation.EntityComment) {
   defer db.Close()
 
   revel.AppLog.Debug("Found a comment entity", "entity", entity)
-
-  // Will try fetching author from remote
-  // if he doesn't exist locally
-  author := FetchAuthor{Author: entity.Author}
-  author.Run()
-  if author.Err != nil {
-    revel.AppLog.Error("Cannot fetch author", "error", author.Err)
-    return
-  }
 
   err = comment.Cast(&entity)
   if err != nil {
