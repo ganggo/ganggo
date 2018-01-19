@@ -31,7 +31,7 @@ type Webfinger struct {
 func (c Webfinger) Webfinger() revel.Result {
   var (
     resource string
-    json federation.WebfingerJson
+    json federation.WebfingerData
   )
 
   c.Params.Bind(&resource, "resource")
@@ -72,39 +72,39 @@ func (c Webfinger) Webfinger() revel.Result {
     return c.RenderJSON(json)
   }
 
-  json = federation.WebfingerJson{
+  json = federation.WebfingerData{
     Subject: "acct:" + username + "@" + address,
     Aliases: []string{proto + address + "/people/" + person.Guid},
-    Links: []federation.WebfingerJsonLink{
-      federation.WebfingerJsonLink {
+    Links: []federation.WebfingerDataLink{
+      federation.WebfingerDataLink {
         Rel: "http://microformats.org/profile/hcard",
         Type: "text/html",
         Href: proto + address + "/hcard/users/" + person.Guid,
       },
-      federation.WebfingerJsonLink {
+      federation.WebfingerDataLink {
         Rel: "http://joindiaspora.com/seed_location",
         Type: "text/html",
         Href: proto + address + "/",
       },
-      federation.WebfingerJsonLink {
+      federation.WebfingerDataLink {
         Rel: "http://webfinger.net/rel/profile-page",
         Type: "text/html",
         Href: proto + address + "/u/" + username,
       },
-      federation.WebfingerJsonLink {
+      federation.WebfingerDataLink {
         Rel: "http://schemas.google.com/g/2010#updates-from",
         Type: "application/atom+xml",
         Href: proto + address + "/public/" + username + ".atom",
       },
-      federation.WebfingerJsonLink {
+      federation.WebfingerDataLink {
         Rel: "salmon",
         Href: proto + address + "/receive/users/" + person.Guid,
       },
-      federation.WebfingerJsonLink {
+      federation.WebfingerDataLink {
         Rel: "http://ostatus.org/schema/1.0/subscribe",
         Template: proto + address + "/people?q={uri}",
       },
-      federation.WebfingerJsonLink {
+      federation.WebfingerDataLink {
         Rel: "http://openid.net/specs/connect/1.0/issuer",
         Href: proto + address,
       },
@@ -115,7 +115,7 @@ func (c Webfinger) Webfinger() revel.Result {
 }
 
 func (c Webfinger) HostMeta() revel.Result {
-  var m federation.WebfingerXml
+  var m federation.WebfingerData
   revel.Config.SetSection("ganggo")
   proto, ok := revel.Config.String("proto")
   if !ok {
@@ -130,10 +130,10 @@ func (c Webfinger) HostMeta() revel.Result {
     return c.RenderXML(m)
   }
 
-  m = federation.WebfingerXml{
+  m = federation.WebfingerData{
     Xmlns: "http://docs.oasis-open.org/ns/xri/xrd-1.0",
-    Links: []federation.WebfingerXmlLink{
-      federation.WebfingerXmlLink{
+    Links: []federation.WebfingerDataLink{
+      federation.WebfingerDataLink{
         Rel: "lrdd",
         Type: "application/xrd+xml",
         Template: proto + address + "/webfinger?q={uri}",
