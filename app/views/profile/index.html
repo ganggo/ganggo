@@ -19,13 +19,15 @@
             <div class="col-10">
               <h2>{{$profile.Author}}</h2>
               {{if .currentUser}}
+              {{if ne .currentUser.Person.ID $profile.PersonID}}
               <h3>{{msg . "profile.groups"}}</h3>
               <ul id="aspectList"></ul>
               <form id="aspect-form">
                 <input type="text" style="display:none" name="personID" value="{{.person.ID}}">
-                <input type="text" name="aspectName" placeholder="Add/Remove from aspects..">
+                <input type="text" name="aspectName" placeholder="{{msg . "profile.add_remove_aspect"}}">
                 <input type="submit" style="display:none">
               </form>
+              {{end}}
               {{end}}
               <h3>{{$profile.FullName}}</h3>
               {{if ne $profile.Bio ""}}

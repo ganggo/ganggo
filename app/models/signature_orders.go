@@ -31,6 +31,16 @@ type SignatureOrder struct {
 
 type SignatureOrders []SignatureOrder
 
+func (o *SignatureOrder) FindByID(id uint) error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Find(o, id).Error
+}
+
 func (o *SignatureOrder) CreateOrFind() error {
   db, err := OpenDatabase()
   if err != nil {
@@ -38,9 +48,7 @@ func (o *SignatureOrder) CreateOrFind() error {
   }
   defer db.Close()
 
-  err = db.FirstOrCreate(o, SignatureOrder{Order: o.Order}).Error
-  if err != nil {
-    return err
-  }
-  return nil
+  return db.FirstOrCreate(
+    o, SignatureOrder{Order: o.Order},
+  ).Error
 }

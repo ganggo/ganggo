@@ -60,7 +60,7 @@ func (f *FetchAuthor) Run() {
 
   // add host to pod list
   pod := models.Pod{Host: host}
-  if err := db.FirstOrCreate(&pod).Error; err != nil {
+  if err := pod.CreateOrFindHost(); err != nil {
     revel.ERROR.Println(err)
     (*f).Err = err
     return

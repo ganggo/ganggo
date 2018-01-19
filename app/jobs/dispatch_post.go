@@ -20,29 +20,49 @@ package jobs
 import (
   "encoding/xml"
   "github.com/revel/revel"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
 )
 
-func (d *Dispatcher) Post(post federation.EntityStatusMessage) {
-  entityXml, err := xml.Marshal(post)
+func (dispatcher *Dispatcher) Reshare(reshare federation.EntityReshare) {
+  entityXml, err := xml.Marshal(reshare)
   if err != nil {
     revel.ERROR.Println(err)
     return
   }
+  post(dispatcher, entityXml)
+}
 
-  if d.AspectID > 0 {
-    sendToAspect(
-      d.AspectID, (*d).User.SerializedPrivateKey,
-      post.Author, entityXml,
+func (dispatcher *Dispatcher) StatusMessage(message federation.EntityStatusMessage) {
+  entityXml, err := xml.Marshal(message)
+  if err != nil {
+    revel.ERROR.Println(err)
+    return
+  }
+  post(dispatcher, entityXml)
+}
+
+func post(dispatcher *Dispatcher, entityXml []byte) {
+  modelPost, ok := dispatcher.Model.(models.Post)
+  if !ok {
+    revel.AppLog.Error(
+      "Submitted model is not a type of models.Post",
+      "model", modelPost,
     )
-  } else {
-    payload, err := federation.MagicEnvelope(
-      (*d).User.SerializedPrivateKey,
-      post.Author, entityXml,
-    ); if err != nil {
-      revel.ERROR.Println(err)
-      return
+    return
+  }
+
+  if modelPost.Exists(modelPost.ID) {
+    if user, ok := modelPost.IsLocal(); ok {
+      dispatcher.Send(modelPost, user, entityXml, 0)
+    } else {
+      // check if it is a reshare
+      if modelPost.RootPersonID > 0 {
+        dispatcher.Send(modelPost, models.User{}, entityXml, 0)
+      } else {
+        revel.AppLog.Error("Cannot relay remote posts", "post", modelPost)
+        return;
+      }
     }
-    sendPublic(payload)
   }
 }

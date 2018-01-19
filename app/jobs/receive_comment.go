@@ -21,72 +21,62 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-func (r *Receiver) Comment(entity federation.EntityComment) {
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+func (receiver *Receiver) Comment(entity federation.EntityComment) {
+  var comment models.Comment
+  db, err := models.OpenDatabase()
   if err != nil {
-    revel.WARN.Println(err)
+    revel.AppLog.Error(err.Error())
     return
   }
   defer db.Close()
 
-  var comment models.Comment
+  revel.AppLog.Debug("Found a comment entity", "entity", entity)
 
-  revel.TRACE.Println("Found a comment entity", entity)
-
-  err = comment.Cast(&entity)
-  if err != nil {
-    revel.ERROR.Println(err)
+  // Will try fetching author from remote
+  // if he doesn't exist locally
+  author := FetchAuthor{Author: entity.Author}
+  author.Run()
+  if author.Err != nil {
+    revel.AppLog.Error("Cannot fetch author", "error", author.Err)
     return
   }
 
-  user, local := comment.ParentIsLocal()
+  err = comment.Cast(&entity)
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+
+  _, _, local := comment.ParentPostUser()
   // if parent post is local we have
   // to relay the comment to all recipiens
   if local {
-    // notify local user about a new comment
-    go comment.TriggerNotification(user)
-
-    revel.TRACE.Println("Parent post is local! Relaying it..")
-
-    sigOrder := models.SignatureOrder{
-      Order: r.Entity.SignatureOrder,
+    order := models.SignatureOrder{
+      Order: receiver.Entity.SignatureOrder,
     }
-    if err = sigOrder.CreateOrFind(); err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-    comment.Signature.SignatureOrderID = sigOrder.ID
-
-    var visibilities models.AspectVisibilities
-    err = db.Where(
-      "shareable_id = ? and shareable_type = ?",
-      comment.ShareableID,
-      comment.ShareableType,
-    ).Find(&visibilities).Error
+    err = order.CreateOrFind()
     if err != nil {
-      revel.ERROR.Println(err)
+      revel.AppLog.Error(err.Error())
       return
     }
-
-    if len(visibilities) == 0 {
-      revel.TRACE.Println(".. relaying it publicly!")
-      go r.RelayPublic(user)
-    } else {
-      revel.TRACE.Println(".. relaying it privately!")
-      go r.RelayPrivate(user, visibilities)
-    }
+    comment.Signature.SignatureOrderID = order.ID
   }
 
   err = db.Create(&comment).Error
   if err != nil {
     revel.ERROR.Println(err)
     return
+  }
+
+  if local {
+    dispatcher := Dispatcher{
+      Model: comment,
+      Message: entity,
+      Relay: true,
+    }
+    // relay the entity
+    go dispatcher.Run()
   }
 }

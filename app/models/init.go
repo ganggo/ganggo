@@ -36,6 +36,16 @@ type BaseController struct {
   *revel.Controller
 }
 
+type Model interface {
+  FetchID() uint
+  FetchGuid() string
+  FetchType() string
+  FetchPersonID() uint
+  FetchText() string
+  HasPublic() bool
+  IsPublic() bool
+}
+
 type Database struct {
   Driver string
   Url string
@@ -45,6 +55,7 @@ const (
   Reshare = "Reshare"
   StatusMessage = "StatusMessage"
   ShareablePost = "Post"
+  ShareableLike = "Like"
   ShareableComment = "Comment"
   ShareableContact = "Contact"
 )
@@ -126,117 +137,71 @@ func BACKEND_ONLY() {
   }
 }
 
-func generateTags(model interface{}) (tags Tags, err error) {
-  var modelID uint
-  var modelType, modelText string
-  var modelPublic bool
-
-  if post, ok := model.(*Post); ok {
-    modelID = post.ID
-    modelType = ShareablePost
-    modelText = post.Text
-    modelPublic = post.Public
-  }
-  if comment, ok := model.(*Comment); ok {
-    modelID = comment.ID
-    modelType = ShareableComment
-    modelText = comment.Text
+func searchAndCreateTags(model Model, db *gorm.DB) error {
+  var tags Tags
+  if !model.HasPublic() {
+    return nil
   }
 
-  if modelID == 0 && modelType == "" {
-    return tags, errors.New("Unknown model type for generateTags")
-  }
-
-  tagNames := helpers.ParseTags(modelText)
+  tagNames := helpers.ParseTags(model.FetchText())
   for _, match := range tagNames {
     tags = append(tags, Tag{
       Name: match[1],
       ShareableTaggings: ShareableTaggings{
         ShareableTagging{
-          Public: modelPublic,
-          ShareableID: modelID,
-          ShareableType: modelType,
+          Public: model.IsPublic(),
+          ShareableID: model.FetchID(),
+          ShareableType: model.FetchType(),
         },
       },
     })
   }
-  return
+  // batch insert doesn't work for gorm, yet
+  // see https://github.com/jinzhu/gorm/issues/255
+  for _, tag := range tags {
+    var cnt int
+    db.Where("name = ?", tag.Name).Find(&tag).Count(&cnt)
+    // if tag already exists skip it
+    // and create taggings only
+    if cnt == 0 {
+      err := db.Create(&tag).Error
+      if err != nil {
+        return err
+      }
+    } else {
+      for _, shareable := range tag.ShareableTaggings {
+        shareable.TagID = tag.ID
+        err := db.Create(&shareable).Error
+        if err != nil {
+          return err
+        }
+      }
+    }
+  }
+  return nil
 }
 
-func generateNotifications(model interface{}) (notify Notifications, err error) {
-  var personID uint
-  var guid, text, dataType string
-  if post, ok := model.(*Post); ok {
-    guid = post.Guid
-    personID = post.PersonID
-    text = post.Text
-    dataType = ShareablePost
-  }
-  if comment, ok := model.(*Comment); ok {
-    guid = comment.Guid
-    personID = comment.PersonID
-    text = comment.Text
-    dataType = ShareableComment
-  }
-
-  if personID == 0 && dataType == "" {
-    return notify, errors.New("Unknown data type for generateNotifications")
-  }
-
-  mentions := helpers.ParseMentions(text)
+func checkForMentionsInText(model Model) error {
+  mentions := helpers.ParseMentions(model.FetchText())
   if len(mentions) > 0 {
     revel.Config.SetSection("ganggo")
     localhost, found := revel.Config.String("address")
     if !found {
-      return notify, errors.New("No server address configured")
+      return errors.New("No server address configured")
     }
 
     for _, mention := range mentions {
       if mention[3] == localhost {
         var user User
-        err = user.FindByUsername(mention[2])
+        err := user.FindByUsername(mention[2])
         if err != nil {
-          return notify, err
+          return err
         }
-
-        notify = append(notify, Notification{
-          ShareableType: dataType,
-          ShareableGuid: guid,
-          UserID: user.ID,
-          PersonID: personID,
-          Unread: true,
-        })
+        return user.Notify(model)
       }
     }
   }
-  return
-}
-
-func parentIsLocal(postID uint) (user User, found bool) {
-  db, err := OpenDatabase()
-  if err != nil {
-    revel.WARN.Println(err)
-    return
-  }
-  defer db.Close()
-
-  var post Post
-  // XXX here we assume every comment is related to post
-  // that could be a problem in respect of private messages
-  err = db.First(&post, postID).Error
-  if err != nil {
-    return
-  }
-
-  if post.Person.UserID > 0 {
-    err = db.First(&user, post.Person.UserID).Error
-    if err != nil {
-      return
-    }
-    found = true
-    return
-  }
-  return
+  return nil
 }
 
 // This is required since gorm.ModifyColumn only supports postgres engine

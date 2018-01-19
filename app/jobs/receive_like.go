@@ -21,71 +21,63 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
-  _ "github.com/jinzhu/gorm/dialects/mssql"
-  _ "github.com/jinzhu/gorm/dialects/mysql"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-func (r *Receiver) Like(entity federation.EntityLike) {
+func (receiver *Receiver) Like(entity federation.EntityLike) {
   var like models.Like
-  db, err := gorm.Open(models.DB.Driver, models.DB.Url)
+  db, err := models.OpenDatabase()
   if err != nil {
-    revel.WARN.Println(err)
+    revel.AppLog.Error(err.Error())
     return
   }
   defer db.Close()
 
-  revel.TRACE.Println("Found a like entity", entity)
+  revel.AppLog.Debug("Found a like entity", "entity", entity)
 
-  err = like.Cast(&entity)
-  if err != nil {
-    revel.WARN.Println(err)
+  // Will try fetching author from remote
+  // if he doesn't exist locally
+  author := FetchAuthor{Author: entity.Author}
+  author.Run()
+  if author.Err != nil {
+    revel.AppLog.Error("Cannot fetch author", "error", author.Err)
     return
   }
 
-  user, local := like.ParentIsLocal()
+  err = like.Cast(&entity)
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+
+  _, _, local := like.ParentPostUser()
   // if parent post is local we have
   // to relay the entity to all recipiens
   if local {
-    // notify local user about a new comment
-    go like.TriggerNotification(user)
-
-    revel.TRACE.Println("Parent is local! Relaying it..")
-
-    sigOrder := models.SignatureOrder{
-      Order: r.Entity.SignatureOrder,
+    // store order for later use
+    order := models.SignatureOrder{
+      Order: receiver.Entity.SignatureOrder,
     }
-    if err = sigOrder.CreateOrFind(); err != nil {
-      revel.ERROR.Println(err)
-      return
-    }
-    like.Signature.SignatureOrderID = sigOrder.ID
-
-    var visibilities models.AspectVisibilities
-    err = db.Where(
-      "shareable_id = ? and shareable_type = ?",
-      like.ShareableID,
-      like.ShareableType,
-    ).Find(&visibilities).Error
+    err = order.CreateOrFind()
     if err != nil {
-      revel.ERROR.Println(err)
+      revel.AppLog.Error(err.Error())
       return
     }
-
-    if len(visibilities) == 0 {
-      revel.TRACE.Println(".. relaying it publicly!")
-      go r.RelayPublic(user)
-    } else {
-      revel.TRACE.Println(".. relaying it privately!")
-      go r.RelayPrivate(user, visibilities)
-    }
+    like.Signature.SignatureOrderID = order.ID
   }
 
   err = db.Create(&like).Error
   if err != nil {
-    revel.WARN.Println(err)
+    revel.AppLog.Error(err.Error())
     return
+  }
+
+  if local {
+    dispatcher := Dispatcher{
+      Model: like,
+      Message: entity,
+      Relay: true,
+    }
+    // relay the entity
+    go dispatcher.Run()
   }
 }

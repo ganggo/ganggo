@@ -18,13 +18,19 @@ package jobs
 //
 
 import (
-  "strings"
+  "encoding/xml"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
+  "strings"
 )
 
-func (r *Receiver) Retraction(retraction federation.EntityRetraction) {
+func (dispatcher *Dispatcher) Retraction(retraction federation.EntityRetraction) {
+  var (
+    parentPost models.Post
+    parentUser models.User
+    ok bool
+  )
   db, err := models.OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
@@ -32,23 +38,16 @@ func (r *Receiver) Retraction(retraction federation.EntityRetraction) {
   }
   defer db.Close()
 
-  // XXX validate signatures D:
-
-  // NOTE relay to other hosts if we own this entity
-  // should be done before we start deleting db records
-  dispatcher := Dispatcher{Message: retraction}
-  dispatcher.Run()
-
+  // NOTE I can only request retraction if I am the owner
   if strings.EqualFold(retraction.TargetType, models.ShareablePost) {
-    var post models.Post
-    err = post.FindByGuid(retraction.TargetGuid)
+    err = parentPost.FindByGuid(retraction.TargetGuid)
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
     }
-    err = db.Delete(&post).Error
+    err = parentUser.FindByID(parentPost.Person.UserID)
     if err != nil {
-      revel.AppLog.Error(err.Error())
+      revel.AppLog.Debug("We can only retract if we own the entity", err.Error())
       return
     }
   } else if strings.EqualFold(retraction.TargetType, models.ShareableComment) {
@@ -58,25 +57,30 @@ func (r *Receiver) Retraction(retraction federation.EntityRetraction) {
       revel.AppLog.Error(err.Error())
       return
     }
-    err = db.Delete(&comment).Error
-    if err != nil {
-      revel.AppLog.Error(err.Error())
+    if parentPost, parentUser, ok = comment.ParentPostUser(); !ok {
+      revel.AppLog.Debug("We can only retract if we own the entity")
       return
     }
   } else if strings.EqualFold(retraction.TargetType, models.ShareableLike) {
     var like models.Like
-    err = like.FindByGuid(retraction.TargetGuid)
+    err := like.FindByGuid(retraction.TargetGuid)
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
     }
-    err = db.Delete(&like).Error
-    if err != nil {
-      revel.AppLog.Error(err.Error())
+    if parentPost, parentUser, ok = like.ParentPostUser(); !ok {
+      revel.AppLog.Debug("We can only retract if we own the entity")
       return
     }
   } else {
     revel.AppLog.Error("Unkown TargetType in Dispatcher", "retraction", retraction)
     return
   }
+
+  entityXml, err := xml.Marshal(retraction)
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  dispatcher.Send(parentPost, parentUser, entityXml, 0)
 }

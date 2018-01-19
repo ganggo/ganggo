@@ -5,8 +5,10 @@ var API = new RestClient("/api/v0", {
 API.res({
   posts: [
     'comments',
-    'likes'
+    'likes',
+    'reshare'
   ],
+  comments: [],
   notifications: [],
   people: [
     'profile',

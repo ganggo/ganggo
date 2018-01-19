@@ -20,6 +20,7 @@ package models
 import (
   "time"
   "github.com/jinzhu/gorm"
+  "github.com/revel/revel"
 )
 
 type Notification struct {
@@ -38,6 +39,7 @@ type Notification struct {
   Person Person `json:"-"`
   User User `json:"-"`
   Comment Comment `json:"-"`
+  Like Like `json:"-"`
   Post Post `json:"-"`
 }
 
@@ -46,11 +48,13 @@ type Notifications []Notification
 func (n *Notification) AfterFind(db *gorm.DB) error {
   err := db.Model(n).Related(&n.User).Error
   if err != nil {
+    revel.AppLog.Error(err.Error())
     return err
   }
 
   err = db.Model(n).Related(&n.Person).Error
   if err != nil {
+    revel.AppLog.Error(err.Error())
     return err
   }
 
@@ -58,6 +62,7 @@ func (n *Notification) AfterFind(db *gorm.DB) error {
     var post Post
     err = post.FindByGuid(n.ShareableGuid)
     if err != nil {
+      revel.AppLog.Error(err.Error())
       return err
     }
     (*n).Post = post
@@ -65,9 +70,18 @@ func (n *Notification) AfterFind(db *gorm.DB) error {
     var comment Comment
     err = comment.FindByGuid(n.ShareableGuid)
     if err != nil {
+      revel.AppLog.Error(err.Error())
       return err
     }
     (*n).Comment = comment
+  } else if n.ShareableType == ShareableLike {
+    var like Like
+    err = like.FindByGuid(n.ShareableGuid)
+    if err != nil {
+      revel.AppLog.Error(err.Error())
+      return err
+    }
+    (*n).Like = like
   }
   return nil
 }
@@ -110,8 +124,13 @@ func (n *Notification) Update() error {
   }
   defer db.Close()
 
-  return db.Model(n).Where(
-    "user_id = ? and person_id = ?",
+  if n.ID > 0 {
+    return db.Model(n).Update(
+      "unread", n.Unread,
+    ).Error
+  }
+
+  return db.Model(n).Where("user_id = ? and person_id = ?",
     n.UserID, n.PersonID,
   ).Update("unread", n.Unread).Error
 }

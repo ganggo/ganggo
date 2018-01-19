@@ -2,6 +2,29 @@
 {{set . "align" "right"}}
 {{end}}
 <div class="row pt-4">
+  {{if IsReshare .post.Type}}
+  <div class="col-2"></div>
+  <div class="col-10">
+    <div class="card text-center">
+      <div class="card-header">
+        <small class="text-muted">
+          <span class="float-left">
+            <a href="/profiles/{{.post.Person.Guid}}">
+              <i class="fa fa-user-o"></i> {{.post.Person.Profile.Author}}
+            </a>
+            {{$rootGuid := PtrToValue .post.RootGuid}}
+            {{msg . "post.someone_reshared_a_post" $rootGuid}}
+          </span>
+          <span class="float-right">
+            {{if eq .currentUser.Person.ID .post.Person.ID}}
+            <i data-postID="{{.post.ID}}" class="pl-2 fa fa-times" title="{{msg . "post.delete_post_title"}}"></i>
+            {{end}}
+          </span>
+        </small>
+      </div>
+    </div>
+  </div>
+  {{else}}
   {{if eq .align "left"}}
   <div class="col-2">
     <div class="card text-center">
@@ -24,6 +47,9 @@
             <a href="/posts/{{.post.Guid}}">
               <i class="fa fa-clock-o"></i> {{timeago .post.CreatedAt .}}
             </a>
+            {{if eq .currentUser.Person.ID .post.Person.ID}}
+            <i data-id="{{.post.ID}}" class="pl-2 fa fa-times" title="{{msg . "post.delete_post_title"}}"></i>
+            {{end}}
           </span>
         </small>
       </div>
@@ -31,17 +57,26 @@
         <div class="card-body">
           <p class="card-text" data-markdown>{{.post.Text}}</p>
           <p class="card-text">
-            <i class="fa fa-{{if .post.Public}}un{{end}}lock float-left" title="
-            {{- if .post.Public}}
-              {{- msg . "post.public"}}
-            {{- else}}
-              {{- msg . "post.limited"}}
-            {{- end}}"></i>
-            <a href="/posts/{{.post.Guid}}">
-              <i class="fa fa-comments-o float-right">{{len .post.Comments}}</i>
-            </a>
-            <i data-id="{{.post.ID}}" class="fa fa-thumbs-o-down float-right">0</i>
-            <i data-id="{{.post.ID}}" class="fa fa-thumbs-o-up float-right">0</i>
+            <p class="p-0 m-0 float-left">
+              <i class="fa fa-{{if .post.Public}}un{{end}}lock" title="
+              {{- if .post.Public}}
+                {{- msg . "post.public"}}
+              {{- else}}
+                {{- msg . "post.limited"}}
+              {{- end}}"></i>
+            </p>
+            {{if .currentUser}}
+            <p class="p-0 m-0 float-right">
+              {{if ne .currentUser.Person.ID .post.Person.ID}}
+              <i data-id="{{.post.ID}}" class="pr-1 fa fa-retweet" title="{{msg . "post.reshare_post_title"}}"></i>
+              {{end}}
+              <a href="/posts/{{.post.Guid}}">
+                <i class="pr-1 fa fa-comments-o">{{len .post.Comments}}</i>
+              </a>
+              <i data-id="{{.post.ID}}" class="pr-1 fa fa-thumbs-o-down">0</i>
+              <i data-id="{{.post.ID}}" class="fa fa-thumbs-o-up">0</i>
+            </p>
+            {{end}}
           </p>
         </div>
       </div>
@@ -55,5 +90,6 @@
       </a>
     </div>
   </div>
+  {{end}}
   {{end}}
 </div>

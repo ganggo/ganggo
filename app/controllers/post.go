@@ -36,10 +36,11 @@ func (p Post) Index(guid string) revel.Result {
 
   err = post.FindByGuidAndUser(guid, user)
   if err != nil {
-    return p.NotFound(
-      revel.MessageFunc(p.Request.Locale, "errors.controller.post_not_found"),
-    )
+    return p.NotFound(p.Message("errors.controller.post_not_found"))
   }
 
+  if post.Type == models.Reshare {
+    return p.Redirect(Post.Index, post.RootGuid)
+  }
   return p.Render(post)
 }

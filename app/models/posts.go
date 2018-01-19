@@ -36,19 +36,36 @@ type Post struct {
   Guid string `gorm:"size:191"`
   Type string `gorm:"size:40"`
   Text string `gorm:"type:text"`
-  ProviderName string
-  RootGuid string
-  RootHandle string
+  ProviderName string `gorm:"size:191"`
+  RootGuid *string `gorm:"size:187"`
+  RootPersonID uint
   LikesCount int `gorm:"size:4"`
   CommentsCount int `gorm:"size:4"`
   ResharesCount int `gorm:"size:4"`
-  InteractedAt string
+  InteractedAt string `gorm:"size:191"`
 
-  Person Person `gorm:"ForeignKey:PersonID";json:",omitempty"`
-  Comments Comments `gorm:"ForeignKey:ShareableID";json:",omitempty"`
+  Person Person `gorm:"ForeignKey:PersonID" json:",omitempty"`
+  Comments Comments `gorm:"ForeignKey:ShareableID" json:",omitempty"`
 }
 
 type Posts []Post
+
+// Model Interface Type
+//   FetchID() uint
+//   FetchGuid() string
+//   FetchType() string
+//   FetchPersonID() uint
+//   FetchText() string
+//   HasPublic() bool
+//   IsPublic() bool
+func (p Post) FetchID() uint { return p.ID }
+func (p Post) FetchGuid() string { return p.Guid }
+func (Post) FetchType() string { return ShareablePost }
+func (p Post) FetchPersonID() uint { return p.PersonID }
+func (p Post) FetchText() string { return p.Text }
+func (Post) HasPublic() bool { return true }
+func (p Post) IsPublic() bool { return p.Public }
+// Model Interface Type
 
 func (p Posts) Len() int { return len(p) }
 func (p Posts) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
@@ -69,45 +86,58 @@ func (post *Post) AfterFind(db *gorm.DB) error {
   return db.Preload("Comments").First(post).Error
 }
 
-func (p *Post) AfterCreate(db *gorm.DB) error {
-  // batch insert doesn't work for gorm, yet
-  // see https://github.com/jinzhu/gorm/issues/255
-  tags, err := generateTags(p)
-  if err == nil && len(tags) > 0 {
-    for _, tag := range tags {
-      var cnt int
-      db.Where("name = ?", tag.Name).Find(&tag).Count(&cnt)
-      // if tag already exists skip it
-      // and create taggings only
-      if cnt == 0 {
-        err = db.Create(&tag).Error
-        if err != nil {
-          return err
-        }
-      } else {
-        for _, shareable := range tag.ShareableTaggings {
-          shareable.TagID = tag.ID
-          err = db.Create(&shareable).Error
-          if err != nil {
-            return err
-          }
-        }
-      }
-    }
-  } else if err != nil {
+func (p *Post) AfterSave(db *gorm.DB) error {
+  err := searchAndCreateTags(*p, db)
+  if err != nil {
     return err
   }
+  return checkForMentionsInText(*p)
+}
 
-  notify, err := generateNotifications(p)
-  if err == nil && len(notify) > 0 {
-    for _, n := range notify {
-      err = db.Create(&n).Error
-      if err != nil {
-        return err
-      }
-    }
+func (p *Post) AfterDelete(db *gorm.DB) (err error) {
+  // likes
+  err = db.Where("shareable_id = ? and shareable_type = ?",
+    p.ID, ShareablePost).Delete(Like{}).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
   }
-  return err
+  // comments
+  err = db.Where("shareable_id = ? and shareable_type = ?",
+    p.ID, ShareablePost).Delete(Comment{}).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  // aspect_visibilities
+  err = db.Where("shareable_id = ? and shareable_type = ?",
+    p.ID, ShareablePost).Delete(AspectVisibility{}).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  // shareables
+  err = db.Where("shareable_id = ? and shareable_type = ?",
+    p.ID, ShareablePost).Delete(Shareable{}).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  // shareable_taggings
+  err = db.Where("shareable_id = ? and shareable_type = ?",
+    p.ID, ShareablePost).Delete(ShareableTagging{}).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  // notifications
+  err = db.Where("shareable_guid = ? and shareable_type = ?",
+    p.Guid, ShareablePost).Delete(Notification{}).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  return
 }
 
 func (p *Post) Count() (count int, err error) {
@@ -123,14 +153,14 @@ func (p *Post) Count() (count int, err error) {
   return
 }
 
-func (p *Post) Create(entity *federation.EntityStatusMessage, reshare bool) (err error) {
+func (p *Post) Create(entity interface{}) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return
   }
   defer db.Close()
 
-  err = p.Cast(entity, reshare)
+  err = p.Cast(entity)
   if err != nil {
     return
   }
@@ -138,7 +168,21 @@ func (p *Post) Create(entity *federation.EntityStatusMessage, reshare bool) (err
   return db.Create(p).Error
 }
 
-func (p *Post) Cast(entity *federation.EntityStatusMessage, reshare bool) (err error) {
+func (p *Post) Delete() (err error) {
+  db, err := OpenDatabase()
+  if err != nil {
+    return
+  }
+  defer db.Close()
+
+  if p.ID == 0 {
+    // see http://jinzhu.me/gorm/crud.html#delete
+    panic("Setting ID to zero will delete all post records")
+  }
+  return db.Delete(p).Error
+}
+
+func (p *Post) Cast(entity interface{}) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return
@@ -146,29 +190,57 @@ func (p *Post) Cast(entity *federation.EntityStatusMessage, reshare bool) (err e
   defer db.Close()
 
   var person Person
-  err = db.Where("author = ?", entity.Author).First(&person).Error
-  if err != nil {
-    return
-  }
+  if statusMessage, ok := entity.(*federation.EntityStatusMessage); ok {
+    err = person.FindByAuthor(statusMessage.Author)
+    if err != nil {
+      return
+    }
 
-  messageType := StatusMessage
-  if reshare {
-    messageType = Reshare
+    (*p).Public = statusMessage.Public
+    (*p).Guid = statusMessage.Guid
+    (*p).Type = StatusMessage
+    (*p).Text = statusMessage.Text
+    (*p).ProviderName = statusMessage.ProviderName
+  } else if reshare, ok := entity.(*federation.EntityReshare); ok {
+    err = person.FindByAuthor(reshare.Author)
+    if err != nil {
+      return
+    }
+
+    var rootPerson Person
+    err = rootPerson.FindByAuthor(reshare.RootAuthor)
+    if err != nil {
+      return
+    }
+
+    (*p).Public = true
+    (*p).Guid = reshare.Guid
+    (*p).Type = Reshare
+    (*p).RootPersonID = rootPerson.ID
+    (*p).RootGuid = &reshare.RootGuid
+  } else {
+    panic("Post.Cast requires type EntityStatusMessage or EntityReshare!")
   }
   (*p).PersonID = person.ID
-  (*p).Public = entity.Public
-  (*p).Guid = entity.Guid
-  (*p).RootGuid = entity.RootGuid
-  (*p).RootHandle = entity.RootHandle
-  (*p).Type = messageType
-  (*p).Text = entity.Text
-  (*p).ProviderName = entity.ProviderName
-
   return nil
 }
 
-func (p *Post) IsLocal() (User, bool) {
-  return parentIsLocal(p.ID)
+func (p *Post) IsLocal() (user User, ok bool) {
+  db, err := OpenDatabase()
+  if err != nil {
+    revel.WARN.Println(err)
+    return user, false
+  }
+  defer db.Close()
+
+  if p.Person.UserID > 0 {
+    err = db.First(&user, p.Person.UserID).Error
+    if err != nil {
+      return user, false
+    }
+    return user, true
+  }
+  return user, false
 }
 
 func (posts *Posts) FindAllPublic(offset int) (err error) {
@@ -179,7 +251,7 @@ func (posts *Posts) FindAllPublic(offset int) (err error) {
   defer db.Close()
 
   query := db.Offset(offset).Limit(10).
-    Where(`public = ?`, true).Order(`updated_at desc`)
+    Where(`public = ?`, true).Order(`created_at desc`)
 
   return query.Find(posts).Error
 }
@@ -198,7 +270,7 @@ func (posts *Posts) FindAll(userID uint, offset int) (err error) {
       and shareables.shareable_type = ?
       and shareables.user_id = ?`,
         ShareablePost, userID,
-    ).Order("posts.updated_at desc").Find(posts).Error
+    ).Order("posts.created_at desc").Find(posts).Error
 }
 
 func (posts *Posts) FindAllPrivate(userID uint, offset int) (err error) {
@@ -213,7 +285,7 @@ func (posts *Posts) FindAllPrivate(userID uint, offset int) (err error) {
     Where(`posts.id = shareables.shareable_id
       and shareables.shareable_type = ?
       and shareables.user_id = ?`, ShareablePost, userID,
-    ).Order(`posts.updated_at desc`).Find(posts).Error
+    ).Order(`posts.created_at desc`).Find(posts).Error
 }
 
 func (posts *Posts) FindAllByUserAndPersonID(user User, personID uint, offset int) (err error) {
@@ -233,7 +305,7 @@ func (posts *Posts) FindAllByUserAndPersonID(user User, personID uint, offset in
       and shareables.user_id = ?
       and person_id = ?`, ShareablePost, user.ID, personID)
   }
-  return query.Order(`posts.updated_at desc`).Find(posts).Error
+  return query.Order(`posts.created_at desc`).Find(posts).Error
 }
 
 func (posts *Posts) FindAllByUserAndText(user User, text string, offset int) (err error) {
@@ -254,7 +326,7 @@ func (posts *Posts) FindAllByUserAndText(user User, text string, offset int) (er
       ShareablePost, user.ID,
     )
   }
-  return query.Order(`posts.updated_at desc`).Find(posts).Error
+  return query.Order(`posts.created_at desc`).Find(posts).Error
 }
 
 func (post *Post) Exists(id uint) bool {

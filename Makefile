@@ -83,6 +83,9 @@ endif
 	cp $(srcdir)/conf/app.conf.example $(srcdir)/conf/app.conf
 	revel package $(package)
 
+test:
+	go tool vet -v -all app/
+
 u2d-wrapper:
 ifndef gobin
 	$(error "go-bindata $(install_deps_info)")

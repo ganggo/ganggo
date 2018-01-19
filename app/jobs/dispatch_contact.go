@@ -25,7 +25,7 @@ import (
   federation "gopkg.in/ganggo/federation.v0"
 )
 
-func (d *Dispatcher) Contact(contact federation.EntityContact) {
+func (dispatcher *Dispatcher) Contact(contact federation.EntityContact) {
   _, host, err := helpers.ParseAuthor(contact.Recipient)
   if err != nil {
     revel.AppLog.Error(err.Error())
@@ -39,6 +39,16 @@ func (d *Dispatcher) Contact(contact federation.EntityContact) {
     return
   }
 
+  var aspects models.Aspects
+  err = aspects.FindByUserPersonID(dispatcher.User.ID, person.ID)
+  if err == nil && len(aspects) > 0 {
+    revel.AppLog.Debug(
+      "Dispatcher.Contact person still is in an Aspect! Aborting..",
+      "personID", person.ID, "userID", dispatcher.User.ID,
+    )
+    return
+  }
+
   entityXml, err := xml.Marshal(contact)
   if err != nil {
     revel.AppLog.Error(err.Error())
@@ -46,13 +56,12 @@ func (d *Dispatcher) Contact(contact federation.EntityContact) {
   }
 
   payload, err := federation.EncryptedMagicEnvelope(
-    d.User.SerializedPrivateKey,
+    dispatcher.User.SerializedPrivateKey,
     person.SerializedPublicKey,
-    contact.Author, entityXml,
-  ); if err != nil {
+    contact.Author, entityXml)
+  if err != nil {
     revel.AppLog.Error(err.Error())
     return
   }
-
   send(nil, host, person.Guid, payload)
 }
