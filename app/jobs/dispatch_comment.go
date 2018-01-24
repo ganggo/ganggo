@@ -35,10 +35,12 @@ func (dispatcher *Dispatcher) Comment(comment federation.EntityComment) {
   }
 
   if !dispatcher.Relay {
-    err := comment.AppendSignature([]byte(
-        dispatcher.User.SerializedPrivateKey,
-      ), comment.SignatureOrder(),
+    privKey, err := federation.ParseRSAPrivateKey(
+      []byte(dispatcher.User.SerializedPrivateKey),
     )
+    var signature federation.Signature
+    err = signature.New(comment).Sign(privKey,
+      &(comment.AuthorSignature))
     if err != nil {
       revel.AppLog.Error(err.Error())
       return

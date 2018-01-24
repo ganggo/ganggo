@@ -41,7 +41,7 @@ func (fetch *FetchAuthor) Run() {
   }
 
   if err = person.FindByAuthor(fetch.Author); err == nil {
-    // skip person already known
+    fetch.Person = person
     return
   }
 

@@ -24,8 +24,6 @@ import (
 )
 
 func (receiver *Receiver) Like(entity federation.EntityLike) {
-  if _, ok := receiver.CheckAuthor(entity.Author); !ok { return }
-
   var like models.Like
   db, err := models.OpenDatabase()
   if err != nil {

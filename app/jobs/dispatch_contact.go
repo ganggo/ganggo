@@ -55,10 +55,22 @@ func (dispatcher *Dispatcher) Contact(contact federation.EntityContact) {
     return
   }
 
+  privKey, err := federation.ParseRSAPrivateKey(
+    []byte(dispatcher.User.SerializedPrivateKey))
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+
+  pubKey, err := federation.ParseRSAPublicKey(
+    []byte(person.SerializedPublicKey))
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+
   payload, err := federation.EncryptedMagicEnvelope(
-    dispatcher.User.SerializedPrivateKey,
-    person.SerializedPublicKey,
-    contact.Author, entityXml)
+    privKey, pubKey, contact.Author, entityXml)
   if err != nil {
     revel.AppLog.Error(err.Error())
     return

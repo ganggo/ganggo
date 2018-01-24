@@ -24,8 +24,6 @@ import (
 )
 
 func (receiver *Receiver) Comment(entity federation.EntityComment) {
-  if _, ok := receiver.CheckAuthor(entity.Author); !ok { return }
-
   var comment models.Comment
   db, err := models.OpenDatabase()
   if err != nil {

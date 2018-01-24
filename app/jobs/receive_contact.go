@@ -24,8 +24,6 @@ import (
 )
 
 func (receiver *Receiver) Contact(entity federation.EntityContact) {
-  if _, ok := receiver.CheckAuthor(entity.Author); !ok { return }
-
   db, err := models.OpenDatabase()
   if err != nil {
     revel.AppLog.Warn(err.Error())

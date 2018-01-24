@@ -18,6 +18,7 @@ package jobs
 //
 
 import (
+  "crypto/rsa"
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
@@ -66,14 +67,24 @@ func (dispatcher Dispatcher) Send(parentPost models.Post, parentUser models.User
     var order models.SignatureOrder
     err := order.FindByID(orderID)
     if err == nil {
-      entityXml = federation.SortByEntityOrder(order.Order, entityXml)
+      entityXml, err = federation.SortByEntityOrder(order.Order, entityXml)
+      if err != nil {
+        revel.AppLog.Error(err.Error())
+        return
+      }
+    }
+
+    privKey, err := federation.ParseRSAPrivateKey(
+      []byte(parentUser.SerializedPrivateKey))
+    if err != nil {
+      revel.AppLog.Error(err.Error())
+      return
     }
 
     // send to public or aspect
     if parentPost.Public {
       payload, err := federation.MagicEnvelope(
-        parentUser.SerializedPrivateKey,
-        parentUser.Person.Author, entityXml,
+        privKey, parentUser.Person.Author, entityXml,
       )
       if err != nil {
         revel.AppLog.Error(err.Error())
@@ -87,17 +98,23 @@ func (dispatcher Dispatcher) Send(parentPost models.Post, parentUser models.User
         revel.AppLog.Error(err.Error())
         return
       }
-      sendToAspect(visibility.AspectID,
-        parentUser.SerializedPrivateKey,
+      sendToAspect(visibility.AspectID, privKey,
         parentUser.Person.Author, entityXml)
     }
   } else if parentPost.ID > 0 {
     revel.AppLog.Debug("Dispatcher send to public or person")
+
+    privKey, err := federation.ParseRSAPrivateKey(
+      []byte(dispatcher.User.SerializedPrivateKey))
+    if err != nil {
+      revel.AppLog.Error(err.Error())
+      return
+    }
+
     // send to public or person
     if parentPost.Public {
       payload, err := federation.MagicEnvelope(
-        dispatcher.User.SerializedPrivateKey,
-        dispatcher.User.Person.Author, entityXml,
+        privKey, dispatcher.User.Person.Author, entityXml,
       )
       if err != nil {
         revel.AppLog.Error(err.Error())
@@ -105,10 +122,15 @@ func (dispatcher Dispatcher) Send(parentPost models.Post, parentUser models.User
       }
       sendPublic(payload)
     } else {
+      pubKey, err := federation.ParseRSAPublicKey(
+        []byte(parentPost.Person.SerializedPublicKey))
+      if err != nil {
+        revel.AppLog.Error(err.Error())
+        return
+      }
+
       payload, err := federation.EncryptedMagicEnvelope(
-        dispatcher.User.SerializedPrivateKey,
-        parentPost.Person.SerializedPublicKey,
-        dispatcher.User.Person.Author, entityXml,
+        privKey, pubKey, dispatcher.User.Person.Author, entityXml,
       )
       if err != nil {
         revel.AppLog.Error(err.Error())
@@ -144,11 +166,11 @@ func sendPublic(payload []byte) {
   }
 }
 
-func sendToAspect(aspectID uint, priv, handle string, xml []byte) {
+func sendToAspect(aspectID uint, privKey *rsa.PrivateKey, handle string, xml []byte) {
   var aspect models.Aspect
   err := aspect.FindByID(aspectID)
   if err != nil {
-    revel.ERROR.Println("aspectID", aspectID, err)
+    revel.AppLog.Error(err.Error())
     return
   }
 
@@ -157,23 +179,30 @@ func sendToAspect(aspectID uint, priv, handle string, xml []byte) {
     var person models.Person
     err = person.FindByID(member.PersonID)
     if err != nil {
-      revel.ERROR.Println(err)
+      revel.AppLog.Error(err.Error())
       continue
     }
 
+    pubKey, err := federation.ParseRSAPublicKey(
+      []byte(person.SerializedPublicKey))
+    if err != nil {
+      revel.AppLog.Error(err.Error())
+      return
+    }
+
     payload, err := federation.EncryptedMagicEnvelope(
-      priv, person.SerializedPublicKey, handle, xml,
-    ); if err != nil {
-      revel.ERROR.Println(err)
+      privKey, pubKey, handle, xml)
+    if err != nil {
+      revel.AppLog.Error(err.Error())
       continue
     }
 
     _, host, err := helpers.ParseAuthor(person.Author)
     if err != nil {
-      revel.ERROR.Println(err)
+      revel.AppLog.Error(err.Error())
       continue
     }
-    revel.TRACE.Println("Private request add", person.Guid, "on", host)
+    revel.AppLog.Debug("Private request", "guid", person.Guid, "host", host)
 
     wg.Add(1)
     go send(&wg, host, person.Guid, payload)

@@ -21,11 +21,10 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
+  "time"
 )
 
 func (receiver *Receiver) Reshare(entity federation.EntityReshare) {
-  if _, ok := receiver.CheckAuthor(entity.Author); !ok { return }
-
   db, err := models.OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
@@ -48,12 +47,16 @@ func (receiver *Receiver) Reshare(entity federation.EntityReshare) {
   }
 
   var post models.Post
+  createdAt, err := entity.CreatedAt.Time()
+  if err != nil {
+    createdAt = time.Now()
+  }
   if err = post.FindByGuid(entity.RootGuid); err == nil {
     reshare := models.Post{
       Type: models.Reshare,
       Guid: entity.Guid,
       PersonID: fetch.Person.ID,
-      CreatedAt: entity.CreatedAt.Time,
+      CreatedAt: createdAt,
       RootPersonID: fetchRoot.Person.ID,
       RootGuid: &entity.RootGuid,
       Public: true,
@@ -67,8 +70,6 @@ func (receiver *Receiver) Reshare(entity federation.EntityReshare) {
 }
 
 func (receiver *Receiver) StatusMessage(entity federation.EntityStatusMessage) {
-  if _, ok := receiver.CheckAuthor(entity.Author); !ok { return }
-
   var (
     post models.Post
     user models.Person

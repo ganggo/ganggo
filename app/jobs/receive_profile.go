@@ -26,8 +26,6 @@ import (
 )
 
 func (receiver *Receiver) Profile(profile federation.EntityProfile) {
-  if _, ok := receiver.CheckAuthor(profile.Author); !ok { return }
-
   var profileModel models.Profile
   err := profileModel.FindByAuthor(profile.Author)
   if err != nil {

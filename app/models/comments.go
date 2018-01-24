@@ -195,7 +195,11 @@ func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
     return
   }
 
-  (*c).CreatedAt = entity.CreatedAt.Time
+  createdAt, err := entity.CreatedAt.Time()
+  if err != nil {
+    createdAt = time.Now()
+  }
+  (*c).CreatedAt = createdAt
   (*c).Text = entity.Text
   (*c).ShareableID = post.ID
   (*c).PersonID = person.ID
