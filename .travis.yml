@@ -1,4 +1,8 @@
+sudo: required
 language: go
+services:
+- docker
+- postgresql
 go:
 - 1.9.x
 branches:
@@ -8,7 +12,7 @@ env:
   global:
   - UPDATE_CHANNEL=alpha
   - PATH=$PATH:$GOPATH/bin
-  - VERSION=$TRAVIS_BRANCH
+  - VERSION=${TRAVIS_BRANCH/-*/}
   matrix:
   - BUILD_GOOS=linux BUILD_GOARCH=amd64
   - BUILD_GOOS=windows BUILD_GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1
@@ -26,17 +30,22 @@ compiler:
 addons:
   apt:
     packages:
+    - curl
     - binutils-mingw-w64
     - gcc-mingw-w64
 #   - gcc-arm-linux-gnueabi
 #   - binutils-arm-linux-gnueabi
+before_install:
+- psql -c 'create database ganggo;' -U postgres
 install:
 - make install
+- rsync -I -az ${TRAVIS_BUILD_DIR}/ $GOPATH/src/gopkg.in/ganggo/ganggo.$VERSION
+- bash tests/scripts/configure_diaspora.sh
 script:
 # if we define GOARCH, GOOS and GOARM directly
 # it will be resetted after calling install/script function
 # to avoid it we wrap the values in the BUILD-variables
-- GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS GOARM=$BUILD_GOARM make release
+- GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS GOARM=$BUILD_GOARM make release test
 before_deploy:
 - export LABEL=$BUILD_GOOS-$BUILD_GOARCH.$UPDATE_CHANNEL
 - if [ "$BUILD_GOARCH" == "arm"]; then LABEL=$LABEL"v"$BUILD_GOARM; fi
@@ -49,4 +58,5 @@ deploy:
   file: updater.$LABEL
   skip_cleanup: true
   on:
+    condition: branch = master || branch = develop
     tags: true

@@ -43,6 +43,7 @@
             </div>
           </div>
         </div>
+        {{if not .DevMode}}
         <div class="form-group">
           <label for="captcha" class="cols control-label">{{msg . "user.form.captcha"}}</label>
           <img src="/captcha/{{.captchaID}}.png" title="{{msg . "user.form.captcha_image"}}">
@@ -56,6 +57,7 @@
             </div>
           </div>
         </div>
+        {{end}}
         <div class="form-group ">
           <button type="submit" class="btn btn-primary btn-block">{{msg . "user.sign_up_title"}}</button>
         </div>

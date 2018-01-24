@@ -1,9 +1,9 @@
 [ganggo]
 
 # Over which protocol will the webpage be served
-proto = "https://"
+proto = "http://"
 # This should be set to your TLD e.g. example.com or example.com:8080
-address = "localhost"
+address = "localhost:9000"
 
 # Configure your database access and driver
 # Possible database driver are:
@@ -13,9 +13,9 @@ address = "localhost"
 #  - sqlite
 #
 db.driver = "postgres"
-db.user = "ganggo"
-db.password = "ganggo"
-db.host = "localhost"
+db.user = "postgres"
+db.password = ""
+db.host = ""
 db.database = "ganggo"
 # mysql
 #db.dsn = "%s:%s@tcp(%s)/%s?parseTime=true"

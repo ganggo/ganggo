@@ -47,7 +47,6 @@ endif
 		./... \
 		gopkg.in/ganggo/api.$(version)/... \
 		gopkg.in/ganggo/federation.$(version)/...
-
 	## CLI for train asset library / revel webframework
 	go get -d \
 		github.com/shaoshing/train \
@@ -85,6 +84,11 @@ endif
 
 test:
 	go tool vet -v -all app/
+ifndef revel
+	$(error "revel $(install_deps_info)")
+endif
+	cp $(srcdir)/conf/app.conf.example $(srcdir)/conf/app.conf
+	revel test $(package)
 
 u2d-wrapper:
 ifndef gobin
