@@ -50,7 +50,7 @@ func (r Receiver) Public() revel.Result {
   // in case it succeeds reply with status 202
   r.Response.Status = http.StatusAccepted
 
-  message, err := federation.ParseDecryptedRequest(content)
+  msg, entity, err := federation.ParseDecryptedRequest(content)
   if err != nil {
     r.Log.Error("Cannot parse decrypted request", "error", err)
     // NOTE Send accept code even tho the entity is not
@@ -61,7 +61,10 @@ func (r Receiver) Public() revel.Result {
 
   // XXX investigate whether this is a
   // d* problem in production mode as well
-  receiverJob := jobs.Receiver{Entity: message.Entity}
+  receiverJob := jobs.Receiver{
+    Message: msg,
+    Entity: entity,
+  }
   go receiverJob.Run()
 
   return r.Render()
@@ -102,7 +105,15 @@ func (r Receiver) Private() revel.Result {
     return r.Render()
   }
 
-  message, err := federation.ParseEncryptedRequest(wrapper, []byte(user.SerializedPrivateKey))
+  privKey, err := federation.ParseRSAPrivateKey(
+    []byte(user.SerializedPrivateKey))
+  if err != nil {
+    r.Log.Error(err.Error())
+    r.Response.Status = http.StatusInternalServerError
+    return r.Render()
+  }
+
+  msg, entity, err := federation.ParseEncryptedRequest(wrapper, privKey)
   if err != nil {
     r.Log.Error("Cannot parse encrypted request", "error", err)
     // NOTE Send accept code even tho the entity is not
@@ -112,7 +123,8 @@ func (r Receiver) Private() revel.Result {
   }
 
   receiverJob := jobs.Receiver{
-    Entity: message.Entity,
+    Message: msg,
+    Entity: entity,
     Guid: guid,
   }
   // XXX investigate whether this is a

@@ -23,7 +23,7 @@ import (
   federation "gopkg.in/ganggo/federation.v0"
 )
 
-func (r *Receiver) Contact(entity federation.EntityContact) {
+func (receiver *Receiver) Contact(entity federation.EntityContact) {
   db, err := models.OpenDatabase()
   if err != nil {
     revel.AppLog.Warn(err.Error())
@@ -32,15 +32,6 @@ func (r *Receiver) Contact(entity federation.EntityContact) {
   defer db.Close()
 
   revel.AppLog.Debug("Found a contact entity", "entity", entity)
-
-  // Will try fetching author from remote
-  // if he doesn't exist locally
-  author := FetchAuthor{Author: entity.Author}
-  author.Run()
-  if author.Err != nil {
-    revel.AppLog.Error("Cannot fetch author", "error", author.Err)
-    return
-  }
 
   var contact models.Contact
   err = contact.Cast(&entity)

@@ -26,46 +26,41 @@ import (
 )
 
 func (receiver *Receiver) Profile(profile federation.EntityProfile) {
-    var profileModel models.Profile
-    db, err := models.OpenDatabase()
+  var profileModel models.Profile
+  err := profileModel.FindByAuthor(profile.Author)
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+
+  err = profileModel.Cast(&profile)
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+
+  if !strings.HasPrefix(profileModel.ImageUrl, "http") {
+    _, host, err := helpers.ParseAuthor(profileModel.Author)
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
     }
-    defer db.Close()
+    url := "https://" + host
+    profileModel.ImageUrl = url + profileModel.ImageUrl
+    profileModel.ImageUrlMedium = url + profileModel.ImageUrlMedium
+    profileModel.ImageUrlSmall = url + profileModel.ImageUrlSmall
+  }
 
-    insert := db.Where("author = ?", profile.Author).
-      First(&profileModel).RecordNotFound()
+  db, err := models.OpenDatabase()
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  defer db.Close()
 
-    err = profileModel.Cast(&profile)
-    if err != nil {
-      revel.AppLog.Error(err.Error())
-      return
-    }
-
-    if !strings.HasPrefix(profileModel.ImageUrl, "http") {
-      _, host, err := helpers.ParseAuthor(profileModel.Author)
-      if err != nil {
-        revel.AppLog.Error(err.Error())
-        return
-      }
-      url := "https://" + host
-      profileModel.ImageUrl = url + profileModel.ImageUrl
-      profileModel.ImageUrlMedium = url + profileModel.ImageUrlMedium
-      profileModel.ImageUrlSmall = url + profileModel.ImageUrlSmall
-    }
-
-    if insert {
-      err = db.Create(&profileModel).Error
-      if err != nil {
-        revel.AppLog.Error(err.Error(), "profile", profileModel)
-        return
-      }
-    } else {
-      err = db.Save(&profileModel).Error
-      if err != nil {
-        revel.AppLog.Error(err.Error())
-        return
-      }
-    }
+  err = db.Save(&profileModel).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
 }

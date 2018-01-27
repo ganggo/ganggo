@@ -21,6 +21,7 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
+  "time"
 )
 
 func (receiver *Receiver) Reshare(entity federation.EntityReshare) {
@@ -46,12 +47,16 @@ func (receiver *Receiver) Reshare(entity federation.EntityReshare) {
   }
 
   var post models.Post
+  createdAt, err := entity.CreatedAt.Time()
+  if err != nil {
+    createdAt = time.Now()
+  }
   if err = post.FindByGuid(entity.RootGuid); err == nil {
     reshare := models.Post{
       Type: models.Reshare,
       Guid: entity.Guid,
       PersonID: fetch.Person.ID,
-      CreatedAt: entity.CreatedAt.Time,
+      CreatedAt: createdAt,
       RootPersonID: fetchRoot.Person.ID,
       RootGuid: &entity.RootGuid,
       Public: true,

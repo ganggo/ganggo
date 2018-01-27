@@ -35,10 +35,12 @@ func (dispatcher *Dispatcher) Like(like federation.EntityLike) {
   }
 
   if !dispatcher.Relay {
-    err := like.AppendSignature([]byte(
-        dispatcher.User.SerializedPrivateKey,
-      ), like.SignatureOrder(),
+    privKey, err := federation.ParseRSAPrivateKey(
+      []byte(dispatcher.User.SerializedPrivateKey),
     )
+    var signature federation.Signature
+    err = signature.New(like).Sign(privKey,
+      &(like.AuthorSignature))
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
