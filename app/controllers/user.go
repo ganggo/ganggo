@@ -60,7 +60,7 @@ func (u User) Create() revel.Result {
   u.Params.Bind(&captchaID, "captchaID")
   u.Params.Bind(&captchaValue, "captchaValue")
 
-  if !captcha.VerifyString(captchaID, captchaValue) {
+  if !revel.DevMode && !captcha.VerifyString(captchaID, captchaValue) {
     u.Flash.Error(revel.MessageFunc(
       u.Request.Locale,
       "flash.errors.captcha",
