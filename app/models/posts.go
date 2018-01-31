@@ -208,18 +208,15 @@ func (p *Post) Cast(entity interface{}) (err error) {
       return
     }
 
+    var photos Photos
     if statusMessage.Photos != nil {
-      go func() {
-        var photos Photos
-        photos.Cast(*statusMessage.Photos)
-        err = photos.Create()
-        if err != nil {
-          revel.AppLog.Error(err.Error())
-          return
-        }
-      }()
+      err = photos.Cast(*statusMessage.Photos)
+      if err != nil {
+        return
+      }
     }
 
+    (*p).Photos = photos
     (*p).Public = statusMessage.Public
     (*p).Guid = statusMessage.Guid
     (*p).Type = StatusMessage

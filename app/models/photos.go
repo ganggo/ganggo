@@ -19,7 +19,6 @@ package models
 
 import (
   "time"
-  "github.com/revel/revel"
   federation "gopkg.in/ganggo/federation.v0"
 )
 
@@ -60,21 +59,12 @@ func (p Photos) Create() error {
   return nil
 }
 
-func (p *Photos) Cast(entities federation.EntityPhotos) {
-  // XXX no error handling here that should change
+func (p *Photos) Cast(entities federation.EntityPhotos) error {
   for _, entity := range entities {
     var person Person
     err := person.FindByAuthor(entity.Author)
     if err != nil {
-      revel.AppLog.Error(err.Error())
-      continue
-    }
-
-    var post Post
-    err = post.FindByGuid(entity.StatusMessageGuid)
-    if err != nil {
-      revel.AppLog.Error(err.Error())
-      continue
+      return err
     }
 
     photo := Photo{
@@ -83,10 +73,10 @@ func (p *Photos) Cast(entities federation.EntityPhotos) {
       RemotePath: entity.RemotePhotoPath + entity.RemotePhotoName,
       Text: entity.Text,
       PersonID: person.ID,
-      PostID: post.ID,
       Height: entity.Height,
       Width: entity.Width,
     }
     *p = append(*p, photo)
   }
+  return nil
 }
