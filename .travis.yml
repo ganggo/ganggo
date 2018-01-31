@@ -1,4 +1,6 @@
 sudo: required
+dist: trusty
+group: deprecated-2017Q4
 language: go
 services:
 - docker
@@ -58,5 +60,5 @@ deploy:
   file: updater.$LABEL
   skip_cleanup: true
   on:
-    condition: branch = master || branch = develop
+    condition: ${TRAVIS_BRANCH/*-/} != "testing"
     tags: true
