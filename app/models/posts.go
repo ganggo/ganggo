@@ -46,6 +46,7 @@ type Post struct {
 
   Person Person `gorm:"ForeignKey:PersonID" json:",omitempty"`
   Comments Comments `gorm:"ForeignKey:ShareableID" json:",omitempty"`
+  Photos Photos
 }
 
 type Posts []Post
@@ -79,6 +80,11 @@ func (post *Post) AfterFind(db *gorm.DB) error {
   }
 
   err := db.Model(post).Related(&post.Person).Error
+  if err != nil {
+    return err
+  }
+
+  err = db.Model(post).Related(&post.Photos).Error
   if err != nil {
     return err
   }
@@ -126,6 +132,12 @@ func (p *Post) AfterDelete(db *gorm.DB) (err error) {
   // shareable_taggings
   err = db.Where("shareable_id = ? and shareable_type = ?",
     p.ID, ShareablePost).Delete(ShareableTagging{}).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  // photos
+  err = db.Where("post_id = ?", p.ID).Delete(Photo{}).Error
   if err != nil {
     revel.AppLog.Error(err.Error())
     return
@@ -194,6 +206,18 @@ func (p *Post) Cast(entity interface{}) (err error) {
     err = person.FindByAuthor(statusMessage.Author)
     if err != nil {
       return
+    }
+
+    if statusMessage.Photos != nil {
+      go func() {
+        var photos Photos
+        photos.Cast(*statusMessage.Photos)
+        err = photos.Create()
+        if err != nil {
+          revel.AppLog.Error(err.Error())
+          return
+        }
+      }()
     }
 
     (*p).Public = statusMessage.Public

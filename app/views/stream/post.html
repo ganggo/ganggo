@@ -55,6 +55,13 @@
       </div>
       <div class="card-block">
         <div class="card-body">
+          <p class="card-text">
+          {{range .post.Photos}}
+            <a data-fancybox="gallery{{$.post.ID}}" href="{{.RemotePath}}">
+              <img src="{{.RemotePath}}" alt="{{.Text}}" class="img-thumbnail w-25">
+            </a>
+          {{end}}
+          </p>
           <p class="card-text" data-markdown>{{.post.Text}}</p>
           <p class="card-text">
             <p class="p-0 m-0 float-left">

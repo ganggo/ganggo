@@ -30,3 +30,7 @@ js:node_modules/another-rest-client/rest-client.min.js.map
 
 # Markdown
 js:node_modules/marked/marked.min.js
+
+# Gallery
+js:node_modules/@fancyapps/fancybox/dist/jquery.fancybox.min.js
+css:node_modules/@fancyapps/fancybox/dist/jquery.fancybox.min.css

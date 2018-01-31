@@ -88,6 +88,12 @@ func loadSchema(db *gorm.DB) {
   db.Model(post).AddIndex("index_posts_on_id_and_type", "id", "type")
   db.AutoMigrate(post)
 
+  photo := &Photo{}
+  db.Model(photo).AddUniqueIndex("index_photos_on_guid", "guid")
+  db.Model(photo).AddIndex("index_photos_on_post_id", "post_id")
+  db.Model(photo).AddIndex("index_photos_on_person_id", "person_id")
+  db.AutoMigrate(photo)
+
   comment := &Comment{}
   db.Model(comment).AddUniqueIndex("index_comments_on_guid", "guid")
   db.Model(comment).AddIndex("index_comments_on_person_id", "person_id")
