@@ -7,15 +7,15 @@
     "test": "tests"
   },
   "dependencies": {
-    "@fancyapps/fancybox": "^3.2.5",
-    "another-rest-client": "^0.4.2",
-    "bootstrap": "^4.0.0-alpha.6",
-    "coffee-script": "^1.12.7",
-    "font-awesome": "^4.7.0",
-    "jquery": "^3.2.1",
-    "jquery-form": "^4.2.2",
-    "marked": "^0.3.12",
-    "node-sass": "^4.7.2"
+    "@fancyapps/fancybox": "3.2.5",
+    "another-rest-client": "0.4.2",
+    "bootstrap": "4.0.0-alpha.6",
+    "coffee-script": "1.12.7",
+    "font-awesome": "4.7.0",
+    "jquery": "3.2.1",
+    "jquery-form": "4.2.2",
+    "marked": "0.3.12",
+    "node-sass": "4.7.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
