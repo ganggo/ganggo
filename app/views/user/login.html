@@ -11,18 +11,23 @@
       <form method="post" action="/users/sign_in">
         <div class="form-group">
           <div class="input-group">
-            <span class="input-group-addon">
-              <i class="fa fa-user" aria-hidden="true"></i>
+            <span class="input-group-append">
+              <span class="pr-3 input-group-text">
+                <i class="fa fa-user" aria-hidden="true"></i>
+              </span>
             </span>
             <input type="text" class="form-control" name="username" placeholder="{{msg . "user.form.username"}}" required="required" />
           </div>
         </div>
         <div class="form-group">
           <div class="input-group">
-            <span class="input-group-addon">
-              <i class="fa fa-asterisk" aria-hidden="true"></i>
+            <span class="input-group-append">
+              <span class="input-group-text">
+                <i class="fa fa-asterisk" aria-hidden="true"></i>
+              </span>
             </span>
             <input type="password" class="form-control" name="password" placeholder="{{msg . "user.form.password"}}" required="required" />
+
           </div>
         </div>
         <div class="form-group">

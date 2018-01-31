@@ -5,6 +5,8 @@
 # - http://www.rfc-editor.org/rfc/bcp/bcp47.txt
 # - http://www.w3.org/International/questions/qa-accept-lang-locales
 
+[DEFAULT]
+
 notification.unread=%d Notifications
 notification.mentioned_in_post=has mentioned you in a <a href="/posts/%s">post</a>!
 notification.mentioned_in_comment=has mentioned you in a <a href="/posts/%s">comment</a>!
@@ -87,6 +89,10 @@ editor.placeholder=I like cats !!
 footer.links.report_issue=Report an issue
 footer.links.pod_statistics=Pod statistics
 footer.links.android=Android Application
+
+calendars.title=Calendars
+calendars.preambel=**This is a calendar event!** If you see this message your server doesn't support event handling :(
+ You can view and subscribe to the event [here](%s)!
 
 # timeago plugin
 ago=ago

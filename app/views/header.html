@@ -39,10 +39,10 @@
     </script>
   </head>
   <body>
-    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
-    <a href="https://github.com/ganggo/ganggo">
-      <img style="position: absolute; top: 0; left: 0; border: 0;" src="/public/img/forkme_left_red_aa0000.png" title="Fork me on GitHub">
-    </a>
+    <nav class="navbar navbar-expand-xl navbar-dark bg-dark fixed-top">
+      <a href="https://github.com/ganggo/ganggo">
+        <img style="position: absolute; top: 0; left: 0; border: 0;" src="/public/img/forkme_left_red_aa0000.png" title="Fork me on GitHub">
+      </a>
       <div class="container">
         <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="{{msg . "navigation.toggle"}}">
           <span class="navbar-toggler-icon"></span>
@@ -66,6 +66,7 @@
                 <i class="fa fa-user-circle-o"></i>
               </a>
               <div class="dropdown-menu" aria-labelledby="dropdown01">
+                <a class="dropdown-item" href="{{url "Calendar.Index"}}">{{msg . "calendars.title"}}</a>
                 <a class="dropdown-item" href="{{url "Setting.Index"}}">{{msg . "navigation.user.settings"}}</a>
               </div>
             </li>

@@ -29,6 +29,7 @@ type Post struct {
   CreatedAt time.Time
   UpdatedAt time.Time
 
+  CalendarEventID uint
   PersonID uint `gorm:"size:4"`
   Public bool
   // size should be max 191 with mysql innodb
@@ -44,6 +45,7 @@ type Post struct {
   ResharesCount int `gorm:"size:4"`
   InteractedAt string `gorm:"size:191"`
 
+  Event CalendarEvent
   Person Person `gorm:"ForeignKey:PersonID" json:",omitempty"`
   Comments Comments `gorm:"ForeignKey:ShareableID" json:",omitempty"`
 }
@@ -82,6 +84,9 @@ func (post *Post) AfterFind(db *gorm.DB) error {
   if err != nil {
     return err
   }
+
+  // this can fail since not all posts have events
+  db.Model(post).Related(&post.Event)
 
   return db.Preload("Comments").First(post).Error
 }

@@ -38,6 +38,11 @@ GET     /users/sign_up                          User.Index
 POST    /users/sign_up                          User.Create
 GET     /users/settings                         Setting.Index
 
+GET     /calendars                               Calendar.Index
+GET     /calendars/public                        Calendar.Public
+GET     /calendars/:name                         Calendar.Show
+GET     /calendars/:name/event/:id               Calendar.ShowEvent
+
 GET     /captcha/:name                          Captcha.Index
 
 # Federation
