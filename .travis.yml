@@ -15,15 +15,12 @@ env:
   - VERSION=${TRAVIS_BRANCH/-*/}
   matrix:
   - BUILD_GOOS=linux BUILD_GOARCH=amd64
-addons:
-  apt:
-    packages:
-    - curl
 before_install:
 - psql -c 'create database ganggo;' -U postgres
 install:
 - make install
-- rsync -I -az ${TRAVIS_BUILD_DIR}/ $GOPATH/src/gopkg.in/ganggo/ganggo.$VERSION
+# sync asset files only
+- rsync -I -az ${TRAVIS_BUILD_DIR}/public $GOPATH/src/gopkg.in/ganggo/ganggo.$VERSION/public
 - bash tests/scripts/configure_diaspora.sh
 script:
 # if we define GOARCH, GOOS and GOARM directly
