@@ -14,8 +14,10 @@
           <label for="username" class="cols control-label">{{msg . "user.form.username"}}</label>
           <div class="cols">
             <div class="input-group">
-              <span class="input-group-addon">
-                <i class="fa fa-user" aria-hidden="true"></i>
+              <span class="input-group-append">
+                <span class="pr-3 input-group-text">
+                  <i class="fa fa-user" aria-hidden="true"></i>
+                </span>
               </span>
               <input type="text" class="form-control" name="username" id="username"  placeholder="{{msg . "user.form.username_hint"}}"/>
             </div>
@@ -25,8 +27,10 @@
           <label for="password" class="cols control-label">{{msg . "user.form.password"}}</label>
           <div class="cols">
             <div class="input-group">
-              <span class="input-group-addon">
-                <i class="fa fa-asterisk" aria-hidden="true"></i>
+              <span class="input-group-append">
+                <span class="input-group-text">
+                  <i class="fa fa-asterisk" aria-hidden="true"></i>
+                </span>
               </span>
               <input type="password" class="form-control" name="password" id="password"  placeholder="{{msg . "user.form.password_hint"}}"/>
             </div>
@@ -36,8 +40,10 @@
           <label for="confirm" class="cols control-label">{{msg . "user.form.confirm"}}</label>
           <div class="cols">
             <div class="input-group">
-              <span class="input-group-addon">
-                <i class="fa fa-asterisk" aria-hidden="true"></i>
+              <span class="input-group-append">
+                <span class="input-group-text">
+                  <i class="fa fa-asterisk" aria-hidden="true"></i>
+                </span>
               </span>
               <input type="password" class="form-control" name="confirm" id="confirm"  placeholder="{{msg . "user.form.confirm_hint"}}"/>
             </div>

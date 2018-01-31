@@ -29,6 +29,7 @@ func init() {
   revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Stream{})
   revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Setting{})
   revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Search{})
+  revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Calendar{})
 }
 
 func redirectIfLoggedIn(c *revel.Controller) revel.Result {

@@ -58,6 +58,7 @@ const (
   ShareableLike = "Like"
   ShareableComment = "Comment"
   ShareableContact = "Contact"
+  ShareableEvent = "Event"
 )
 
 var DB Database

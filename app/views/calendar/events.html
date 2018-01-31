@@ -1,0 +1,30 @@
+{{$root := .}}
+{{range .calendar.Events}}
+{{if DateInRange .Start .End $root.cal.Year $root.cal.Month $root.day}}
+<div class="event d-block p-1 pl-2 pr-2 mb-1 rounded text-truncate small bg-primary text-white" title="{{.Summary}}">
+  {{.Summary}}
+  <div class="popover-content" style="display:none">
+    <i class="fa fa-times fa-2x float-right close" aria-hidden="true"></i>
+    <div data-markdown>
+      {{.Description}}
+    </div>
+    <div><i class="fa fa-map-marker"></i> {{.Location}}</div>
+    <div><i class="fa fa-clock-o"></i> {{.Start}} - {{.End}}</div>
+    <div class="pt-4">
+      <img max-width="150px" src="{{.Person.Profile.ImageUrl}}" class="rounded" title="{{.Person.Profile.FullName}}">
+    </div>
+    <div class="row pt-2 mx-1 my-1">
+      <div class="col p-1">
+        <a type="button" class="btn btn-danger btn-block" href="#" title="123">Decline</a>
+      </div>
+      <div class="col p-1">
+        <a type="button" class="btn btn-warning btn-block" href="#" title="123">Tentative</a>
+      </div>
+      <div class="col p-1">
+        <a type="button" class="btn btn-success btn-block" href="#" title="123">Accept</a>
+      </div>
+    </div>
+  </div>
+</div>
+{{end}}
+{{end}}

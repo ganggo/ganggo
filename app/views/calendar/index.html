@@ -1,0 +1,32 @@
+{{$title := msg . "calendars.title"}}
+{{set . "title" $title}}
+
+{{template "header.html" .}}
+
+<div class="container">
+  <div class="card">
+    <div class="card-header text-center">
+      <h4>{{msg . "calendars.title"}}</h4>
+    </div>
+    <ul class="list-group list-group-flush text-center">
+      <li class="list-group-item"><a href="/calendars/public">Public</a></li>
+      {{range .calendars}}
+      <li class="list-group-item">
+        <a href="/calendars/{{.Name}}">{{.Name}}</a>
+      </li>
+      {{end}}
+    </ul>
+    <form id="calendar-editor-form" class="form-inline mx-4 my-4" action="{{url "ApiCalendar.Create"}}" method="post">
+      <div class="form-group">
+        <input type="text" class="form-control mr-4" name="name" placeholder="New Calendar">
+      </div>
+      <button type="submit" class="btn btn-primary">
+        Create <i class="fa fa-plus"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
+{{javascript_include_tag "editor_box"}}
+
+{{template "footer.html" .}}

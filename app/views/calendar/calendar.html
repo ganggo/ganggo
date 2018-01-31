@@ -1,0 +1,74 @@
+{{- $title := msg . "calendars.title"}}
+{{- $cal := FetchCalendarDays .page}}
+{{- set . "title" $title}}
+{{- set . "cal" $cal}}
+
+{{template "header.html" .}}
+
+{{stylesheet_link_tag "jquery.datetimepicker.min"}}
+{{stylesheet_link_tag "calendar"}}
+
+<div class="container" data-toggle="calendar">
+  <header>
+    <h4 class="display-4 mb-4 text-center">
+      {{- if gt .page 1}}
+      <a href="?page={{sub .page 1}}">
+        <i class="fa fa-backward float-left" aria-hidden="true"></i>
+      </a>
+      {{end}}
+      {{.cal.Month.String}} {{.cal.Year}}
+      <a href="?page={{add .page 1}}">
+        <i class="fa fa-forward float-right" aria-hidden="true"></i>
+      </a>
+    </h4>
+    <div class="row d-none d-sm-flex p-1 bg-dark text-white">
+      <h5 class="col-sm p-1 text-center">Sunday</h5>
+      <h5 class="col-sm p-1 text-center">Monday</h5>
+      <h5 class="col-sm p-1 text-center">Tuesday</h5>
+      <h5 class="col-sm p-1 text-center">Wednesday</h5>
+      <h5 class="col-sm p-1 text-center">Thursday</h5>
+      <h5 class="col-sm p-1 text-center">Friday</h5>
+      <h5 class="col-sm p-1 text-center">Saturday</h5>
+    </div>
+  </header>
+  <div class="row border border-right-0 border-bottom-0">
+    {{$root := .}}
+    {{set . "grey" 1}}
+    {{range $i, $day := .cal.Days}}
+    {{if eq $day 1}}
+      {{if eq $root.grey 1}}
+        {{set $root "grey" 0}}
+      {{else}}
+        {{set $root "grey" 1}}
+      {{end}}
+    {{end}}
+    {{if eq $root.grey 1}}
+    <div class="day col-sm p-2 border border-left-0 border-top-0 text-truncate d-none d-sm-inline-block bg-light text-muted">
+    {{else}}
+    <div class="day col-sm p-2 border border-left-0 border-top-0 text-truncate ">
+    {{end}}
+      <h5 class="row align-items-center">
+        <span class="date col-1">{{$day}}</span>
+        <!--<small class="col d-sm-none text-center text-muted">Sunday</small>-->
+        <span class="col-1"></span>
+      </h5>
+      <div class="events">
+      {{if ne $root.grey 1}}
+        {{set $root "day" $day}}
+        {{template "calendar/events.html" $root}}
+      {{end}}
+      </div>
+    </div>
+    {{$i := add $i 1}}
+    {{if mod $i 7}}
+    <div class="w-100"></div>
+    {{end}}
+    {{end}}
+  </div>
+  {{template "calendar/editor_box.html" .}}
+</div>
+
+{{javascript_include_tag "jquery.datetimepicker.full.min"}}
+{{javascript_include_tag "calendar"}}
+
+{{template "footer.html" .}}

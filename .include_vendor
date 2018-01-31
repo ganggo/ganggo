@@ -14,6 +14,7 @@ css:node_modules/bootstrap/dist/css/bootstrap-reboot.min.css.map
 css:node_modules/tether/dist/css/tether.min.css
 js:node_modules/bootstrap/dist/js/bootstrap.min.js
 js:node_modules/tether/dist/js/tether.min.js
+js:node_modules/popper.js/dist/umd/popper.min.js
 
 # Font-Awesome
 fonts:node_modules/font-awesome/fonts/fontawesome-webfont.svg
@@ -30,3 +31,7 @@ js:node_modules/another-rest-client/rest-client.min.js.map
 
 # Markdown
 js:node_modules/marked/marked.min.js
+
+# Datetimepicker
+css:node_modules/jquery-datetimepicker/build/jquery.datetimepicker.min.css
+js:node_modules/jquery-datetimepicker/build/jquery.datetimepicker.full.min.js

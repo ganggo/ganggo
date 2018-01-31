@@ -198,6 +198,23 @@ func loadSchema(db *gorm.DB) {
   db.Model(oAuthToken).AddIndex("index_o_auth_token_on_user_id", "user_id")
   db.Model(oAuthToken).AddIndex("index_o_auth_token_on_token", "token")
   db.AutoMigrate(oAuthToken)
+
+  calendar := &Calendar{}
+  db.Model(calendar).AddUniqueIndex("index_calendar_on_user_id_and_name", "user_id", "name")
+  db.Model(calendar).AddIndex("index_calendar_on_user_id", "user_id")
+  db.Model(calendar).AddIndex("index_calendar_on_name", "name")
+  db.AutoMigrate(calendar)
+
+  calendarEvent := &CalendarEvent{}
+  db.Model(calendarEvent).AddIndex("index_calendar_event_on_person_id", "person_id")
+  db.Model(calendarEvent).AddIndex("index_calendar_event_on_guid", "guid")
+  db.AutoMigrate(calendarEvent)
+
+  calendarEventParticipation := &CalendarEventParticipation{}
+  db.Model(calendarEventParticipation).AddUniqueIndex("index_calendar_event_participation_on_person_id_and_calendar_event_id", "person_id", "calendar_event_id")
+  db.Model(calendarEventParticipation).AddIndex("index_calendar_event_participation_on_user_id", "person_id")
+  db.Model(calendarEventParticipation).AddIndex("index_calendar_event_participation_on_calendar_event_id", "calendar_event_id")
+  db.AutoMigrate(calendarEventParticipation)
 }
 
 func InitDB() {

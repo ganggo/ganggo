@@ -21,6 +21,7 @@ import (
   "regexp"
   "path/filepath"
   "os"
+  "time"
   "github.com/shaoshing/train"
   "github.com/revel/revel"
   "github.com/revel/config"
@@ -135,6 +136,8 @@ var TemplateFuncs = map[string]interface{}{
     }
     return i18n
   },
+  "FetchCalendarDays": calendar,
+  "DateInRange": dateInRange,
   "FindAvailableLocales": func() (list []string) {
     directory := filepath.Join(revel.BasePath, "messages")
     re := regexp.MustCompile(`ganggo\.([\w-_]{1,})$`)
@@ -186,6 +189,9 @@ var TemplateFuncs = map[string]interface{}{
     }
     tmpl := `<link type="text/css" rel="stylesheet" href="/public` + src + `">`
     return template.HTML(tmpl)
+  },
+  "mod": func(a, b int) bool {
+    return (a % b) == 0
   },
   "eq": func(a, b interface {}) bool {
     return a == b
@@ -242,4 +248,64 @@ func likes(id uint, like bool) (likes []models.Like) {
     return
   }
   return
+}
+
+func calendar(offset int) interface{} {
+  var days []int
+  now := time.Now()
+  year, month := now.Year(), now.Month()
+
+  start := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+  end := time.Date(year, month, 32, 0, 0, 0, 0, time.UTC)
+
+  for i := 1; i < offset; i ++ {
+    if month == time.December {
+      month = time.January
+      year += 1
+    } else {
+      month += 1
+    }
+    start = time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+    end = time.Date(year, month, 32, 0, 0, 0, 0, time.UTC)
+  }
+
+  month -= 1
+  if month == time.January {
+    month = time.December
+  }
+  endPrev := time.Date(now.Year(), month, 32, 0, 0, 0, 0, time.UTC)
+
+  if int(start.Weekday()) != 0 {
+    for i := int(start.Weekday())-1; i >= 0; i-- {
+      days = append(days, (32 - endPrev.Day()) - i)
+    }
+  }
+  for i := 1; i <= (32 - end.Day()); i++ {
+    days = append(days, i)
+  }
+
+  // fill till 42 is reached
+  for i := 1; len(days) < 42; i++ {
+    days = append(days, i)
+  }
+
+  return struct{
+    Year int
+    Month time.Month
+    Days []int
+  }{start.Year(), start.Month(), days}
+}
+
+func dateInRange(start time.Time, end *time.Time, year int, month time.Month, day int) bool {
+  if end.Year() == 1 {
+    return start.Year() == year &&
+      start.Month() == month &&
+      start.Day() == day
+  }
+  return start.Year() <= year &&
+    start.Month() <= month &&
+    start.Day() <= day &&
+    end.Year() >= year &&
+    end.Month() >= month &&
+    end.Day() >= day
 }
