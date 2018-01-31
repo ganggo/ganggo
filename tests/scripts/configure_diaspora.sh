@@ -9,12 +9,14 @@ docker run --name=d2 -e DATABASE=d2 \
 echo -e "\033[0;32mServer started complete\033[0m"
 
 # Wait till they finished loading
-for port in 3000 3001; do
-  i=0
-  while [[ "$(curl http://localhost:$port >/dev/null 2>&1; echo $?)" -ne "0" ]]; do
-    echo "Waiting for localhost:$port"
+msg="successfully configured the federation library"
+for container in "d1" "d2"; do
+  i=0; init=0
+  while [[ "$init" -lt "2" ]]; do
+    init=$(docker logs $container 2>&1 |grep "$msg" |wc -l)
+    echo "Waiting for $container"
     sleep 2
-    if [ $i -gt 320 ]; then
+    if [ $i -gt 300 ]; then
       echo ".. timeout!"
       exit 1
     else
