@@ -22,6 +22,7 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
+  "errors"
 )
 
 type Webfinger struct {
@@ -30,31 +31,36 @@ type Webfinger struct {
 
 func (c Webfinger) Webfinger() revel.Result {
   var (
+    legacy bool
     resource string
-    json federation.WebfingerData
+    webfinger federation.WebfingerData
   )
 
   c.Params.Bind(&resource, "resource")
+  if resource == "" {
+    c.Params.Bind(&resource, "q")
+    legacy = true
+  }
 
   revel.Config.SetSection("ganggo")
   proto, ok := revel.Config.String("proto")
   if !ok {
     c.Response.Status = http.StatusNotFound
     c.Log.Error("No proto config found")
-    return c.RenderJSON(json)
+    return c.RenderError(errors.New("No proto config found"))
   }
   address, ok := revel.Config.String("address")
   if !ok {
     c.Response.Status = http.StatusNotFound
     c.Log.Error("No address config found")
-    return c.RenderJSON(json)
+    return c.RenderError(errors.New("No address config found"))
   }
 
   username, err := federation.ParseWebfingerHandle(resource)
   if err != nil {
     c.Response.Status = http.StatusNotFound
     c.Log.Error("Cannot parse webfinger handle", "error", err)
-    return c.RenderJSON(json)
+    return c.RenderError(err)
   }
 
   db, err := models.OpenDatabase()
@@ -69,10 +75,10 @@ func (c Webfinger) Webfinger() revel.Result {
   if err != nil {
     c.Response.Status = http.StatusNotFound
     c.Log.Error("Cannot find person", "error", err)
-    return c.RenderJSON(json)
+    return c.RenderError(err)
   }
 
-  json = federation.WebfingerData{
+  webfinger = federation.WebfingerData{
     Subject: "acct:" + username + "@" + address,
     Aliases: []string{proto + address + "/people/" + person.Guid},
     Links: []federation.WebfingerDataLink{
@@ -100,18 +106,13 @@ func (c Webfinger) Webfinger() revel.Result {
         Rel: "salmon",
         Href: proto + address + "/receive/users/" + person.Guid,
       },
-      federation.WebfingerDataLink {
-        Rel: "http://ostatus.org/schema/1.0/subscribe",
-        Template: proto + address + "/people?q={uri}",
-      },
-      federation.WebfingerDataLink {
-        Rel: "http://openid.net/specs/connect/1.0/issuer",
-        Href: proto + address,
-      },
     },
   }
 
-  return c.RenderJSON(json)
+  if legacy {
+    return c.RenderXML(webfinger)
+  }
+  return c.RenderJSON(webfinger)
 }
 
 func (c Webfinger) HostMeta() revel.Result {
@@ -136,7 +137,7 @@ func (c Webfinger) HostMeta() revel.Result {
       federation.WebfingerDataLink{
         Rel: "lrdd",
         Type: "application/xrd+xml",
-        Template: proto + address + "/webfinger?q={uri}",
+        Template: proto + address + "/.well-known/webfinger?resource={uri}",
       },
     },
   }
