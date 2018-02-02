@@ -35,14 +35,14 @@
         </div>
         <div class="card-block">
           <div class="card-body">
-            <p class="card-text">
-            {{range .post.Photos}}
-              <a data-fancybox="gallery{{$.post.ID}}" href="{{.RemotePath}}">
+            <div class="card-text">
+              {{range .post.Photos}}
+              <a class="gallery" data-fancybox="{{$.post.ID}}" href="{{.RemotePath}}">
                 <img src="{{.RemotePath}}" alt="{{.Text}}" class="img-thumbnail w-25">
               </a>
-            {{end}}
-            </p>
-            <p class="card-text" data-markdown>{{.post.Text}}</p>
+              {{end}}
+              <p data-markdown>{{.post.Text}}</p>
+            </div>
             <p class="card-text">
               <p class="p-0 m-0 float-left">
                 <i class="fa fa-{{if .post.Public}}un{{end}}lock float-left" title="
