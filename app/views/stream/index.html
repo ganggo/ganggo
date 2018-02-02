@@ -25,7 +25,7 @@
           {{- if eq .title $tags}}tags
           {{- else}}public
           {{- end}}
-        {{- end}}/{{sub .page 1}}">{{msg . "profile.previous"}}</a>
+        {{- end}}?page={{sub .page 1}}">{{msg . "profile.previous"}}</a>
     </div>
     {{end}}
     <div class="col">

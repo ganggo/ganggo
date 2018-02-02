@@ -330,6 +330,11 @@ func (posts *Posts) FindAllByUserAndPersonID(user User, personID uint, offset in
 }
 
 func (posts *Posts) FindAllByUserAndText(user User, text string, offset int) (err error) {
+  if text == "" {
+    revel.AppLog.Debug("Skipping empty string search")
+    return
+  }
+
   db, err := OpenDatabase()
   if err != nil {
     return err

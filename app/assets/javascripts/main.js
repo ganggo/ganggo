@@ -6,6 +6,7 @@
 //= require javascripts/like_button
 //= require javascripts/retweet_button
 //= require javascripts/delete_button
+//= require javascripts/userstreams
 
 // change border color if anchor is set
 anchors = /#(.+?)$/.exec(window.location.href);

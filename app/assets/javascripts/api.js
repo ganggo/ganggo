@@ -18,4 +18,7 @@ API.res({
   oauth: [
     'tokens'
   ],
+  users:[
+    'streams'
+  ],
 });

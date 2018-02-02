@@ -20,7 +20,9 @@ navigation.stream=Stream
 navigation.stream.public=Public
 navigation.stream.private=Private
 navigation.write_a_post=Write a post..
+navigation.user.customize=Customize
 navigation.user.settings=Settings
+navigation.user.streams=Streams
 
 comment.placeholder=Write a comment..
 comment.button=Publish
@@ -60,6 +62,15 @@ user.form.confirm_hint=Confirm your Password
 user.form.captcha=Captcha:
 user.form.captcha_image=Captcha Image
 user.form.captcha_hint=Type the numbers you see in the picture
+user.stream.create.title=Create your customized stream
+user.stream.create.placeholder.name=MyAwesomeStream
+user.stream.create.placeholder.tags=linux,software,opensource
+user.stream.create.placeholder.people=hq@ggg.social,bob@remote.host
+user.stream.create.placeholder.expression=^\w+$
+user.stream.create.button=Create
+user.stream.delete.title=Delete your existing streams
+user.stream.delete.button=Delete
+user.stream.delete.select=Select a stream
 
 settings.title=Settings
 settings.title.user=User Settings

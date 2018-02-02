@@ -3,7 +3,7 @@
 {{$lenNotify := len $notify}}
 <li class="nav-item dropdown">
   <a class="nav-link dropdown-toggle" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    <i class="fa fa-bell"></i> {{$lenNotify }}
+    <i class="fa fa-bell"></i> {{$lenNotify}}
   </a>
   <div class="dropdown-menu" aria-labelledby="dropdown01">
     <ul class="list-unstyled" role="menu">
@@ -35,7 +35,7 @@
       {{end}}
       {{if eq $lenNotify 0}}
       <li class="notify-element">
-        <p class="small">{{msg $root "notification.no_notification"}}</p>
+        <p class="small pl-3 pt-3">{{msg $root "notification.no_notification"}}</p>
       </li>
       {{end}}
     </ul>

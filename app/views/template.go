@@ -103,6 +103,18 @@ var TemplateFuncs = map[string]interface{}{
     }
     return
   },
+  "FetchUserStreams": func(user models.User) (streams models.UserStreams) {
+    db, err := models.OpenDatabase()
+    if err != nil {
+      revel.AppLog.Error(err.Error())
+      return
+    }
+    err = db.Where("user_id = ?", user.ID).Find(&streams).Error
+    if err != nil {
+      revel.AppLog.Error(err.Error())
+    }
+    return
+  },
   // captcha generator
   "CaptchaNew": func() string { return captcha.New() },
   "ParseLocalesToJson": func() (i18n I18nMessages) {
