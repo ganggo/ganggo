@@ -114,7 +114,7 @@ func generateSchema(version string) SchemaJson {
 
   if version == "1.0" {
     protocols = SchemaInOutJson{
-      Inbound: []string{},
+      Inbound: []string{"diaspora"},
       Outbound: []string{"diaspora"},
     }
   } else if version == "2.0" {
