@@ -50,7 +50,11 @@ func ParseAuthor(handle string) (string, string, error) {
 func ParseWebfingerHandle(handle string) (string, error) {
   parts, err := parseStringHelper(handle, `^acct:(.+?)@.+?$`, 1)
   if err != nil {
-    return "", err
+    // being more open to legacy requests
+    parts, err = parseStringHelper(handle, `^(.+?)@.+?$`, 1)
+    if err != nil {
+      return "", err
+    }
   }
   return parts[1], nil
 }
