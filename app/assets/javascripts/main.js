@@ -8,6 +8,8 @@
 //= require javascripts/delete_button
 //= require javascripts/userstreams
 
+//= require javascripts/navigation
+
 // change border color if anchor is set
 anchors = /#(.+?)$/.exec(window.location.href);
 if (anchors !== null) {

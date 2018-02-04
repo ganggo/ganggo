@@ -94,6 +94,7 @@
     {{template "flash.html" .}}
     {{if .currentUser}}
     <div class="container pb-2">
+      <i class="user-stream-arrow left fa fa-arrow-left" style="display:none"></i>
       <ul class="nav nav-tabs">
         <li class="nav-item">
           <a class="nav-link{{if and (eq .title $stream) (eq .view "private")}} active{{end}}" href="{{url "Stream.Index"}}?view=private">{{msg . "navigation.stream.private"}}</a>
@@ -110,5 +111,6 @@
         </li>
         {{end}}
       </ul>
+      <i class="user-stream-arrow right fa fa-arrow-right" style="display:none"></i>
     </div>
     {{end}}
