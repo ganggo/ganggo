@@ -26,9 +26,9 @@ type Stream struct {
   *revel.Controller
 }
 
-func (s Stream) Index(view string, page int) revel.Result {
+func (s Stream) Index(view string, page uint) revel.Result {
   var posts models.Posts
-  var offset int = ((page - 1) * 10)
+  var offset uint = ((page - 1) * 10)
 
   user, err := models.CurrentUser(s.Controller)
   if err == nil {
@@ -73,7 +73,7 @@ func (s Stream) Index(view string, page int) revel.Result {
   s.ViewArgs["title"] = revel.MessageFunc(
     s.Request.Locale, "stream.title",
   )
-  if page == 0 { page = 1 }
+  if page <= 0 { page = 1 }
   s.ViewArgs["page"] = page
   s.ViewArgs["posts"] = posts
   s.ViewArgs["view"] = view

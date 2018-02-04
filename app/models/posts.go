@@ -264,7 +264,7 @@ func (p *Post) IsLocal() (user User, ok bool) {
   return user, false
 }
 
-func (posts *Posts) FindAllPublic(offset int) (err error) {
+func (posts *Posts) FindAllPublic(offset uint) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return err
@@ -277,7 +277,7 @@ func (posts *Posts) FindAllPublic(offset int) (err error) {
   return query.Find(posts).Error
 }
 
-func (posts *Posts) FindAll(userID uint, offset int) (err error) {
+func (posts *Posts) FindAll(userID, offset uint) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return err
@@ -294,7 +294,7 @@ func (posts *Posts) FindAll(userID uint, offset int) (err error) {
     ).Order("posts.created_at desc").Find(posts).Error
 }
 
-func (posts *Posts) FindAllPrivate(userID uint, offset int) (err error) {
+func (posts *Posts) FindAllPrivate(userID, offset uint) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return err
@@ -309,7 +309,7 @@ func (posts *Posts) FindAllPrivate(userID uint, offset int) (err error) {
     ).Order(`posts.created_at desc`).Find(posts).Error
 }
 
-func (posts *Posts) FindAllByUserAndPersonID(user User, personID uint, offset int) (err error) {
+func (posts *Posts) FindAllByUserAndPersonID(user User, personID, offset uint) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return err
@@ -329,7 +329,7 @@ func (posts *Posts) FindAllByUserAndPersonID(user User, personID uint, offset in
   return query.Order(`posts.created_at desc`).Find(posts).Error
 }
 
-func (posts *Posts) FindAllByUserAndText(user User, text string, offset int) (err error) {
+func (posts *Posts) FindAllByUserAndText(user User, text string, offset uint) (err error) {
   if text == "" {
     revel.AppLog.Debug("Skipping empty string search")
     return

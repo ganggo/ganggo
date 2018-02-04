@@ -30,9 +30,9 @@ func (p Profile) Index(guid string) revel.Result {
   return p.IndexPagination(guid, 0)
 }
 
-func (p Profile) IndexPagination(guid string, page int) revel.Result {
+func (p Profile) IndexPagination(guid string, page uint) revel.Result {
   var (
-    offset int = ((page - 1) * 10)
+    offset uint = ((page - 1) * 10)
     posts models.Posts
     person models.Person
   )
@@ -56,7 +56,7 @@ func (p Profile) IndexPagination(guid string, page int) revel.Result {
 
   p.ViewArgs["posts"] = posts
   p.ViewArgs["person"] = person
-  if page == 0 { page = 1 }
+  if page <= 0 { page = 1 }
   p.ViewArgs["page"] = page
 
   return p.RenderTemplate("profile/index.html")

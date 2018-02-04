@@ -138,7 +138,7 @@ func (stream *UserStream) FindByName(name string) error { BACKEND_ONLY()
   return db.Where("name = ?", name).Find(stream).Error
 }
 
-func (stream *UserStream) FetchPosts(posts *Posts, offset int) error { BACKEND_ONLY()
+func (stream *UserStream) FetchPosts(posts *Posts, offset uint) error { BACKEND_ONLY()
   tagNames := strings.Split(stream.Tags, ",")
   people := strings.Split(stream.People, ",")
 
@@ -184,10 +184,9 @@ func (stream *UserStream) FetchPosts(posts *Posts, offset int) error { BACKEND_O
 
   sort.Sort(*posts)
 
-  if len(*posts) < offset {
+  if uint(len(*posts)) > offset && offset > 0 {
     *posts = (*posts)[:offset-1]
   }
-
   return nil
 }
 

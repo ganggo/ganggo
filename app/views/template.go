@@ -199,16 +199,19 @@ var TemplateFuncs = map[string]interface{}{
     tmpl := `<link type="text/css" rel="stylesheet" href="/public` + src + `">`
     return template.HTML(tmpl)
   },
+  "ugt": func(a, b uint) bool {
+    return a > b
+  },
   "eq": func(a, b interface {}) bool {
     return a == b
   },
   "ne": func(a, b interface {}) bool {
     return a != b
   },
-  "add": func(a, b int) int {
+  "add": func(a, b uint) uint {
     return a + b
   },
-  "sub": func(a, b int) int {
+  "sub": func(a, b uint) uint {
     return a - b
   },
   "concat": func(a, b string) string {

@@ -59,7 +59,7 @@
     {{template "stream/post.html" $root}}
   {{end}}
   <div class="row mt-4">
-    {{if gt .page 1}}
+    {{if ugt .page 1}}
     <div class="col">
       <a type="button" class="btn btn-primary btn-block" href="/profiles/{{.person.Guid}}/{{sub .page 1}}">{{msg . "profile.previous"}}</a>
     </div>
