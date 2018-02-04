@@ -10,9 +10,6 @@ module:api
 GET     /                                       App.Index
 
 GET     /stream                                 Stream.Index
-GET     /stream/:page                           Stream.IndexPagination
-GET     /public                                 PublicStream.Index
-GET     /public/:page                           PublicStream.IndexPagination
 
 GET     /posts/:guid                            Post.Index
 GET     /tags/:name                             Tag.Index
@@ -37,6 +34,7 @@ GET     /.well-known/x-social-relay             SocialRelay.Index
 GET     /users/sign_up                          User.Index
 POST    /users/sign_up                          User.Create
 GET     /users/settings                         Setting.Index
+GET     /users/streams                          Stream.IndexStreams
 
 GET     /captcha/:name                          Captcha.Index
 

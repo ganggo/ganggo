@@ -26,7 +26,6 @@ func init() {
   // redirect if logged-in
   revel.InterceptFunc(redirectIfLoggedIn, revel.BEFORE, &App{})
   // requires login
-  revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Stream{})
   revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Setting{})
   revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Search{})
 }

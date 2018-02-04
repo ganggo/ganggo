@@ -33,8 +33,8 @@ func (s Search) Index(text string) revel.Result {
   return s.IndexPagination(text, 0)
 }
 
-func (s Search) IndexPagination(text string, page int) revel.Result {
-  var offset int = ((page - 1) * 10)
+func (s Search) IndexPagination(text string, page uint) revel.Result {
+  var offset uint = ((page - 1) * 10)
   text = strings.Replace(text, "'", "", -1)
 
   user, err := models.CurrentUser(s.Controller)

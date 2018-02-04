@@ -66,7 +66,7 @@ func (shareable * ShareableTagging) AfterFind(db *gorm.DB) error {
   return nil
 }
 
-func (tag *Tag) FindByName(name string, user User, offset int) error {
+func (tag *Tag) FindByName(name string, user User, offset uint) error {
   db, err := OpenDatabase()
   if err != nil {
     return err
