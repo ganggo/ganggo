@@ -10,8 +10,6 @@ module:api
 GET     /                                       App.Index
 
 GET     /stream                                 Stream.Index
-GET     /public                                 PublicStream.Index
-GET     /public/:page                           PublicStream.IndexPagination
 
 GET     /posts/:guid                            Post.Index
 GET     /tags/:name                             Tag.Index
