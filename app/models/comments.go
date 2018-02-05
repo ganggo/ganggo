@@ -90,10 +90,11 @@ func (comment *Comment) AfterFind() error {
   return db.Model(comment).Related(&comment.Person).Error
 }
 
-func (c *Comment) Count() (count int, err error) {
+func (c *Comment) Count() (count int) {
   db, err := OpenDatabase()
   if err != nil {
-    return -1, err
+    revel.AppLog.Error(err.Error())
+    return
   }
   defer db.Close()
 

@@ -152,10 +152,11 @@ func (p *Post) AfterDelete(db *gorm.DB) (err error) {
   return
 }
 
-func (p *Post) Count() (count int, err error) {
+func (p *Post) Count() (count int) {
   db, err := OpenDatabase()
   if err != nil {
-    return -1, err
+    revel.AppLog.Error(err.Error())
+    return
   }
   defer db.Close()
 

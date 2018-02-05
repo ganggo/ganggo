@@ -92,6 +92,12 @@ func CurrentUser(c *revel.Controller) (User, error) {
       revel.AppLog.Error("Cannot find token", "error", err)
       return User{}, err
     }
+    if !token.User.ActiveLastDay() {
+      err = token.User.UpdateLastSeen()
+      if err != nil {
+        return User{}, err
+      }
+    }
     return token.User, nil
   }
 
@@ -100,6 +106,12 @@ func CurrentUser(c *revel.Controller) (User, error) {
   if err != nil {
     revel.ERROR.Println(err)
     return User{}, err
+  }
+  if !session.User.ActiveLastDay() {
+    err = session.User.UpdateLastSeen()
+    if err != nil {
+      return User{}, err
+    }
   }
   return session.User, nil
 }

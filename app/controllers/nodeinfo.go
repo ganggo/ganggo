@@ -121,15 +121,11 @@ func generateSchema(version string) SchemaJson {
     protocols = []string{"diaspora"}
   }
 
-  // XXX implement login timestamp for monthly statistics
   var (
     user models.User
     comment models.Comment
     post models.Post
   )
-  userCnt, _ := user.Count()
-  commentCnt, _ := comment.Count()
-  postCnt, _ := post.Count()
 
   return SchemaJson{
     Version: version,
@@ -145,12 +141,12 @@ func generateSchema(version string) SchemaJson {
     OpenRegistrations: true,
     Usage: SchemaUsageJson{
       Users: SchemaUsersJson{
-        Total: userCnt,
-        ActiveHalfyear: userCnt,
-        ActiveMonth: userCnt,
+        Total: user.Count(),
+        ActiveHalfyear: user.ActiveHalfyear(),
+        ActiveMonth: user.ActiveMonth(),
       },
-      LocalPosts: postCnt,
-      LocalComments: commentCnt,
+      LocalPosts: post.Count(),
+      LocalComments: comment.Count(),
     },
     MetaData: SchemaMetaDataJson{
       NodeName: appName,

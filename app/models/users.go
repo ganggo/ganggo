@@ -23,6 +23,7 @@ import (
   "sort"
   "errors"
   "time"
+  "github.com/revel/revel"
 )
 
 type User struct {
@@ -34,6 +35,7 @@ type User struct {
   Email string `gorm:"size:191"`
   SerializedPrivateKey string `gorm:"type:text" json:"-" xml:"-"`
   EncryptedPassword string `json:"-" xml:"-"`
+  LastSeen time.Time
 
   PersonID uint
   Person Person `gorm:"ForeignKey:PersonID"`
@@ -95,14 +97,40 @@ func (user *User) FindByUsername(name string) (err error) {
   return db.Where("username = ?", name).Find(user).Error
 }
 
-func (user *User) Count() (count int, err error) {
+func (user *User) Count() (count int) {
   db, err := OpenDatabase()
   if err != nil {
-    return -1, err
+    revel.AppLog.Error(err.Error())
+    return
   }
   defer db.Close()
 
   db.Table("users").Count(&count)
+  return
+}
+func (user *User) ActiveHalfyear() (count int) {
+  db, err := OpenDatabase()
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  defer db.Close()
+
+  halfYear := time.Now().AddDate(0, -6, 0)
+  db.Table("users").Where("last_seen >= ?", halfYear).Count(&count)
+  return
+}
+
+func (user *User) ActiveMonth() (count int) {
+  db, err := OpenDatabase()
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  defer db.Close()
+
+  month := time.Now().AddDate(0, -1, 0)
+  db.Table("users").Where("last_seen >= ?", month).Count(&count)
   return
 }
 
@@ -212,4 +240,17 @@ func (stream *UserStream) Delete() error {
     return errors.New("Cannot delete user stream without ID and UserID")
   }
   return db.Delete(stream).Error
+}
+
+func (user *User) ActiveLastDay() bool {
+  oneDayAgo := time.Now().AddDate(0, 0, -1)
+  return user.LastSeen.After(oneDayAgo)
+}
+
+func (user *User) UpdateLastSeen() error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  return db.Model(user).Update("last_seen", time.Now()).Error
 }
