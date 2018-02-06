@@ -19,16 +19,18 @@ package controllers
 
 import (
   "github.com/revel/revel"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
+  api "gopkg.in/ganggo/api.v0/app/controllers"
 )
 
 type People struct {
   *revel.Controller
 }
 
-// XXX not in the federation gem but it seams
-// to be required after a new user is discovered
-// all public posts are fetch from this url
-func (p People) Index() revel.Result {
-  type ToDo struct {}
-  return p.RenderJSON(ToDo{})
+func (p People) IndexStream(guid, fields string, offset uint) revel.Result {
+  controller := p.Controller
+  controller.Params.Add("format", "diaspora")
+  userStream := api.ApiUserStream{
+    api.ApiHelper{controller, models.User{}}}
+  return userStream.ShowPersonStream(guid, fields, offset)
 }
