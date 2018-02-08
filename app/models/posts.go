@@ -217,6 +217,12 @@ func (p *Post) Cast(entity interface{}) (err error) {
       }
     }
 
+    createdAt, err := statusMessage.CreatedAt.Time()
+    if err != nil {
+      return err
+    }
+
+    (*p).CreatedAt = createdAt
     (*p).Photos = photos
     (*p).Public = statusMessage.Public
     (*p).Guid = statusMessage.Guid
@@ -235,6 +241,12 @@ func (p *Post) Cast(entity interface{}) (err error) {
       return
     }
 
+    createdAt, err := statusMessage.CreatedAt.Time()
+    if err != nil {
+      return err
+    }
+
+    (*p).CreatedAt = createdAt
     (*p).Public = true
     (*p).Guid = reshare.Guid
     (*p).Type = Reshare

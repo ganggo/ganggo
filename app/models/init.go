@@ -169,7 +169,7 @@ func searchAndCreateTags(model Model, db *gorm.DB) error {
     })
   }
   // batch insert doesn't work for gorm, yet
-  // see https://github.com/jinzhu/gorm/issues/255
+  // see https://gopkg.in/ganggo/gorm.v2/issues/255
   for _, tag := range tags {
     var cnt int
     db.Where("name = ?", tag.Name).Find(&tag).Count(&cnt)
@@ -217,7 +217,7 @@ func checkForMentionsInText(model Model) error {
 }
 
 // This is required since gorm.ModifyColumn only supports postgres engine
-// see https://github.com/jinzhu/gorm/blob/0a51f6cdc55d1650d9ed3b4c13026cfa9133b01e/scope.go#L1142
+// see https://gopkg.in/ganggo/gorm.v2/blob/0a51f6cdc55d1650d9ed3b4c13026cfa9133b01e/scope.go#L1142
 func advancedColumnModify(s *gorm.DB, column, dataType string) {
   var format string
   var scope = s.NewScope(s.Value)

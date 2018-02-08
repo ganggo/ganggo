@@ -21,6 +21,7 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
+  run "github.com/revel/modules/jobs/app/jobs"
 )
 
 func (receiver *Receiver) Like(entity federation.EntityLike) {
@@ -70,12 +71,10 @@ func (receiver *Receiver) Like(entity federation.EntityLike) {
   }
 
   if local {
-    dispatcher := Dispatcher{
+    run.Now(Dispatcher{
       Model: like,
       Message: entity,
       Relay: true,
-    }
-    // relay the entity
-    go dispatcher.Run()
+    })
   }
 }

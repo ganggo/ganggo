@@ -4,6 +4,8 @@
 
 module:testrunner
 
+module:jobs
+
 # Restful API (see config file)
 module:api
 
