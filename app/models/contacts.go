@@ -46,7 +46,14 @@ type Contacts []Contact
 //   HasPublic() bool
 //   IsPublic() bool
 func (c Contact) FetchID() uint { return c.ID }
-func (Contact) FetchGuid() string { return "" }
+func (c Contact) FetchGuid() string {
+  var person Person
+  err := person.FindByID(c.PersonID)
+  if err != nil {
+    panic(err.Error())
+  }
+  return person.Guid
+}
 func (Contact) FetchType() string { return ShareableContact }
 func (c Contact) FetchPersonID() uint { return c.PersonID }
 func (Contact) FetchText() string { return "" }
