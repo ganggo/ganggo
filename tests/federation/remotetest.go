@@ -20,6 +20,7 @@ package tests
 import (
   "time"
   "os/exec"
+  "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
 )
 
@@ -40,14 +41,18 @@ func (t *FederationRemoteTest) TestRemote() {
 
   for _, name := range ciDatabases {
     // share with ganggo user
-    cmd := exec.Command("docker", "exec", name,
-      "bundle", "exec", "rails", "runner", "share_with.rb", name, handle)
-    err := cmd.Run()
+    out, err := exec.Command("docker", "exec", name, "bundle", "exec",
+      "rails", "runner", "share_with.rb", name, handle).Output()
+    if err != nil {
+      revel.AppLog.Error(err.Error(), "stdout", string(out))
+    }
     t.AssertEqual(nil, err)
     // send post, like and comments
-    cmd = exec.Command("docker", "exec", name,
-      "bundle", "exec", "rails", "runner", "post_like_comment.rb", name)
-    err = cmd.Run()
+    out, err = exec.Command("docker", "exec", name, "bundle", "exec",
+      "rails", "runner", "post_like_comment.rb", name).Output()
+    if err != nil {
+      revel.AppLog.Error(err.Error(), "stdout", string(out))
+    }
     t.AssertEqual(nil, err)
   }
   // wait some time to federate
