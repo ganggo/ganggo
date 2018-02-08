@@ -36,8 +36,15 @@ func (receiver *Receiver) Like(entity federation.EntityLike) {
 
   err = like.Cast(&entity)
   if err != nil {
-    revel.AppLog.Error(err.Error())
-    return
+    // try to recover entity
+    recovery := Recovery{models.ShareablePost, entity.ParentGuid}
+    recovery.Run()
+
+    err = like.Cast(&entity)
+    if err != nil {
+      revel.AppLog.Error(err.Error())
+      return
+    }
   }
 
   _, _, local := like.ParentPostUser()

@@ -36,8 +36,15 @@ func (receiver *Receiver) Comment(entity federation.EntityComment) {
 
   err = comment.Cast(&entity)
   if err != nil {
-    revel.AppLog.Error(err.Error())
-    return
+    // try to recover entity
+    recovery := Recovery{models.ShareablePost, entity.ParentGuid}
+    recovery.Run()
+
+    err = comment.Cast(&entity)
+    if err != nil {
+      revel.AppLog.Error(err.Error())
+      return
+    }
   }
 
   _, _, local := comment.ParentPostUser()
