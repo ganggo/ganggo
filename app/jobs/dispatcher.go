@@ -23,7 +23,7 @@ import (
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
   federation "gopkg.in/ganggo/federation.v0"
-  "sync"
+  run "github.com/revel/modules/jobs/app/jobs"
   "bytes"
 )
 
@@ -34,7 +34,12 @@ type Dispatcher struct {
   Relay bool
 }
 
-func (dispatcher *Dispatcher) Run() {
+type send struct {
+  Host, Guid string
+  Payload []byte
+}
+
+func (dispatcher Dispatcher) Run() {
   switch entity := dispatcher.Message.(type) {
   case federation.EntityLike:
     revel.AppLog.Debug("Starting like dispatcher")
@@ -142,7 +147,12 @@ func (dispatcher Dispatcher) Send(parentPost models.Post, parentUser models.User
         revel.AppLog.Error(err.Error())
         return
       }
-      send(nil, host, parentPost.Person.Guid, payload)
+
+      run.Now(send{
+        Host: host,
+        Guid: parentPost.Person.Guid,
+        Payload: payload,
+      })
     }
   }
 }
@@ -155,14 +165,11 @@ func sendPublic(payload []byte) {
     return
   }
 
-  var wg sync.WaitGroup
-  for i, pod := range pods {
-    wg.Add(1)
-    go send(&wg, pod.Host, "", payload)
-    // do a maximum of e.g. 20 jobs async
-    if i >= MAX_ASYNC_JOBS {
-      wg.Wait()
-    }
+  for _, pod := range pods {
+    run.Now(send{
+      Host: pod.Host,
+      Payload: payload,
+    })
   }
 }
 
@@ -174,8 +181,7 @@ func sendToAspect(aspectID uint, privKey *rsa.PrivateKey, handle string, xml []b
     return
   }
 
-  var wg sync.WaitGroup
-  for i, member := range aspect.Memberships {
+  for _, member := range aspect.Memberships {
     var person models.Person
     err = person.FindByID(member.PersonID)
     if err != nil {
@@ -204,16 +210,15 @@ func sendToAspect(aspectID uint, privKey *rsa.PrivateKey, handle string, xml []b
     }
     revel.AppLog.Debug("Private request", "guid", person.Guid, "host", host)
 
-    wg.Add(1)
-    go send(&wg, host, person.Guid, payload)
-    // do a maximum of e.g. 20 jobs async
-    if i >= MAX_ASYNC_JOBS {
-      wg.Wait()
-    }
+    run.Now(send{
+      Host: host,
+      Guid: person.Guid,
+      Payload: payload,
+    })
   }
 }
 
-func send(wg *sync.WaitGroup, host, guid string, payload []byte) {
+func (s send) Run() {
   var err error
   revel.Config.SetSection("ganggo")
   localhost, found := revel.Config.String("address")
@@ -222,23 +227,23 @@ func send(wg *sync.WaitGroup, host, guid string, payload []byte) {
     return
   }
 
-  revel.AppLog.Debug("Sending payload", "guid", guid,
-    "host", host, "payload", string(payload))
+  revel.AppLog.Debug("Sending payload", "guid", s.Guid,
+    "host", s.Host, "payload", string(s.Payload))
 
   // skip own pod
-  if host == localhost {
+  if s.Host == localhost {
     revel.AppLog.Debug("Skip own pod")
     return
   }
 
-  if guid == "" {
-    err = federation.PushToPublic(host, bytes.NewBuffer(payload))
+  if s.Guid == "" {
+    err = federation.PushToPublic(s.Host,
+      bytes.NewBuffer(s.Payload))
   } else {
-    err = federation.PushToPrivate(host, guid, bytes.NewBuffer(payload))
+    err = federation.PushToPrivate(s.Host, s.Guid,
+      bytes.NewBuffer(s.Payload))
   }
-
   if err != nil {
-    revel.AppLog.Error(err.Error(), "host", host)
+    revel.AppLog.Error("Something went wrong while pushing", "host", s.Host, "err", err)
   }
-  if wg != nil { wg.Done() }
 }

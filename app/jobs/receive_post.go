@@ -21,7 +21,6 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
-  "time"
 )
 
 func (receiver *Receiver) Reshare(entity federation.EntityReshare) {
@@ -46,26 +45,39 @@ func (receiver *Receiver) Reshare(entity federation.EntityReshare) {
     return
   }
 
-  var post models.Post
   createdAt, err := entity.CreatedAt.Time()
   if err != nil {
-    createdAt = time.Now()
+    revel.AppLog.Error(err.Error())
+    return
   }
-  if err = post.FindByGuid(entity.RootGuid); err == nil {
-    reshare := models.Post{
-      Type: models.Reshare,
-      Guid: entity.Guid,
-      PersonID: fetch.Person.ID,
-      CreatedAt: createdAt,
-      RootPersonID: fetchRoot.Person.ID,
-      RootGuid: &entity.RootGuid,
-      Public: true,
-    }
-    err = db.Create(&reshare).Error
+
+  var post models.Post
+  err = post.FindByGuid(entity.RootGuid)
+  if err != nil {
+    // try to recover entity
+    recovery := Recovery{models.ShareablePost, entity.RootGuid}
+    recovery.Run()
+
+    err = post.FindByGuid(entity.RootGuid)
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
     }
+  }
+
+  reshare := models.Post{
+    Type: models.Reshare,
+    Guid: entity.Guid,
+    PersonID: fetch.Person.ID,
+    CreatedAt: createdAt,
+    RootPersonID: fetchRoot.Person.ID,
+    RootGuid: &entity.RootGuid,
+    Public: true,
+  }
+  err = db.Create(&reshare).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
   }
 }
 

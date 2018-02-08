@@ -4,6 +4,8 @@
 
 module:testrunner
 
+module:jobs
+
 # Restful API (see config file)
 module:api
 
@@ -46,6 +48,7 @@ GET     /captcha/:name                          Captcha.Index
 *       /hcard/users/:guid                      Hcard.User
 *       /receive/public                         Receiver.Public
 *       /receive/users/:guid                    Receiver.Private
+*       /fetch/:shareable/:guid                 Fetch.Index
 # NOTE not in the federation gem but it seams
 # to be required after a new user is discovered
 # all public posts are fetch from this url

@@ -19,7 +19,7 @@ package models
 
 import (
   "time"
-  "github.com/jinzhu/gorm"
+  "gopkg.in/ganggo/gorm.v2"
   federation "gopkg.in/ganggo/federation.v0"
   "github.com/revel/revel"
 )
@@ -217,6 +217,12 @@ func (p *Post) Cast(entity interface{}) (err error) {
       }
     }
 
+    createdAt, err := statusMessage.CreatedAt.Time()
+    if err != nil {
+      return err
+    }
+
+    (*p).CreatedAt = createdAt
     (*p).Photos = photos
     (*p).Public = statusMessage.Public
     (*p).Guid = statusMessage.Guid
@@ -235,6 +241,12 @@ func (p *Post) Cast(entity interface{}) (err error) {
       return
     }
 
+    createdAt, err := statusMessage.CreatedAt.Time()
+    if err != nil {
+      return err
+    }
+
+    (*p).CreatedAt = createdAt
     (*p).Public = true
     (*p).Guid = reshare.Guid
     (*p).Type = Reshare
@@ -344,13 +356,12 @@ func (posts *Posts) FindAllByUserAndText(user User, text string, offset uint) (e
 
   query := db.Offset(offset).Limit(10).
     Joins(`left join shareables on shareables.shareable_id = posts.id`).
-    Where(`posts.public = ? and ` + advancedColumnSearch("text", text), true)
+    Where(`posts.public = ? and ?`, true, advancedColumnSearch("text", text))
   if user.SerializedPrivateKey != "" {
     query = query.Or(`posts.id = shareables.shareable_id
       and shareables.shareable_type = ?
       and shareables.user_id = ?
-      and ` + advancedColumnSearch("text", text),
-      ShareablePost, user.ID,
+      and ?`, ShareablePost, user.ID, advancedColumnSearch("text", text),
     )
   }
   return query.Order(`posts.created_at desc`).Find(posts).Error

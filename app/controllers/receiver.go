@@ -21,6 +21,7 @@ import (
   "net/http"
   "github.com/revel/revel"
   federation "gopkg.in/ganggo/federation.v0"
+  run "github.com/revel/modules/jobs/app/jobs"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/jobs"
   "io/ioutil"
@@ -59,14 +60,10 @@ func (r Receiver) Public() revel.Result {
     return r.Render()
   }
 
-  // XXX investigate whether this is a
-  // d* problem in production mode as well
-  receiverJob := jobs.Receiver{
+  run.Now(jobs.Receiver{
     Message: msg,
     Entity: entity,
-  }
-  go receiverJob.Run()
-
+  })
   return r.Render()
 }
 
@@ -122,14 +119,10 @@ func (r Receiver) Private() revel.Result {
     return r.Render()
   }
 
-  receiverJob := jobs.Receiver{
+  run.Now(jobs.Receiver{
     Message: msg,
     Entity: entity,
     Guid: guid,
-  }
-  // XXX investigate whether this is a
-  // d* problem in production mode as well
-  go receiverJob.Run()
-
+  })
   return r.Render()
 }

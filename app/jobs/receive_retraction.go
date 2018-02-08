@@ -32,8 +32,6 @@ func (r *Receiver) Retraction(retraction federation.EntityRetraction) {
   }
   defer db.Close()
 
-  // XXX validate signatures D:
-
   // NOTE relay to other hosts if we own this entity
   // should be done before we start deleting db records
   dispatcher := Dispatcher{Message: retraction}

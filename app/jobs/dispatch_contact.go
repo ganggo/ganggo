@@ -20,6 +20,7 @@ package jobs
 import (
   "encoding/xml"
   "github.com/revel/revel"
+  run "github.com/revel/modules/jobs/app/jobs"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
   federation "gopkg.in/ganggo/federation.v0"
@@ -75,5 +76,10 @@ func (dispatcher *Dispatcher) Contact(contact federation.EntityContact) {
     revel.AppLog.Error(err.Error())
     return
   }
-  send(nil, host, person.Guid, payload)
+
+  run.Now(send{
+    Host: host,
+    Guid: person.Guid,
+    Payload: payload,
+  })
 }

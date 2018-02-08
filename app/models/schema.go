@@ -19,7 +19,7 @@ package models
 
 import (
   "github.com/revel/revel"
-  "github.com/jinzhu/gorm"
+  "gopkg.in/ganggo/gorm.v2"
 )
 
 type SchemaMigration struct {

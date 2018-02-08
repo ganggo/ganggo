@@ -44,6 +44,16 @@ func (pod *Pod) CreateOrFindHost() (err error) { BACKEND_ONLY()
   return
 }
 
+func (pods *Pods) FindRandom(limit uint) (err error) { BACKEND_ONLY()
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Find(pods).Order(randomOrder()).Limit(limit).Error
+}
+
 func (pods *Pods) FindAll() (err error) { BACKEND_ONLY()
   db, err := OpenDatabase()
   if err != nil {

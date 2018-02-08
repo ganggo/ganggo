@@ -21,7 +21,7 @@ import (
   "time"
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
+  "gopkg.in/ganggo/gorm.v2"
 )
 
 type Contact struct {

@@ -29,7 +29,7 @@ type Receiver struct {
   Guid string
 }
 
-func (receiver *Receiver) Run() {
+func (receiver Receiver) Run() {
   // search for sender and check his signature
   person, ok := receiver.CheckAuthor(receiver.Message.Sig.KeyId)
   if !ok || !valid(person, receiver.Message, "") {

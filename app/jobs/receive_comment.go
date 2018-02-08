@@ -21,6 +21,7 @@ import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   federation "gopkg.in/ganggo/federation.v0"
+  run "github.com/revel/modules/jobs/app/jobs"
 )
 
 func (receiver *Receiver) Comment(entity federation.EntityComment) {
@@ -36,8 +37,15 @@ func (receiver *Receiver) Comment(entity federation.EntityComment) {
 
   err = comment.Cast(&entity)
   if err != nil {
-    revel.AppLog.Error(err.Error())
-    return
+    // try to recover entity
+    recovery := Recovery{models.ShareablePost, entity.ParentGuid}
+    recovery.Run()
+
+    err = comment.Cast(&entity)
+    if err != nil {
+      revel.AppLog.Error(err.Error())
+      return
+    }
   }
 
   _, _, local := comment.ParentPostUser()
@@ -62,12 +70,10 @@ func (receiver *Receiver) Comment(entity federation.EntityComment) {
   }
 
   if local {
-    dispatcher := Dispatcher{
+    run.Now(Dispatcher{
       Model: comment,
       Message: entity,
       Relay: true,
-    }
-    // relay the entity
-    go dispatcher.Run()
+    })
   }
 }
