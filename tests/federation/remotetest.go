@@ -76,6 +76,11 @@ func (t *FederationRemoteTest) TestRemote() {
   err = db.Find(&models.Comments{}).Count(&count).Error
   t.AssertEqual(nil, err)
   t.AssertEqual(4, count)
+
+  count = 0
+  err = db.Find(&models.Notifications{}).Count(&count).Error
+  t.AssertEqual(nil, err)
+  t.AssertEqual(2, count)
 }
 
 func (t *FederationRemoteTest) After() {
@@ -84,6 +89,8 @@ func (t *FederationRemoteTest) After() {
     t.AssertEqual(nil, err)
     defer db.Close()
 
+    err = db.Delete(&models.Notifications{}).Error
+    t.AssertEqual(nil, err)
     err = db.Delete(&models.Comment{}).Error
     t.AssertEqual(nil, err)
     err = db.Delete(&models.Like{}).Error
