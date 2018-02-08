@@ -26,12 +26,15 @@ import (
   _ "gopkg.in/ganggo/gorm.v2/dialects/postgres"
   "os"
   "fmt"
+  "time"
 )
 
 var userRelations bool = false
 var ciDatabases = [2]string{"d1", "d2"}
 
 const (
+  federation_timeout = 15 * time.Second
+
   username = "ganggo"
   handle = username + "@localhost:9000"
   password = "pppppp"

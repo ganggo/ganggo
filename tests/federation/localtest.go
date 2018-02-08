@@ -70,7 +70,7 @@ func (t *FederationLocalTest) TestLocal() {
   t.AssertEqual(1, count)
 
   // wait some time to federate
-  <-time.After(5 * time.Second)
+  <-time.After(federation_timeout)
   if t.CI() {
     for _, name := range ciDatabases {
       ciDB, err := t.DB(name)

@@ -56,7 +56,7 @@ func (t *FederationRemoteTest) TestRemote() {
     t.AssertEqual(nil, err)
   }
   // wait some time to federate
-  <-time.After(5 * time.Second)
+  <-time.After(federation_timeout)
 
   db, err := models.OpenDatabase()
   t.AssertEqual(nil, err)
