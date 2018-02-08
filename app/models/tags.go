@@ -17,7 +17,7 @@ package models
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import "github.com/jinzhu/gorm"
+import "gopkg.in/ganggo/gorm.v2"
 
 type Tag struct {
   ID uint `gorm:"primary_key"`

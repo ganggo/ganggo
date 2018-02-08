@@ -19,7 +19,7 @@ package models
 
 import (
   "strings"
-  "github.com/jinzhu/gorm"
+  "gopkg.in/ganggo/gorm.v2"
   "sort"
   "errors"
   "time"

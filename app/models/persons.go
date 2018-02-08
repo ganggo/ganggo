@@ -19,7 +19,7 @@ package models
 
 import (
   "time"
-  "github.com/jinzhu/gorm"
+  "gopkg.in/ganggo/gorm.v2"
 )
 
 type Person struct {

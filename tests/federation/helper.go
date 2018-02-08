@@ -22,8 +22,8 @@ import (
   "encoding/json"
   "github.com/revel/revel/testing"
   "gopkg.in/ganggo/ganggo.v0/app/models"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
+  "gopkg.in/ganggo/gorm.v2"
+  _ "gopkg.in/ganggo/gorm.v2/dialects/postgres"
   "os"
   "fmt"
 )

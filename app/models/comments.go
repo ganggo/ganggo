@@ -21,7 +21,7 @@ import (
   "time"
   "github.com/revel/revel"
   federation "gopkg.in/ganggo/federation.v0"
-  "github.com/jinzhu/gorm"
+  "gopkg.in/ganggo/gorm.v2"
 )
 
 type Comment struct {
