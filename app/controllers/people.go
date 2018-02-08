@@ -19,7 +19,6 @@ package controllers
 
 import (
   "github.com/revel/revel"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
   api "gopkg.in/ganggo/api.v0/app/controllers"
 )
 
@@ -31,6 +30,9 @@ func (p People) IndexStream(guid, fields string, offset uint) revel.Result {
   controller := p.Controller
   controller.Params.Add("format", "diaspora")
   userStream := api.ApiUserStream{
-    api.ApiHelper{controller, models.User{}}}
+    ApiHelper: api.ApiHelper{
+      Controller: controller,
+    },
+  }
   return userStream.ShowPersonStream(guid, fields, offset)
 }
