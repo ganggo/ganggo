@@ -33,6 +33,12 @@ import (
 type I18nMessages map[string]map[string]string
 
 var TemplateFuncs = map[string]interface{}{
+  "IsAdmin": func(user models.User) bool {
+    return user.IsAdmin()
+  },
+  "IsModerator": func(user models.User) bool {
+    return user.IsModerator()
+  },
   // database types
   "IsReshare": func(a string) bool {
     return (a == models.Reshare)

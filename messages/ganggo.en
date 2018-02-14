@@ -23,6 +23,7 @@ navigation.write_a_post=Write a post..
 navigation.user.customize=Customize
 navigation.user.settings=Settings
 navigation.user.streams=Streams
+navigation.admin=Admin
 
 comment.placeholder=Write a comment..
 comment.button=Publish

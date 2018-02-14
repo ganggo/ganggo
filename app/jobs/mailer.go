@@ -19,8 +19,8 @@ package jobs
 
 import (
   "github.com/revel/revel"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
-  federation "gopkg.in/ganggo/federation.v0"
+  //"gopkg.in/ganggo/ganggo.v0/app/models"
+  //federation "gopkg.in/ganggo/federation.v0"
   "net/smtp"
   "strings"
 )
@@ -30,21 +30,21 @@ type Mailer struct {
   Body []byte
 }
 
-func (mailer Mailer) Send() {
+func (mailer Mailer) Run() {
   revel.Config.SetSection("ganggo")
-  if username, found := revel.Config.String("mail.username"); !found {
+  username, found := revel.Config.String("mail.username"); if !found {
     revel.AppLog.Debug("Cannot find config value!", "mail.username", found)
     return
   }
-  if password, found := revel.Config.String("mail.password"); !found {
+  password, found := revel.Config.String("mail.password"); if !found {
     revel.AppLog.Debug("Cannot find config value!", "mail.password", found)
     return
   }
-  if host, found := revel.Config.String("mail.host"); !found {
+  host, found := revel.Config.String("mail.host"); if !found {
     revel.AppLog.Debug("Cannot find config value!", "mail.host", found)
     return
   }
-  if sender, found := revel.Config.String("mail.sender"); !found {
+  sender, found := revel.Config.String("mail.sender"); if !found {
     revel.AppLog.Debug("Cannot find config value!", "mail.sender", found)
     return
   }
