@@ -20,6 +20,8 @@ package tests
 import (
   "net/url"
   "time"
+  "encoding/json"
+  "gopkg.in/ganggo/gorm.v2"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "fmt"
 )
@@ -69,31 +71,57 @@ func (t *FederationLocalTest) TestLocal() {
   t.AssertEqual(nil, err)
   t.AssertEqual(1, count)
 
-  // wait some time to federate
-  <-time.After(federation_timeout)
+  aspect := struct{ID uint}{}
+  d1 := &models.Person{}
+  d2 := &models.Person{}
+  values = url.Values{}
+  values.Set("aspect_name", "test1")
+  aspectBody := t.POST("/api/v0/aspects", values)
+  err = json.Unmarshal(aspectBody, &aspect)
+  t.AssertEqual(nil, err)
+  err = db.Find(&models.Aspect{}).Count(&count).Error
+  t.AssertEqual(nil, err)
+  t.AssertEqual(1, count)
+
   if t.CI() {
+    // test contact entity
+    err = db.Where("author = ?", "d1@localhost:3000").Find(d1).Error
+    t.AssertEqual(nil, err)
+    err = db.Where("author = ?", "d2@localhost:3001").Find(d2).Error
+    t.AssertEqual(nil, err)
+    t.POST(fmt.Sprintf(
+      "/api/v0/people/%d/aspects/%d",
+      d1.ID, aspect.ID), url.Values{})
+    err = db.Find(&models.AspectMembership{}).Count(&count).Error
+    t.AssertEqual(nil, err)
+    t.AssertEqual(1, count)
+    t.POST(fmt.Sprintf(
+      "/api/v0/people/%d/aspects/%d",
+      d2.ID, aspect.ID), url.Values{})
+    err = db.Find(&models.AspectMembership{}).Count(&count).Error
+    t.AssertEqual(nil, err)
+    t.AssertEqual(2, count)
+
+    // wait some time to federate
+    <-time.After(federation_timeout)
+
     for _, name := range ciDatabases {
       ciDB, err := t.DB(name)
       t.AssertEqual(nil, err)
       defer ciDB.Close()
 
-      result := struct {Count int}{}
-      err = ciDB.Raw(
-        "select count(*) as count from posts where text = ?", msg,
-      ).Scan(&result).Error
-      t.AssertEqual(nil, err)
-      t.AssertEqual(1, result.Count)
-
-      err = ciDB.Raw(
-        "select count(*) as count from comments where text = ?", msg,
-      ).Scan(&result).Error
-      t.AssertEqual(nil, err)
-      t.AssertEqual(1, result.Count)
-
-      err = ciDB.Raw(
-        "select count(*) as count from likes").Scan(&result).Error
-      t.AssertEqual(nil, err)
-      t.AssertEqual(1, result.Count)
+      result := struct{Count int}{}
+      tests := []struct{Scope *gorm.DB}{
+        {Scope: ciDB.Raw("select count(*) as count from posts where text = ?", msg)},
+        {Scope: ciDB.Raw("select count(*) as count from comments where text = ?", msg)},
+        {Scope: ciDB.Raw("select count(*) as count from likes")},
+        {Scope: ciDB.Raw("select count(*) as count from contacts")},
+      }
+      for i, test := range tests {
+        err = test.Scope.Scan(&result).Error
+        t.Assertf(err == nil, "#%d: expected nil, got '%+v'", i, err)
+        t.Assertf(result.Count == 1, "#%d: expected 1, got %d", i, result.Count)
+      }
     }
   }
 }
@@ -103,12 +131,16 @@ func (t *FederationLocalTest) After() {
   t.AssertEqual(nil, err)
   defer db.Close()
 
-  err = db.Delete(&models.Like{}).Error
-  t.AssertEqual(nil, err)
+  deleteModels := []interface{}{
+    &models.Like{},
+    &models.Comment{},
+    &models.Post{},
+    &models.AspectMembership{},
+    &models.Aspect{},
+  }
 
-  err = db.Delete(&models.Comment{}).Error
-  t.AssertEqual(nil, err)
-
-  err = db.Delete(&models.Post{}).Error
-  t.AssertEqual(nil, err)
+  for i, deleteModel := range deleteModels {
+    err = db.Delete(deleteModel).Error
+    t.Assertf(err == nil, "#%d: expected nil, got '%+v'", i, err)
+  }
 }
