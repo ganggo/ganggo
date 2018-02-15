@@ -61,11 +61,11 @@
   <div class="row mt-4">
     {{if ugt .page 1}}
     <div class="col">
-      <a type="button" class="btn btn-primary btn-block" href="/profiles/{{.person.Guid}}/{{sub .page 1}}">{{msg . "profile.previous"}}</a>
+      <a type="button" class="btn btn-primary btn-block" href="/profiles/{{.person.Guid}}/{{usub .page 1}}">{{msg . "profile.previous"}}</a>
     </div>
     {{end}}
     <div class="col">
-      <a type="button" class="btn btn-primary btn-block" href="/profiles/{{.person.Guid}}/{{add .page 1}}">{{msg . "profile.next"}}</a>
+      <a type="button" class="btn btn-primary btn-block" href="/profiles/{{.person.Guid}}/{{uadd .page 1}}">{{msg . "profile.next"}}</a>
     </div>
   </div>
 </div>
