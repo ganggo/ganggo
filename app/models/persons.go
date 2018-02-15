@@ -78,3 +78,13 @@ func (person *Person) FindByAuthor(author string) (err error) {
 
   return db.Where("author = ?", author).First(person).Error
 }
+
+func (person *Person) FirstByPod(pod Pod) error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("pod_id = ?", pod.ID).First(person).Error
+}

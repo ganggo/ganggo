@@ -74,3 +74,13 @@ func (pods *Pods) FindAll() (err error) { BACKEND_ONLY()
 
   return db.Find(pods).Error
 }
+
+func (pods *Pods) FindByHelo(helo bool) error { BACKEND_ONLY()
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("helo = ?", helo).Find(pods).Error
+}
