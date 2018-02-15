@@ -20,6 +20,7 @@ package models
 import (
   "github.com/revel/revel"
   "gopkg.in/ganggo/gorm.v2"
+  "gopkg.in/ganggo/ganggo.v0/app/helpers"
 )
 
 type SchemaMigration struct {
@@ -72,6 +73,28 @@ func migrateSchema(db *gorm.DB) error {
   }
 
   //// Migrations End ////
+
+  // for reasons described in PR ganggo/ganggo#46 we need a
+  // default user account which can auto-follow unknown server
+  commit = "create_initial_user_account"
+  if _, ok := migrations[commit]; !ok {
+    password, err := helpers.Uuid()
+    if err != nil {
+      panic(err.Error())
+    }
+
+    db.Create(&User{
+      Password: password,
+      Username: "hq",
+      Person: Person {
+        Profile: Profile{
+          Searchable: true,
+          ImageUrl: "/public/img/avatar.png",
+        },
+      },
+    })
+    structMigrations = append(structMigrations, SchemaMigration{Commit: commit})
+  }
 
   for _, m := range structMigrations {
     err = db.Create(&m).Error
