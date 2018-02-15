@@ -16,3 +16,35 @@ package jobs
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+
+import (
+  "time"
+  "github.com/revel/revel"
+  "gopkg.in/ganggo/ganggo.v0/app/models"
+)
+
+type Session struct {}
+
+// Run will clean-up all sessions older then two days
+func (s Session) Run() {
+  // from; 1970-01-01 00:00:00 +0000 UTC
+  from, err := time.Parse("2006", "1970")
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  // to; now() - two day
+  to := time.Now().AddDate(0, 0, -2)
+
+  var sessions models.Sessions
+  err = sessions.FindByTimeRange(from, to)
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  err = sessions.Delete()
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+}

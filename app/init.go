@@ -24,10 +24,13 @@ import (
   "gopkg.in/ganggo/ganggo.v0/app/helpers"
   "gopkg.in/ganggo/ganggo.v0/app/models"
   "gopkg.in/ganggo/ganggo.v0/app/views"
+  "gopkg.in/ganggo/ganggo.v0/app/jobs"
+  run "github.com/revel/modules/jobs/app/jobs"
   federation "gopkg.in/ganggo/federation.v0"
   "net/http"
   "strings"
   "fmt"
+  "time"
 )
 
 func InitDB() {
@@ -105,6 +108,11 @@ func init() {
     federation.SetLogger(helpers.AppLogWrapper{
       Name: "federation",
     })
+  })
+
+  // register jobs running on an interval
+  revel.OnAppStart(func() {
+    run.Every(24*time.Hour, jobs.Session{})
   })
 
   // append custom template functions to revel

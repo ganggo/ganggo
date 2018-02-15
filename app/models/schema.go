@@ -45,6 +45,15 @@ func migrateSchema(db *gorm.DB) error {
 
   //// Migrations Start ////
 
+  // related to ganggo/ganggo@d14d3e2e32730355a67b6cd418c94176914e27c0
+  // see app/models/sessions.go for details
+  commit = "d14d3e2e32730355a67b6cd418c94176914e27c0"
+  if _, ok := migrations[commit]; !ok {
+    db.Model(&Session{}).DropColumn("id")
+    db.Model(&Session{}).DropColumn("updated_at")
+    structMigrations = append(structMigrations, SchemaMigration{Commit: commit})
+  }
+
   // related to ganggo/ganggo@0f94958c6b7f727c43031d756ae01d62d1467b74
   commit = "0f94958c6b7f727c43031d756ae01d62d1467b74"
   if _, ok := migrations[commit]; !ok {

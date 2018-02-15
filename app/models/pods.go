@@ -27,9 +27,20 @@ type Pod struct {
   // size should be max 191 with mysql innodb
   // cause asumming we use utf8mb 4*191 = 764 < 767
   Host string `gorm:"size:191" json:"host"`
+  Helo bool `gorm:"default:false"`
 }
 
 type Pods []Pod
+
+func (pod *Pod) Save() error { BACKEND_ONLY()
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Save(pod).Error
+}
 
 func (pod *Pod) CreateOrFindHost() (err error) { BACKEND_ONLY()
   db, err := OpenDatabase()
