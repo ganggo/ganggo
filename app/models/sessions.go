@@ -23,9 +23,7 @@ import (
 )
 
 type Session struct {
-  ID uint `gorm:"primary_key"`
   CreatedAt time.Time
-  UpdatedAt time.Time
 
   // size should be max 191 with mysql innodb
   // cause asumming we use utf8mb 4*191 = 764 < 767
@@ -34,10 +32,46 @@ type Session struct {
   User User
 }
 
+type Sessions []Session
+
 func (s *Session) AfterFind(db *gorm.DB) error {
   if structLoaded(s.User.CreatedAt) {
     return nil
   }
 
   return db.Model(s).Related(&s.User).Error
+}
+
+func (s *Sessions) FindByTimeRange(from, to time.Time) error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("created_at between ? and ?", from, to).Find(s).Error
+}
+
+func (s *Sessions) Delete() error {
+  for _, session := range *s {
+    err := session.Delete()
+    if err != nil {
+      return err
+    }
+  }
+  return nil
+}
+
+func (s *Session) Delete() error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  if s.Token == "" {
+    panic("Cannot delete empty session struct!")
+  }
+
+  return db.Where("token = ?", s.Token).Delete(s).Error
 }
