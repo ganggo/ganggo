@@ -137,6 +137,13 @@ func (t *FederationSuite) POST(path string, values url.Values) []byte {
   return t.ResponseBody
 }
 
+func (t *FederationSuite) GET(path string) []byte {
+  req := t.GetCustom(t.BaseUrl() + path)
+  req.Header.Set("access_token", t.AccessToken())
+  req.Send()
+  return t.ResponseBody
+}
+
 func (t *FederationSuite) CI() bool {
   return os.Getenv("CI") != ""
 }

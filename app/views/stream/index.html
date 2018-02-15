@@ -22,14 +22,14 @@
       <a type="button" class="btn btn-primary btn-block" href="/
         {{- if eq .title $tags}}tags/{{.tag}}/?
         {{- else}}stream?view={{.view}}&
-        {{- end}}page={{sub .page 1}}">{{msg . "profile.previous"}}</a>
+        {{- end}}page={{usub .page 1}}">{{msg . "profile.previous"}}</a>
     </div>
     {{end}}
     <div class="col">
       <a type="button" class="btn btn-primary btn-block" href="/
         {{- if eq .title $tags}}tags/{{.tag}}/?
         {{- else}}stream?view={{.view}}&
-        {{- end}}page={{add .page 1}}">{{msg . "profile.next"}}</a>
+        {{- end}}page={{uadd .page 1}}">{{msg . "profile.next"}}</a>
     </div>
   </div>
 </div>

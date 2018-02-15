@@ -208,27 +208,17 @@ var TemplateFuncs = map[string]interface{}{
   "ne": func(a, b interface {}) bool {
     return a != b
   },
-  "add": func(a, b interface{}) int {
-    aint, aok := a.(int)
-    if bint, bok := b.(int); aok && bok {
-      return aint + bint
-    }
-    auint, aok := a.(uint)
-    if buint, bok := b.(uint); aok && bok  {
-      return int(auint + buint)
-    }
-    return 0
+  "add": func(a, b int) int {
+    return a + b
   },
-  "sub": func(a, b interface{}) int {
-    aint, aok := a.(int)
-    if bint, bok := b.(int); aok && bok {
-      return aint - bint
-    }
-    auint, aok := a.(uint)
-    if buint, bok := b.(uint); aok && bok  {
-      return int(auint - buint)
-    }
-    return 0
+  "uadd": func(a, b uint) uint {
+    return a + b
+  },
+  "sub": func(a, b int) int {
+    return a - b
+  },
+  "usub": func(a, b uint) uint {
+    return a - b
   },
   "concat": func(a, b string) string {
     return a + b
