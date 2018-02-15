@@ -5,17 +5,15 @@ services:
 - postgresql
 go:
 - 1.9.x
-branches:
-  only:
-  - "/^v\\d.*$/"
 env:
   global:
   - UPDATE_CHANNEL=alpha
   - PATH=$PATH:$GOPATH/bin
-  - VERSION=${TRAVIS_BRANCH/-*/}
+  - VERSION=$(git describe --abbrev=0 --tags |cut -d- -f1)
   matrix:
   - BUILD_GOOS=linux BUILD_GOARCH=amd64
 before_install:
+- env # print environment vars for debugging purposes
 - psql -c 'create database ganggo;' -U postgres
 install:
 - make install
@@ -39,5 +37,4 @@ deploy:
   file: updater.$LABEL
   skip_cleanup: true
   on:
-    condition: ${TRAVIS_BRANCH/*-/} != "testing"
     tags: true
