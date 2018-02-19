@@ -22,6 +22,7 @@ import (
   "github.com/dchest/captcha"
   "github.com/ganggo/ganggo/app/models"
   "github.com/ganggo/ganggo/app/helpers"
+  "net/http"
 )
 
 type User struct {
@@ -54,26 +55,31 @@ func (u User) Create() revel.Result {
 
   if !revel.DevMode && !captcha.VerifyString(captchaID, captchaValue) {
     u.Flash.Error(u.Message("flash.errors.captcha"))
+    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
   }
 
   if _, exists := helpers.UserBlacklist[username]; exists {
     u.Flash.Error(u.Message("flash.errors.username"))
+    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
   }
 
   if !db.Where("username = ?", username).First(&user).RecordNotFound() {
     u.Flash.Error(u.Message("flash.errors.username"))
+    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
   }
 
   if password == "" || password != verify {
     u.Flash.Error(u.Message("flash.errors.password_empty"))
+    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
   }
 
   if len(password) < 4 {
     u.Flash.Error(u.Message("flash.errors.password_length"))
+    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
   }
 
@@ -92,6 +98,7 @@ func (u User) Create() revel.Result {
   err = db.Create(&user).Error
   if err != nil {
     u.Log.Error("Cannot create user", "error", err)
+    u.Response.Status = http.StatusInternalServerError
     return u.RenderError(err)
   }
   u.Flash.Success(u.Message("flash.success.registration"))
@@ -104,6 +111,7 @@ func (u User) Logout() revel.Result {
   db, err := models.OpenDatabase()
   if err != nil {
     u.Log.Error("Cannot open database", "error", err)
+    u.Response.Status = http.StatusInternalServerError
     return u.RenderError(err)
   }
   defer db.Close()
@@ -111,6 +119,7 @@ func (u User) Logout() revel.Result {
   err = db.Where("token = ?", u.Session["TOKEN"]).First(&session).Error
   if err != nil {
     u.Log.Error("Cannot find session", "error", err)
+    u.Response.Status = http.StatusInternalServerError
     return u.RenderError(err)
   }
   db.Delete(&session)
@@ -137,6 +146,7 @@ func (u User) Login() revel.Result {
   db, err := models.OpenDatabase()
   if err != nil {
     u.Log.Error("Cannot open database", "error", err)
+    u.Response.Status = http.StatusInternalServerError
     return u.RenderError(err)
   }
   defer db.Close()
@@ -145,17 +155,20 @@ func (u User) Login() revel.Result {
   if err != nil {
     u.Flash.Error(u.Message(
       "flash.errors.username_not_found",  username))
+    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Login)
   }
 
   if !helpers.CheckHash(password, user.EncryptedPassword) {
     u.Flash.Error(u.Message("flash.errors.login_failed"))
+    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Login)
   }
 
   token, err := helpers.Uuid()
   if err != nil {
     u.Log.Error("Cannot generate UUID", "error", err)
+    u.Response.Status = http.StatusInternalServerError
     return u.RenderError(err)
   }
   session.UserID = user.ID
@@ -164,6 +177,7 @@ func (u User) Login() revel.Result {
   err = db.Create(&session).Error
   if err != nil {
     u.Log.Error("Cannot create session", "error", err)
+    u.Response.Status = http.StatusInternalServerError
     return u.RenderError(err)
   }
   u.Session["TOKEN"] = session.Token
