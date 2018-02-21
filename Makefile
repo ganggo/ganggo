@@ -3,11 +3,7 @@
 SHELL=/bin/bash
 
 version := $(shell echo -n $(VERSION) |cut -d- -f1)
-ifndef version
-$(error "Please define a version you want to build e.g. VERSION=v0 make")
-endif
-
-package := gopkg.in/ganggo/ganggo.$(version)
+package := github.com/ganggo/ganggo
 srcdir := $(GOPATH)/src/$(package)
 
 go := $(shell command -v go 2> /dev/null)
@@ -15,6 +11,10 @@ gobin := $(shell command -v go-bindata 2> /dev/null)
 npm := $(shell command -v npm 2> /dev/null)
 revel := $(shell command -v revel 2> /dev/null)
 train := $(shell command -v train 2> /dev/null)
+
+define version_info
+Please define a version you want to build e.g. VERSION=v0 make
+endef
 
 define install_deps_info
 is not available please run 'make install-deps'
@@ -41,12 +41,14 @@ ifndef npm
 	$(error "npm is not available please install it first!")
 endif
 	# Install CSS and Javascript dependencies
-	npm install --prefix .
+	cd $(srcdir) && npm install --prefix .
 	# GangGo dependencies
-	go get -d \
-		./... \
-		gopkg.in/ganggo/api.$(version)/... \
-		gopkg.in/ganggo/federation.$(version)/...
+	go get -u github.com/golang/dep/cmd/dep
+	cd $(srcdir) && dep ensure
+	# XXX this seams to be a bug in revel
+	# it cannot find the api module within
+	# the vendor directory even though it exists
+	go get -d gopkg.in/ganggo/api.v0/...
 	## CLI for train asset library / revel webframework
 	go get -d \
 		github.com/shaoshing/train \
@@ -76,11 +78,14 @@ endif
 		done
 
 compile:
+ifndef version
+	$(error $(version_info))
+endif
 ifndef revel
 	$(error "revel $(install_deps_info)")
 endif
 	cp $(srcdir)/conf/app.conf.example $(srcdir)/conf/app.conf
-	revel package $(package)
+	cd $(srcdir) && APP_VERSION=$(version) revel package $(package)
 
 test:
 	go tool vet -v -all app/
@@ -88,13 +93,24 @@ ifndef revel
 	$(error "revel $(install_deps_info)")
 endif
 	cp $(srcdir)/conf/app.conf.example $(srcdir)/conf/app.conf
-	revel test $(package)
+	# XXX revel will not print error stacks to console
+	# (see https://github.com/revel/cmd/issues/121)
+	revel test $(package) travis || { \
+		cd $(srcdir) && bash tests/scripts/test_results.sh ;\
+		exit 1 ;\
+	}
 
 u2d-wrapper:
+ifndef version
+	$(error $(version_info))
+endif
 ifndef gobin
 	$(error "go-bindata $(install_deps_info)")
 endif
-	mkdir tmp && tar -x -f "ganggo.$(version).tar.gz" -C tmp
-	cd tmp && mv ganggo.$(version)* ganggo && \
+	mkdir -p $(srcdir)/tmp && cd $(srcdir)/tmp && \
+		tar -x -f "../ganggo.tar.gz" && \
+		rm -rf src/$(package)/{vendor,node_modules} && \
 		go-bindata -o ../bindata.go ganggo src/...
-	go build -ldflags "-X main.version=$(version)" -o updater updater.go bindata.go
+	cd $(srcdir) && go build \
+		-ldflags "-X main.version=$(version)" \
+		-o updater updater.go bindata.go

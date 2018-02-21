@@ -236,3 +236,21 @@ log.error.flags = 3
 # Example:
 #   log.request.output = %(app.name)s-request.log
 log.request.output = off
+
+################################################################################
+# Section: travis
+# This section is dedicated to the continuous integration service only
+[travis]
+mode.dev = true
+results.pretty = true
+watch = false
+module.testrunner = github.com/revel/modules/testrunner
+log.trace.output = log/%(app.name)s-travis.log
+log.info.output  = log/%(app.name)s-travis.log
+log.warn.output  = log/%(app.name)s-travis.log
+log.error.output = log/%(app.name)s-travis.log
+log.trace.flags = 19
+log.info.flags  = 19
+log.warn.flags  = 19
+log.error.flags = 19
+log.request.output = log/%(app.name)s-travis.log
