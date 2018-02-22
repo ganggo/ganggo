@@ -18,18 +18,11 @@ package controllers
 //
 
 import (
-  "errors"
-  "golang.org/x/crypto/bcrypt"
   "github.com/revel/revel"
   "github.com/dchest/captcha"
-
-  "crypto/rand"
-  "crypto/rsa"
-  "crypto/x509"
-  "encoding/pem"
-
   "github.com/ganggo/ganggo/app/models"
   "github.com/ganggo/ganggo/app/helpers"
+  "net/http"
 )
 
 type User struct {
@@ -61,108 +54,54 @@ func (u User) Create() revel.Result {
   u.Params.Bind(&captchaValue, "captchaValue")
 
   if !revel.DevMode && !captcha.VerifyString(captchaID, captchaValue) {
-    u.Flash.Error(revel.MessageFunc(
-      u.Request.Locale,
-      "flash.errors.captcha",
-    ))
+    u.Flash.Error(u.Message("flash.errors.captcha"))
+    u.Response.Status = http.StatusNotAcceptable
+    return u.Redirect(User.Index)
+  }
+
+  if _, exists := helpers.UserBlacklist[username]; exists {
+    u.Flash.Error(u.Message("flash.errors.username"))
+    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
   }
 
   if !db.Where("username = ?", username).First(&user).RecordNotFound() {
-    u.Flash.Error(revel.MessageFunc(
-      u.Request.Locale,
-      "flash.errors.username",
-    ))
+    u.Flash.Error(u.Message("flash.errors.username"))
+    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
   }
 
   if password == "" || password != verify {
-    u.Flash.Error(revel.MessageFunc(
-      u.Request.Locale,
-      "flash.errors.password_empty",
-    ))
+    u.Flash.Error(u.Message("flash.errors.password_empty"))
+    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
   }
 
   if len(password) < 4 {
-    u.Flash.Error(revel.MessageFunc(
-      u.Request.Locale,
-      "flash.errors.password_length",
-    ))
+    u.Flash.Error(u.Message("flash.errors.password_length"))
+    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
-  }
-
-  // generate priv,pub key
-  privKey, err := rsa.GenerateKey(rand.Reader, 2048)
-  if err != nil {
-    u.Log.Error("Cannot generate RSA key", "error", err)
-    return u.RenderError(err)
-  }
-  // private key
-  key := x509.MarshalPKCS1PrivateKey(privKey)
-  block := pem.Block{
-    Type: "PRIVATE KEY",
-    Bytes: key,
-  }
-  keyEncoded := pem.EncodeToMemory(&block)
-  // public key
-  pub, err := x509.MarshalPKIXPublicKey(&privKey.PublicKey)
-  if err != nil {
-    u.Log.Error("Cannot extract public key", "error", err)
-    return u.RenderError(err)
-  }
-  pubBlock := pem.Block{
-    Type: "PUBLIC KEY",
-    Bytes: pub,
-  }
-  pubEncoded := pem.EncodeToMemory(&pubBlock)
-
-  guid, err := helpers.Uuid()
-  if err != nil {
-    u.Log.Error("Cannot generate UUID", "error", err)
-    return u.RenderError(err)
-  }
-
-  passwordEncoded, err := bcrypt.GenerateFromPassword([]byte(password), -1)
-  if err != nil {
-    u.Log.Error("Cannot encode password", "error", err)
-    return u.RenderError(err)
-  }
-
-  revel.Config.SetSection("ganggo")
-  host, found := revel.Config.String("address")
-  if !found {
-    err = errors.New("No server address configured")
-    u.Log.Error("", "error", err)
-    return u.RenderError(err)
   }
 
   // build user struct
   user = models.User{
+    Password: password,
     Username: username,
-    SerializedPrivateKey: string(keyEncoded),
-    EncryptedPassword: string(passwordEncoded),
     Person: models.Person {
-      Guid: guid,
-      Author: username + "@" + host,
-      SerializedPublicKey: string(pubEncoded),
       Profile: models.Profile{
-        Author: username + "@" + host,
         Searchable: true,
         ImageUrl: "/public/img/avatar.png",
       },
     },
   }
+
   err = db.Create(&user).Error
   if err != nil {
     u.Log.Error("Cannot create user", "error", err)
+    u.Response.Status = http.StatusInternalServerError
     return u.RenderError(err)
-  } else {
-    u.Flash.Success(revel.MessageFunc(
-      u.Request.Locale,
-      "flash.success.registration",
-    ))
   }
+  u.Flash.Success(u.Message("flash.success.registration"))
   return u.Redirect(User.Login)
 }
 
@@ -172,6 +111,7 @@ func (u User) Logout() revel.Result {
   db, err := models.OpenDatabase()
   if err != nil {
     u.Log.Error("Cannot open database", "error", err)
+    u.Response.Status = http.StatusInternalServerError
     return u.RenderError(err)
   }
   defer db.Close()
@@ -179,6 +119,7 @@ func (u User) Logout() revel.Result {
   err = db.Where("token = ?", u.Session["TOKEN"]).First(&session).Error
   if err != nil {
     u.Log.Error("Cannot find session", "error", err)
+    u.Response.Status = http.StatusInternalServerError
     return u.RenderError(err)
   }
   db.Delete(&session)
@@ -205,31 +146,29 @@ func (u User) Login() revel.Result {
   db, err := models.OpenDatabase()
   if err != nil {
     u.Log.Error("Cannot open database", "error", err)
+    u.Response.Status = http.StatusInternalServerError
     return u.RenderError(err)
   }
   defer db.Close()
 
   err = db.Where("username = ?", username).First(&user).Error
   if err != nil {
-    u.Flash.Error(revel.MessageFunc(
-      u.Request.Locale,
-      "flash.errors.username_not_found",
-      username,
-    ))
+    u.Flash.Error(u.Message(
+      "flash.errors.username_not_found",  username))
+    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Login)
   }
 
   if !helpers.CheckHash(password, user.EncryptedPassword) {
-    u.Flash.Error(revel.MessageFunc(
-      u.Request.Locale,
-      "flash.errors.login_failed",
-    ))
+    u.Flash.Error(u.Message("flash.errors.login_failed"))
+    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Login)
   }
 
   token, err := helpers.Uuid()
   if err != nil {
     u.Log.Error("Cannot generate UUID", "error", err)
+    u.Response.Status = http.StatusInternalServerError
     return u.RenderError(err)
   }
   session.UserID = user.ID
@@ -238,13 +177,11 @@ func (u User) Login() revel.Result {
   err = db.Create(&session).Error
   if err != nil {
     u.Log.Error("Cannot create session", "error", err)
+    u.Response.Status = http.StatusInternalServerError
     return u.RenderError(err)
   }
   u.Session["TOKEN"] = session.Token
 
-  u.Flash.Success(revel.MessageFunc(
-    u.Request.Locale,
-    "flash.success.login",
-  ))
+  u.Flash.Success(u.Message("flash.success.login"))
   return u.Redirect(Stream.Index)
 }

@@ -24,6 +24,12 @@ import (
   "errors"
   "time"
   "github.com/revel/revel"
+  "crypto/rand"
+  "crypto/rsa"
+  "crypto/x509"
+  "encoding/pem"
+  "golang.org/x/crypto/bcrypt"
+  "github.com/ganggo/ganggo/app/helpers"
 )
 
 type User struct {
@@ -34,6 +40,7 @@ type User struct {
   Username string `gorm:"size:191"`
   Email string `gorm:"size:191"`
   SerializedPrivateKey string `gorm:"type:text" json:"-" xml:"-"`
+  Password string `gorm:"-" json:"-" xml:"-"`
   EncryptedPassword string `json:"-" xml:"-"`
   LastSeen time.Time
 
@@ -59,6 +66,53 @@ type UserStream struct {
 }
 
 type UserStreams []UserStream
+
+func (user *User) BeforeCreate() error {
+  // generate priv/pub key
+  privKey, err := rsa.GenerateKey(rand.Reader, 2048)
+  if err != nil {
+    return err
+  }
+
+  // private key
+  key := x509.MarshalPKCS1PrivateKey(privKey)
+  block := pem.Block{Type: "PRIVATE KEY", Bytes: key}
+  keyEncoded := pem.EncodeToMemory(&block)
+
+  // public key
+  pub, err := x509.MarshalPKIXPublicKey(&privKey.PublicKey)
+  if err != nil {
+    return err
+  }
+
+  pubBlock := pem.Block{Type: "PUBLIC KEY", Bytes: pub}
+  pubEncoded := pem.EncodeToMemory(&pubBlock)
+
+  guid, err := helpers.Uuid();if err != nil {
+    return err
+  }
+
+  passwordEncoded, err := bcrypt.GenerateFromPassword(
+    []byte(user.Password), -1); if err != nil {
+    return err
+  }
+
+  revel.Config.SetSection("ganggo")
+  host, found := revel.Config.String("address")
+  if !found {
+    return errors.New("No server address configured")
+  }
+
+  // set priv/pub keys and encrypted password
+  user.SerializedPrivateKey = string(keyEncoded)
+  user.EncryptedPassword = string(passwordEncoded)
+  user.Person.Guid = guid
+  user.Person.Author = user.Username + "@" + host
+  user.Person.Profile.Author = user.Username + "@" + host
+  user.Person.SerializedPublicKey = string(pubEncoded)
+
+  return nil
+}
 
 func (user *User) AfterCreate(tx *gorm.DB) error {
   return tx.Model(&user.Person).Update("user_id", user.ID).Error
