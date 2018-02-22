@@ -20,7 +20,7 @@ package jobs
 import (
   "time"
   "github.com/revel/revel"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
+  "github.com/ganggo/ganggo/app/models"
 )
 
 type Session struct {}

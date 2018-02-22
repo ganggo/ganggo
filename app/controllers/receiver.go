@@ -20,10 +20,10 @@ package controllers
 import (
   "net/http"
   "github.com/revel/revel"
-  federation "gopkg.in/ganggo/federation.v0"
+  federation "github.com/ganggo/federation"
   run "github.com/revel/modules/jobs/app/jobs"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
-  "gopkg.in/ganggo/ganggo.v0/app/jobs"
+  "github.com/ganggo/ganggo/app/models"
+  "github.com/ganggo/ganggo/app/jobs"
   "io/ioutil"
 )
 

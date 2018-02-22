@@ -15,3 +15,6 @@ node_modules
 public/assets
 .js$:.js
 .css$:.css
+
+# go dep
+vendor/

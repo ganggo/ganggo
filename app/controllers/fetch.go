@@ -21,9 +21,9 @@ import (
   "net/http"
   "encoding/xml"
   "github.com/revel/revel"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
-  "gopkg.in/ganggo/ganggo.v0/app/helpers"
-  federation "gopkg.in/ganggo/federation.v0"
+  "github.com/ganggo/ganggo/app/models"
+  "github.com/ganggo/ganggo/app/helpers"
+  federation "github.com/ganggo/federation"
   "strings"
 )
 

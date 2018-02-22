@@ -28,8 +28,8 @@ import (
   "crypto/x509"
   "encoding/pem"
 
-  "gopkg.in/ganggo/ganggo.v0/app/models"
-  "gopkg.in/ganggo/ganggo.v0/app/helpers"
+  "github.com/ganggo/ganggo/app/models"
+  "github.com/ganggo/ganggo/app/helpers"
 )
 
 type User struct {

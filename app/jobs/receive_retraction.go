@@ -20,8 +20,8 @@ package jobs
 import (
   "strings"
   "github.com/revel/revel"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
-  federation "gopkg.in/ganggo/federation.v0"
+  "github.com/ganggo/ganggo/app/models"
+  federation "github.com/ganggo/federation"
 )
 
 func (r *Receiver) Retraction(retraction federation.EntityRetraction) {

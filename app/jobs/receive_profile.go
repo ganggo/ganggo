@@ -19,9 +19,9 @@ package jobs
 
 import (
   "github.com/revel/revel"
-  "gopkg.in/ganggo/ganggo.v0/app/helpers"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
-  federation "gopkg.in/ganggo/federation.v0"
+  "github.com/ganggo/ganggo/app/helpers"
+  "github.com/ganggo/ganggo/app/models"
+  federation "github.com/ganggo/federation"
   "strings"
 )
 

@@ -18,14 +18,14 @@ package tests
 //
 
 import (
-  "gopkg.in/ganggo/ganggo.v0/app/jobs"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
+  "github.com/ganggo/ganggo/app/jobs"
+  "github.com/ganggo/ganggo/app/models"
   "gopkg.in/ganggo/gorm.v2"
   "time"
 )
 
 type JobsTest struct {
-  FederationSuite
+  GnggTestSuite
 }
 
 var tests = []struct {
@@ -51,27 +51,21 @@ var tests = []struct {
 }
 
 func (t *JobsTest) Before() {
-  db, err := models.OpenDatabase()
-  t.AssertEqual(nil, err)
-  defer db.Close()
-
-  // create user
-  t.AssertEqual(nil, t.SetupUserRelations())
-
-  err = db.Delete(&models.Session{}).Error
-  t.Assertf(err == nil, "session deletion failed: %+v", err)
+  t.ClearDB()
+  t.CreateUser()
 }
 
 func (t *JobsTest) TestSession() {
   db, err := models.OpenDatabase()
-  t.AssertEqual(nil, err)
+  t.Assertf(err == nil, "Expected nil, got '%+v'", err)
   defer db.Close()
 
+  token := t.AccessToken()
   for i, test := range tests {
     err = db.Create(&models.Session{
       CreatedAt: test.CreatedAt,
       Token: test.Token,
-      UserID: 1, // from t.SetupUserRelations
+      UserID: t.UserID(token),
     }).Error
     t.Assertf(err == nil, "#%d. session creation failed: %+v", i, err)
   }
@@ -84,13 +78,4 @@ func (t *JobsTest) TestSession() {
     t.Assertf(err == test.ExpectedErr,
       "#%d: expected '%+v', got '%+v'", i, test.ExpectedErr, err)
   }
-}
-
-func (t *JobsTest) After() {
-  db, err := models.OpenDatabase()
-  t.AssertEqual(nil, err)
-  defer db.Close()
-
-  err = db.Delete(&models.Session{}).Error
-  t.Assertf(err == nil, "session deletion failed: %+v", err)
 }
