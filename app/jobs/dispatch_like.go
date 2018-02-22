@@ -20,8 +20,8 @@ package jobs
 import (
   "encoding/xml"
   "github.com/revel/revel"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
-  federation "gopkg.in/ganggo/federation.v0"
+  "github.com/ganggo/ganggo/app/models"
+  federation "github.com/ganggo/federation"
 )
 
 func (dispatcher *Dispatcher) Like(like federation.EntityLike) {

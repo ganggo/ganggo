@@ -1,40 +1,49 @@
 sudo: required
 language: go
+go: "1.9.x"
 services:
-- docker
 - postgresql
-go:
-- 1.9.x
 env:
   global:
   - UPDATE_CHANNEL=alpha
   - PATH=$PATH:$GOPATH/bin
-  - VERSION=$(git describe --abbrev=0 --tags |cut -d- -f1)
+  - VERSION=$(git describe --abbrev=0 --tags)
   matrix:
   - BUILD_GOOS=linux BUILD_GOARCH=amd64
 before_install:
-- env # print environment vars for debugging purposes
 - psql -c 'create database ganggo;' -U postgres
-install:
-- make install
-# sync asset files only
-- rsync -I -az ${TRAVIS_BUILD_DIR}/public $GOPATH/src/gopkg.in/ganggo/ganggo.$VERSION/public
-- bash tests/scripts/configure_diaspora.sh
-script:
-# if we define GOARCH, GOOS and GOARM directly
-# it will be resetted after calling install/script function
-# to avoid it we wrap the values in the BUILD-variables
-- GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS GOARM=$BUILD_GOARM make release test
-before_deploy:
-- export LABEL=$BUILD_GOOS-$BUILD_GOARCH.$UPDATE_CHANNEL
-- if [ "$BUILD_GOARCH" == "arm"]; then LABEL=$LABEL"v"$BUILD_GOARM; fi
-- if [ "$BUILD_GOOS" == "windows" ]; then LABEL=$LABEL".exe"; fi
-- mv updater updater.$LABEL
-deploy:
-  provider: releases
-  api_key:
-    secure: BeXZlawzicuTA9QF3RFE4OhpxK9EyPifSiW5KQhPEbkcq+DJeHXi+sXLY0jH3igbBWRU+PhVoeg6KjSTWhCoPy+mj3WuQ3TOgZ660lApBxzqbVyPyEYUoS+hJUETAIi5bQLLk9lt9VnWgD2rE8GvGPbZ//0OkYOL/NcY4wdFo3h6wYbJfWwdeettkrFAce+xjbSscxo8hzShy1UyP1aHq5P4XoUBm6dGCEc9R+AFSGNb0Cb8HFE0Jnp/2ZtMfkIqI4Et9tBp72a7W0tafXJ+ZMdvLg+1+aqH7Z6mL9pStVxXlgzwyd8L8FdI8tpDp09tyfN1fJB04Zk7dF8bpt5P5TyjZqO4m4zOQvq0ZTtfgwl3ZhFX07DjYiriDnZdMt+15xkg+hTCwug6RA0sJEKbVUJ8gqI+sN+SRw/l9VJPJ79FnnpKmkaK0z3De37QhL+HGIB/m/NWeDGKpu5+XNKaRZciy+Eh7V4zE0dWJT7a4XWl3burbj7B9cF28jqQL1MOgTw+B8VNzcpCljuBJwn2rsK3rcpj4gqstCIxCyM84zmS0TAevx+uz1DSBIxKa+qcFrUg6G2Puog4OV7vOaVI9kvI2h14eGvFKw5Ui3X5c5pgrfKbiM/+J7Uq3A9iSjHBheugryiyqwlilXtSrFHt8o51P/87/qkPmVRWAAKJBl0=
-  file: updater.$LABEL
-  skip_cleanup: true
-  on:
-    tags: true
+after_script:
+- psql -c 'drop database ganggo;' -U postgres
+stages:
+- test
+- release
+jobs:
+  include:
+  - stage: test
+    go_import_path: github.com/ganggo/ganggo
+    install:
+    - make install
+    script:
+    # if we define GOARCH, GOOS and GOARM directly
+    # it will be resetted after calling install/script function
+    # to avoid it we wrap the values in the BUILD-variables
+    - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS GOARM=$BUILD_GOARM make test
+  - stage: release
+    go_import_path: github.com/ganggo/ganggo
+    install:
+    - make install
+    script:
+    - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS GOARM=$BUILD_GOARM make release
+    before_deploy:
+    - export LABEL=$BUILD_GOOS-$BUILD_GOARCH.$UPDATE_CHANNEL
+    - if [ "$BUILD_GOARCH" == "arm"]; then LABEL=$LABEL"v"$BUILD_GOARM; fi
+    - if [ "$BUILD_GOOS" == "windows" ]; then LABEL=$LABEL".exe"; fi
+    - mv updater updater.$LABEL
+    deploy:
+      provider: releases
+      api_key:
+        secure: BeXZlawzicuTA9QF3RFE4OhpxK9EyPifSiW5KQhPEbkcq+DJeHXi+sXLY0jH3igbBWRU+PhVoeg6KjSTWhCoPy+mj3WuQ3TOgZ660lApBxzqbVyPyEYUoS+hJUETAIi5bQLLk9lt9VnWgD2rE8GvGPbZ//0OkYOL/NcY4wdFo3h6wYbJfWwdeettkrFAce+xjbSscxo8hzShy1UyP1aHq5P4XoUBm6dGCEc9R+AFSGNb0Cb8HFE0Jnp/2ZtMfkIqI4Et9tBp72a7W0tafXJ+ZMdvLg+1+aqH7Z6mL9pStVxXlgzwyd8L8FdI8tpDp09tyfN1fJB04Zk7dF8bpt5P5TyjZqO4m4zOQvq0ZTtfgwl3ZhFX07DjYiriDnZdMt+15xkg+hTCwug6RA0sJEKbVUJ8gqI+sN+SRw/l9VJPJ79FnnpKmkaK0z3De37QhL+HGIB/m/NWeDGKpu5+XNKaRZciy+Eh7V4zE0dWJT7a4XWl3burbj7B9cF28jqQL1MOgTw+B8VNzcpCljuBJwn2rsK3rcpj4gqstCIxCyM84zmS0TAevx+uz1DSBIxKa+qcFrUg6G2Puog4OV7vOaVI9kvI2h14eGvFKw5Ui3X5c5pgrfKbiM/+J7Uq3A9iSjHBheugryiyqwlilXtSrFHt8o51P/87/qkPmVRWAAKJBl0=
+      file: updater.$LABEL
+      skip_cleanup: true
+      on:
+        tags: true

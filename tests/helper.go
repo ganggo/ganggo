@@ -21,20 +21,10 @@ import (
   "net/url"
   "encoding/json"
   "github.com/revel/revel/testing"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
-  "gopkg.in/ganggo/gorm.v2"
-  _ "gopkg.in/ganggo/gorm.v2/dialects/postgres"
-  "os"
-  "fmt"
-  "time"
+  "github.com/ganggo/ganggo/app/models"
 )
 
-var userRelations bool = false
-var ciDatabases = [2]string{"d1", "d2"}
-
 const (
-  federation_timeout = 15 * time.Second
-
   username = "ganggo"
   handle = username + "@localhost:9000"
   password = "pppppp"
@@ -44,76 +34,70 @@ type TokenJSON struct {
   Token string `json:"token"`
 }
 
-type FederationSuite struct {
+type GnggTestSuite struct {
   testing.TestSuite
 }
 
-func (t* FederationSuite) DB(databaseName string) (*gorm.DB, error) {
-  url := fmt.Sprintf("user=postgres dbname=%s sslmode=disable", databaseName)
-  db, err := gorm.Open("postgres", url)
-  if err != nil {
-    return db, err
+func (t *GnggTestSuite) ClearDB() {
+  // re-create ganggo database
+  db, err := models.OpenDatabase()
+  t.Assertf(err == nil, "Expected nil, got '%+v'", err)
+  defer db.Close()
+
+  tables := []interface{}{
+    models.Aspect{},
+    models.AspectMembership{},
+    models.AspectVisibility{},
+    models.Comment{},
+    models.CommentSignature{},
+    models.Contact{},
+    models.Like{},
+    models.LikeSignature{},
+    models.Notification{},
+    models.OAuthToken{},
+    models.Person{},
+    models.Photo{},
+    models.Pod{},
+    models.Post{},
+    models.Profile{},
+    models.Session{},
+    models.Shareable{},
+    models.SignatureOrder{},
+    models.Tag{},
+    models.ShareableTagging{},
+    models.UserTagging{},
+    models.User{},
+    models.UserStream{},
   }
-  return db, err
+
+  for i, table := range tables {
+    err = db.Unscoped().Delete(table).Error
+    t.Assertf(err == nil, "#%d: Expected nil, got '%+v'", i, err)
+  }
 }
 
-func (t *FederationSuite) SetupUserRelations() error {
-  if userRelations { return nil }
-
-  t.CreateUser()
-
-  if t.CI() {
-    var (
-      alice models.Person
-      bob models.Person
-      aspect models.Aspect
-    )
-    values := url.Values{}
-    // search for alice
-    values.Set("handle", "d1@localhost:3000")
-    result := t.POST("/api/v0/search", values)
-    err := json.Unmarshal(result, &alice)
-    if err != nil {
-      return err
-    }
-    values = url.Values{}
-    // search for bob
-    values.Set("handle", "d2@localhost:3001")
-    result = t.POST("/api/v0/search", values)
-    err = json.Unmarshal(result, &bob)
-    if err != nil {
-      return err
-    }
-    values = url.Values{}
-    // create an aspect
-    values.Set("aspect_name", "testsuite")
-    result = t.POST("/api/v0/aspects", values)
-    err = json.Unmarshal(result, &aspect)
-    if err != nil {
-      return err
-    }
-    // add both to the same aspect
-    t.POST(fmt.Sprintf(
-      "/api/v0/people/%d/aspects/%d", alice.ID, aspect.ID,
-    ), url.Values{})
-    t.POST(fmt.Sprintf(
-      "/api/v0/people/%d/aspects/%d", bob.ID, aspect.ID,
-    ), url.Values{})
-  }
-  userRelations = true
-  return nil
-}
-
-func (t *FederationSuite) CreateUser() {
+func (t *GnggTestSuite) CreateUser() {
   values := url.Values{}
   values.Set("username", username)
   values.Set("password", password)
   values.Set("confirm", password)
 
   t.PostForm("/users/sign_up", values)
+  t.AssertOk()
 }
 
-func (t *FederationSuite) AccessToken() string {
+func (t *GnggTestSuite) UserID(token string) uint {
+  db, err := models.OpenDatabase()
+  t.Assertf(err == nil, "Expected nil, got '%+v'", err)
+  defer db.Close()
+
+  var oauth = models.OAuthToken{}
+  err = db.Where("token = ?", token).Find(&oauth).Error
+  t.Assertf(err == nil, "Expected nil, got '%+v'", err)
+  return oauth.UserID
+}
+
+func (t *GnggTestSuite) AccessToken() string {
   values := url.Values{}
   values.Set("username", username)
   values.Set("password", password)
@@ -124,26 +108,20 @@ func (t *FederationSuite) AccessToken() string {
 
   var token TokenJSON
   err := json.Unmarshal(t.ResponseBody, &token)
-  if err != nil {
-    panic("Cannot unmarshal api token: " + err.Error())
-  }
+  t.Assertf(err == nil, "Expected nil, got '%+v'", err)
   return token.Token
 }
 
-func (t *FederationSuite) POST(path string, values url.Values) []byte {
+func (t *GnggTestSuite) POST(path string, values url.Values) []byte {
   req := t.PostFormCustom(t.BaseUrl() + path, values)
   req.Header.Set("access_token", t.AccessToken())
   req.Send()
   return t.ResponseBody
 }
 
-func (t *FederationSuite) GET(path string) []byte {
+func (t *GnggTestSuite) GET(path string) []byte {
   req := t.GetCustom(t.BaseUrl() + path)
   req.Header.Set("access_token", t.AccessToken())
   req.Send()
   return t.ResponseBody
-}
-
-func (t *FederationSuite) CI() bool {
-  return os.Getenv("CI") != ""
 }

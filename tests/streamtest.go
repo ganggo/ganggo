@@ -22,12 +22,12 @@ import (
 )
 
 type StreamTest struct {
-  FederationSuite
+  GnggTestSuite
 }
 
 func (t *StreamTest) Before() {
-  println("Setup user relations and access token")
-  t.AssertEqual(nil, t.SetupUserRelations())
+  t.ClearDB()
+  t.CreateUser()
 }
 
 func (t *StreamTest) TestPagination() {

@@ -19,8 +19,8 @@ package controllers
 
 import (
   "github.com/revel/revel"
-  "gopkg.in/ganggo/ganggo.v0/app"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
+  "github.com/ganggo/ganggo/app"
+  "github.com/ganggo/ganggo/app/models"
 )
 
 type NodeInfo struct {

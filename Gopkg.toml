@@ -1,0 +1,66 @@
+# Gopkg.toml example
+#
+# Refer to https://golang.github.io/dep/docs/Gopkg.toml.html
+# for detailed Gopkg.toml documentation.
+#
+
+required = [
+  "github.com/revel/cmd/revel",
+  "github.com/revel/cmd/harness"
+]
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/dchest/captcha"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/ganggo/api"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/ganggo/federation"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/jpillora/overseer"
+
+[[constraint]]
+  name = "github.com/revel/config"
+  version = "0.19.0"
+
+[[constraint]]
+  name = "github.com/revel/modules"
+  version = "0.19.0"
+
+[[constraint]]
+  name = "github.com/revel/revel"
+  version = "0.19.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/shaoshing/train"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+
+[[constraint]]
+  name = "gopkg.in/AlecAivazis/survey.v1"
+  version = "1.4.1"
+
+[[constraint]]
+  name = "gopkg.in/ganggo/gorm.v2"
+  version = "2.0.0"
+
+[[override]]
+  name = "github.com/xeonx/timeago"
+  branch = "master"
+
+[[override]]
+  name = "github.com/revel/log15"
+  branch = "master"
+
+[[override]]
+  name = "github.com/revel/cron"
+  version = "0.19.0"

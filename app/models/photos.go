@@ -19,7 +19,7 @@ package models
 
 import (
   "time"
-  federation "gopkg.in/ganggo/federation.v0"
+  federation "github.com/ganggo/federation"
 )
 
 type Photo struct {
