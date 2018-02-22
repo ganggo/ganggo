@@ -33,6 +33,9 @@ import (
   "time"
 )
 
+// will be set on compile time
+var AppVersion = "v0"
+
 func InitDB() {
   revel.Config.SetSection("ganggo")
   driver, found := revel.Config.String("db.driver")

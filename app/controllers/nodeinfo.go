@@ -19,6 +19,7 @@ package controllers
 
 import (
   "github.com/revel/revel"
+  "github.com/ganggo/ganggo/app"
   "github.com/ganggo/ganggo/app/models"
 )
 
@@ -106,11 +107,6 @@ func generateSchema(version string) SchemaJson {
     revel.AppLog.Error("app.name configuration value not found!")
     return SchemaJson{}
   }
-  appVersion, found := revel.Config.String("app.version")
-  if !found {
-    revel.AppLog.Error("app.version configuration value not found!")
-    return SchemaJson{}
-  }
 
   if version == "1.0" {
     protocols = SchemaInOutJson{
@@ -131,7 +127,7 @@ func generateSchema(version string) SchemaJson {
     Version: version,
     Software: SchemaSoftwareJson{
       Name: "ganggo",
-      Version: appVersion,
+      Version: app.AppVersion,
     },
     Protocols: protocols,
     Services: SchemaInOutJson{
