@@ -13,9 +13,13 @@ required = [
   branch = "master"
   name = "github.com/dchest/captcha"
 
-[[override]]
-  name = "github.com/fatih/structs"
-  version = "1.0.0"
+[[constraint]]
+  branch = "master"
+  name = "github.com/ganggo/api"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/ganggo/federation"
 
 [[constraint]]
   branch = "master"
@@ -44,10 +48,6 @@ required = [
 [[constraint]]
   name = "gopkg.in/AlecAivazis/survey.v1"
   version = "1.4.1"
-
-[[constraint]]
-  branch = "master"
-  name = "gopkg.in/ganggo/federation.v0"
 
 [[constraint]]
   name = "gopkg.in/ganggo/gorm.v2"

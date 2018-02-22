@@ -20,7 +20,7 @@ package helpers
 import (
   "fmt"
   "github.com/revel/revel"
-  federation "gopkg.in/ganggo/federation.v0"
+  federation "github.com/ganggo/federation"
 )
 
 type AppLogWrapper struct {

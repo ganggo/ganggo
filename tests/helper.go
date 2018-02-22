@@ -21,7 +21,7 @@ import (
   "net/url"
   "encoding/json"
   "github.com/revel/revel/testing"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
+  "github.com/ganggo/ganggo/app/models"
 )
 
 const (

@@ -7,7 +7,7 @@ env:
   global:
   - UPDATE_CHANNEL=alpha
   - PATH=$PATH:$GOPATH/bin
-  - VERSION=$(git describe --abbrev=0 --tags |cut -d- -f1)
+  - VERSION=$(git describe --abbrev=0 --tags)
   matrix:
   - BUILD_GOOS=linux BUILD_GOARCH=amd64
 before_install:
@@ -20,7 +20,7 @@ stages:
 jobs:
   include:
   - stage: test
-    go_import_path: gopkg.in/ganggo/ganggo.$VERSION
+    go_import_path: github.com/ganggo/ganggo
     install:
     - make install
     script:
@@ -29,7 +29,7 @@ jobs:
     # to avoid it we wrap the values in the BUILD-variables
     - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS GOARM=$BUILD_GOARM make test
   - stage: release
-    go_import_path: gopkg.in/ganggo/ganggo.$VERSION
+    go_import_path: github.com/ganggo/ganggo
     install:
     - make install
     script:

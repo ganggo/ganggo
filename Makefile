@@ -48,7 +48,7 @@ endif
 	# XXX this seams to be a bug in revel
 	# it cannot find the api module within
 	# the vendor directory even though it exists
-	go get -d gopkg.in/ganggo/api.v0/...
+	go get -d github.com/ganggo/api/...
 	## CLI for train asset library / revel webframework
 	go get -d \
 		github.com/shaoshing/train \

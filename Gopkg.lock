@@ -20,10 +20,10 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/andybalholm/cascadia"
   packages = ["."]
-  revision = "349dd0209470eabd9514242c688c403c0926d266"
+  revision = "901648c87902174f774fac311d7f176f8647bdaa"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
@@ -55,8 +55,8 @@
     "service/s3",
     "service/sts"
   ]
-  revision = "63324a33d7e42a386c04d4daec764a3de243492e"
-  version = "v1.13.0"
+  revision = "adeb60566bc8c9202b0f1be7e3a675beedbc11f0"
+  version = "v1.13.2"
 
 [[projects]]
   branch = "master"
@@ -75,6 +75,22 @@
   packages = ["."]
   revision = "a720dfa8df582c51dee1b36feabb906bde1588bd"
   version = "v1.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/ganggo/api"
+  packages = [
+    "app",
+    "app/controllers",
+    "app/helpers"
+  ]
+  revision = "ab2c75fae21500f8faec05bf41b8d497ea6cd441"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/ganggo/federation"
+  packages = ["."]
+  revision = "9abcf5eec0dcc846a94586055522860d79550a70"
 
 [[projects]]
   name = "github.com/go-ini/ini"
@@ -289,22 +305,6 @@
   version = "v1.4.7"
 
 [[projects]]
-  branch = "master"
-  name = "gopkg.in/ganggo/api.v0"
-  packages = [
-    "app",
-    "app/controllers",
-    "app/helpers"
-  ]
-  revision = "4dbc3ff5780086678438e606427dc5296bd53388"
-
-[[projects]]
-  branch = "master"
-  name = "gopkg.in/ganggo/federation.v0"
-  packages = ["."]
-  revision = "9abcf5eec0dcc846a94586055522860d79550a70"
-
-[[projects]]
   name = "gopkg.in/ganggo/gorm.v2"
   packages = [
     ".",
@@ -331,6 +331,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b477f15ef881efb47c75e59b99e71745887872fc3b5e741f5d768db5bb55b127"
+  inputs-digest = "e5165afc0ebe22ad8ab93707ffc02b66dd0955221d591d904bad606a724cb0bf"
   solver-name = "gps-cdcl"
   solver-version = 1

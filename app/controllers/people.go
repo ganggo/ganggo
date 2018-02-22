@@ -19,7 +19,7 @@ package controllers
 
 import (
   "github.com/revel/revel"
-  api "gopkg.in/ganggo/api.v0/app/controllers"
+  api "github.com/ganggo/api/app/controllers"
 )
 
 type People struct {

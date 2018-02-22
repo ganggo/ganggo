@@ -20,7 +20,7 @@ package controllers
 import (
   "sort"
   "github.com/revel/revel"
-  "gopkg.in/ganggo/ganggo.v0/app/models"
+  "github.com/ganggo/ganggo/app/models"
 )
 
 type Tag struct {
