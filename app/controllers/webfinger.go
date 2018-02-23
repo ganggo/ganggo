@@ -79,6 +79,7 @@ func (c Webfinger) Webfinger() revel.Result {
   }
 
   webfinger = federation.WebfingerData{
+    Xmlns: "http://docs.oasis-open.org/ns/xri/xrd-1.0",
     Subject: "acct:" + username + "@" + address,
     Aliases: []string{proto + address + "/people/" + person.Guid},
     Links: []federation.WebfingerDataLink{
@@ -137,7 +138,7 @@ func (c Webfinger) HostMeta() revel.Result {
       federation.WebfingerDataLink{
         Rel: "lrdd",
         Type: "application/xrd+xml",
-        Template: proto + address + "/.well-known/webfinger?resource={uri}",
+        Template: proto + address + "/.well-known/webfinger?q={uri}",
       },
     },
   }
