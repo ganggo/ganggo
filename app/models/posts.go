@@ -290,6 +290,19 @@ func (posts *Posts) FindAllPublic(offset uint) (err error) {
   return query.Find(posts).Error
 }
 
+func (posts *Posts) FindAllPublicByPerson(person Person, offset uint) (err error) {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  query := db.Offset(offset).Limit(10).
+    Where(`person_id = ? and public = ?`, person.ID, true).Order(`created_at desc`)
+
+  return query.Find(posts).Error
+}
+
 func (posts *Posts) FindAll(userID, offset uint) (err error) {
   db, err := OpenDatabase()
   if err != nil {
