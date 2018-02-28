@@ -96,12 +96,12 @@ func (c Webfinger) Webfinger() revel.Result {
       federation.WebfingerDataLink {
         Rel: "http://webfinger.net/rel/profile-page",
         Type: "text/html",
-        Href: proto + address + "/u/" + username,
+        Href: proto + address + "/profiles/" + person.Guid,
       },
       federation.WebfingerDataLink {
-        Rel: "http://schemas.google.com/g/2010#updates-from",
-        Type: "application/atom+xml",
-        Href: proto + address + "/public/" + username + ".atom",
+        Rel: "self",
+        Type: "application/activity+json",
+        Href: proto + address + "/api/v0/activity/" + person.Guid + "/actor",
       },
       federation.WebfingerDataLink {
         Rel: "salmon",

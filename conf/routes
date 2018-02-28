@@ -45,6 +45,7 @@ GET     /captcha/:name                          Captcha.Index
 *       /.well-known/webfinger                  Webfinger.Webfinger
 # NOTE legacy webfinger
 *       /webfinger                              Webfinger.Webfinger
+# XXX move to api repo
 *       /hcard/users/:guid                      Hcard.User
 *       /receive/public                         Receiver.Public
 *       /receive/users/:guid                    Receiver.Private
