@@ -18,13 +18,12 @@ package jobs
 //
 
 import (
-  "strings"
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
-  federation "github.com/ganggo/federation"
+  "github.com/ganggo/federation"
 )
 
-func (r *Receiver) Retraction(retraction federation.EntityRetraction) {
+func (r *Receiver) Retraction(retraction federation.MessageRetract) {
   db, err := models.OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
@@ -34,12 +33,14 @@ func (r *Receiver) Retraction(retraction federation.EntityRetraction) {
 
   // NOTE relay to other hosts if we own this entity
   // should be done before we start deleting db records
-  dispatcher := Dispatcher{Message: retraction}
-  dispatcher.Run()
+  // XXX
+  //dispatcher := Dispatcher{Message: retraction}
+  //dispatcher.Run()
 
-  if strings.EqualFold(retraction.TargetType, models.ShareablePost) {
+  switch entity := retraction.Message().(type) {
+  case federation.MessageReshare:
     var post models.Post
-    err = post.FindByGuid(retraction.TargetGuid)
+    err := post.FindByGuid(entity.Guid())
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
@@ -49,9 +50,21 @@ func (r *Receiver) Retraction(retraction federation.EntityRetraction) {
       revel.AppLog.Error(err.Error())
       return
     }
-  } else if strings.EqualFold(retraction.TargetType, models.ShareableComment) {
+  case federation.MessagePost:
+    var post models.Post
+    err := post.FindByGuid(entity.Guid())
+    if err != nil {
+      revel.AppLog.Error(err.Error())
+      return
+    }
+    err = db.Delete(&post).Error
+    if err != nil {
+      revel.AppLog.Error(err.Error())
+      return
+    }
+  case federation.MessageComment:
     var comment models.Comment
-    err = comment.FindByGuid(retraction.TargetGuid)
+    err = comment.FindByGuid(entity.Guid())
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
@@ -61,9 +74,9 @@ func (r *Receiver) Retraction(retraction federation.EntityRetraction) {
       revel.AppLog.Error(err.Error())
       return
     }
-  } else if strings.EqualFold(retraction.TargetType, models.ShareableLike) {
+  case federation.MessageLike:
     var like models.Like
-    err = like.FindByGuid(retraction.TargetGuid)
+    err = like.FindByGuid(entity.Guid())
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
@@ -73,8 +86,8 @@ func (r *Receiver) Retraction(retraction federation.EntityRetraction) {
       revel.AppLog.Error(err.Error())
       return
     }
-  } else {
-    revel.AppLog.Error("Unkown TargetType in Dispatcher", "retraction", retraction)
-    return
+  default:
+    revel.AppLog.Error(
+      "Unkown TargetType in Dispatcher", "retraction", retraction)
   }
 }

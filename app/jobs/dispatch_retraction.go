@@ -21,11 +21,11 @@ import (
   "encoding/xml"
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
-  federation "github.com/ganggo/federation"
+  diaspora "github.com/ganggo/federation/diaspora"
   "strings"
 )
 
-func (dispatcher *Dispatcher) Retraction(retraction federation.EntityRetraction) {
+func (dispatcher *Dispatcher) Retraction(retraction diaspora.EntityRetraction) {
   var (
     parentPost models.Post
     parentUser models.User
@@ -39,8 +39,8 @@ func (dispatcher *Dispatcher) Retraction(retraction federation.EntityRetraction)
   defer db.Close()
 
   // NOTE I can only request retraction if I am the owner
-  if strings.EqualFold(retraction.TargetType, models.ShareablePost) {
-    err = parentPost.FindByGuid(retraction.TargetGuid)
+  if strings.EqualFold(retraction.EntityTargetType, models.ShareablePost) {
+    err = parentPost.FindByGuid(retraction.EntityTargetGuid)
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
@@ -50,9 +50,9 @@ func (dispatcher *Dispatcher) Retraction(retraction federation.EntityRetraction)
       revel.AppLog.Debug("We can only retract if we own the entity", err.Error())
       return
     }
-  } else if strings.EqualFold(retraction.TargetType, models.ShareableComment) {
+  } else if strings.EqualFold(retraction.EntityTargetType, models.ShareableComment) {
     var comment models.Comment
-    err = comment.FindByGuid(retraction.TargetGuid)
+    err = comment.FindByGuid(retraction.EntityTargetGuid)
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
@@ -61,9 +61,9 @@ func (dispatcher *Dispatcher) Retraction(retraction federation.EntityRetraction)
       revel.AppLog.Debug("We can only retract if we own the entity")
       return
     }
-  } else if strings.EqualFold(retraction.TargetType, models.ShareableLike) {
+  } else if strings.EqualFold(retraction.EntityTargetType, models.ShareableLike) {
     var like models.Like
-    err := like.FindByGuid(retraction.TargetGuid)
+    err := like.FindByGuid(retraction.EntityTargetGuid)
     if err != nil {
       revel.AppLog.Error(err.Error())
       return

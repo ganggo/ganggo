@@ -19,7 +19,7 @@ package models
 
 import (
   "time"
-  federation "github.com/ganggo/federation"
+  diaspora "github.com/ganggo/federation/diaspora"
 )
 
 type Photo struct {
@@ -59,7 +59,7 @@ func (p Photos) Create() error {
   return nil
 }
 
-func (p *Photos) Cast(entities federation.EntityPhotos) error {
+func (p *Photos) Cast(entities diaspora.EntityPhotos) error {
   for _, entity := range entities {
     var person Person
     err := person.FindByAuthor(entity.Author)

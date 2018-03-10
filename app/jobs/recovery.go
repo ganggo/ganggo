@@ -21,6 +21,7 @@ import (
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
   federation "github.com/ganggo/federation"
+  diaspora "github.com/ganggo/federation/diaspora"
   "strings"
   "fmt"
 )
@@ -41,7 +42,7 @@ func (recovery Recovery) Run() {
     return
   }
   for _, pod := range pods {
-    var message federation.Message
+    var message diaspora.Message
     err = federation.FetchXml(
       "GET", fmt.Sprintf("%s/fetch/%s/%s", pod.Host,
         strings.ToLower(recovery.Shareable), recovery.Guid,
@@ -51,21 +52,22 @@ func (recovery Recovery) Run() {
         "host", pod.Host, "err", err)
       continue
     }
-    entity, err := message.Parse()
+    _, err := message.Parse()
     if err != nil {
       revel.AppLog.Error("Parsing message from host failed",
         "host", pod.Host, "err", err)
       continue
     }
-    receiver := Receiver{Message: message, Entity: entity}
-    receiver.Run()
+    // XXX
+    //receiver := Receiver{Message: message, Entity: entity}
+    //receiver.Run()
     break
   }
 }
 
 // XXX This could be the way of restoring all entities rather than one
 // unfortunately diaspora only supports fetching post entities
-// (see https://github.com/diaspora/diaspora_federation/issues/31#issue-142060252)
+// (see https://github.com/diaspora/diaspora_diaspora/issues/31#issue-142060252)
 //
 // Interactions will try to fetch all available
 // child entities for a parent one
@@ -76,7 +78,7 @@ func (recovery Recovery) Run() {
 //  switch recovery.Shareable {
 //  case models.ShareablePost:
 //    var inta Interactions
-//    err := federation.FetchJson("GET", fmt.Sprintf(
+//    err := diaspora.FetchJson("GET", fmt.Sprintf(
 //        "%s/posts/%s.json", host, recovery.Guid,
 //      ), nil, &inta)
 //    if err != nil {

@@ -96,7 +96,7 @@ var TemplateFuncs = map[string]interface{}{
   },
   // string parse helper
   "HostFromHandle": func(handle string) (host string) {
-    _, host, err := helpers.ParseAuthor(handle)
+    host, err := helpers.ParseHost(handle)
     if err != nil {
       revel.ERROR.Println(err)
       return

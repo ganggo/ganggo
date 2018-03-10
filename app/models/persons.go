@@ -34,7 +34,6 @@ type Person struct {
   SerializedPublicKey string `gorm:"type:text"`
   UserID uint `gorm:"size:4"`
   ClosedAccount int
-  FetchStatus int `gorm:"size:4"`
   PodID uint `gorm:"size:4"`
 
   Profile Profile `json:",omitempty"`
@@ -77,4 +76,14 @@ func (person *Person) FindByAuthor(author string) (err error) {
   defer db.Close()
 
   return db.Where("author = ?", author).First(person).Error
+}
+
+func (person *Person) Create() error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Create(person).Error
 }

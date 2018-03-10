@@ -59,7 +59,7 @@ func (s Search) IndexPagination(text string, page uint) revel.Result {
 }
 
 func (s Search) Create(search string) revel.Result {
-  _, _, err := helpers.ParseAuthor(search)
+  _, err := helpers.ParseUsername(search)
   if err != nil {
     s.Log.Debug("Cannot parse handle author", "error", err)
     return s.Redirect("/search/%s", search)

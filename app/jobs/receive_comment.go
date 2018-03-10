@@ -21,10 +21,10 @@ import (
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
   federation "github.com/ganggo/federation"
-  run "github.com/revel/modules/jobs/app/jobs"
+  //run "github.com/revel/modules/jobs/app/jobs"
 )
 
-func (receiver *Receiver) Comment(entity federation.EntityComment) {
+func (receiver *Receiver) Comment(entity federation.MessageComment) {
   var comment models.Comment
   db, err := models.OpenDatabase()
   if err != nil {
@@ -35,33 +35,35 @@ func (receiver *Receiver) Comment(entity federation.EntityComment) {
 
   revel.AppLog.Debug("Found a comment entity", "entity", entity)
 
-  err = comment.Cast(&entity)
+  err = comment.Cast(entity)
   if err != nil {
-    // try to recover entity
-    recovery := Recovery{models.ShareablePost, entity.ParentGuid}
-    recovery.Run()
+    // XXX RECOVERY
+    //// try to recover entity
+    //recovery := Recovery{models.ShareablePost, entity.ParentGuid}
+    //recovery.Run()
 
-    err = comment.Cast(&entity)
-    if err != nil {
+    //err = comment.Cast(&entity)
+    //if err != nil {
       revel.AppLog.Error(err.Error())
       return
-    }
+    //}
   }
 
-  _, _, local := comment.ParentPostUser()
-  // if parent post is local we have
-  // to relay the comment to all recipiens
-  if local {
-    order := models.SignatureOrder{
-      Order: receiver.Entity.SignatureOrder,
-    }
-    err = order.CreateOrFind()
-    if err != nil {
-      revel.AppLog.Error(err.Error())
-      return
-    }
-    comment.Signature.SignatureOrderID = order.ID
-  }
+  // XXX relay
+  //_, _, local := comment.ParentPostUser()
+  //// if parent post is local we have
+  //// to relay the comment to all recipiens
+  //if local {
+  //  order := models.SignatureOrder{
+  //    Order: receiver.Entity.SignatureOrder,
+  //  }
+  //  err = order.CreateOrFind()
+  //  if err != nil {
+  //    revel.AppLog.Error(err.Error())
+  //    return
+  //  }
+  //  comment.Signature.SignatureOrderID = order.ID
+  //}
 
   err = db.Create(&comment).Error
   if err != nil {
@@ -69,11 +71,12 @@ func (receiver *Receiver) Comment(entity federation.EntityComment) {
     return
   }
 
-  if local {
-    run.Now(Dispatcher{
-      Model: comment,
-      Message: entity,
-      Relay: true,
-    })
-  }
+  // XXX relay
+  //if local {
+  //  run.Now(Dispatcher{
+  //    Model: comment,
+  //    Message: entity,
+  //    Relay: true,
+  //  })
+  //}
 }

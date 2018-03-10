@@ -22,9 +22,11 @@ import (
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
   federation "github.com/ganggo/federation"
+  helpers "github.com/ganggo/federation/helpers"
+  diaspora "github.com/ganggo/federation/diaspora"
 )
 
-func (dispatcher *Dispatcher) Like(like federation.EntityLike) {
+func (dispatcher *Dispatcher) Like(like diaspora.EntityLike) {
   modelLike, ok := dispatcher.Model.(models.Like)
   if !ok {
     revel.AppLog.Error(
@@ -35,12 +37,12 @@ func (dispatcher *Dispatcher) Like(like federation.EntityLike) {
   }
 
   if !dispatcher.Relay {
-    privKey, err := federation.ParseRSAPrivateKey(
+    privKey, err := helpers.ParseRSAPrivateKey(
       []byte(dispatcher.User.SerializedPrivateKey),
     )
     var signature federation.Signature
     err = signature.New(like).Sign(privKey,
-      &(like.AuthorSignature))
+      &(like.EntityAuthorSignature))
     if err != nil {
       revel.AppLog.Error(err.Error())
       return

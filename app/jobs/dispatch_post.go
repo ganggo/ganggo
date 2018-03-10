@@ -21,10 +21,10 @@ import (
   "encoding/xml"
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
-  federation "github.com/ganggo/federation"
+  diaspora "github.com/ganggo/federation/diaspora"
 )
 
-func (dispatcher *Dispatcher) Reshare(reshare federation.EntityReshare) {
+func (dispatcher *Dispatcher) Reshare(reshare diaspora.EntityReshare) {
   entityXml, err := xml.Marshal(reshare)
   if err != nil {
     revel.ERROR.Println(err)
@@ -33,7 +33,7 @@ func (dispatcher *Dispatcher) Reshare(reshare federation.EntityReshare) {
   post(dispatcher, entityXml)
 }
 
-func (dispatcher *Dispatcher) StatusMessage(message federation.EntityStatusMessage) {
+func (dispatcher *Dispatcher) StatusMessage(message diaspora.EntityStatusMessage) {
   entityXml, err := xml.Marshal(message)
   if err != nil {
     revel.ERROR.Println(err)

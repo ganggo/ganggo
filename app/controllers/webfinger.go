@@ -22,6 +22,7 @@ import (
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
   federation "github.com/ganggo/federation"
+  helpers "github.com/ganggo/federation/helpers"
   "errors"
 )
 
@@ -56,7 +57,7 @@ func (c Webfinger) Webfinger() revel.Result {
     return c.RenderError(errors.New("No address config found"))
   }
 
-  username, err := federation.ParseWebfingerHandle(resource)
+  username, err := helpers.ParseWebfingerHandle(resource)
   if err != nil {
     c.Response.Status = http.StatusNotFound
     c.Log.Error("Cannot parse webfinger handle", "error", err)
@@ -101,7 +102,7 @@ func (c Webfinger) Webfinger() revel.Result {
       federation.WebfingerDataLink {
         Rel: "self",
         Type: "application/activity+json",
-        Href: proto + address + "/api/v0/activity/" + person.Guid + "/actor",
+        Href: proto + address + "/api/v0/activity/" + username + "/actor",
       },
       federation.WebfingerDataLink {
         Rel: "salmon",
