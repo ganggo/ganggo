@@ -21,10 +21,32 @@ import (
   "fmt"
   "github.com/revel/revel"
   federation "github.com/ganggo/federation"
+  "github.com/revel/log15"
+  "github.com/getsentry/raven-go"
 )
 
 type AppLogWrapper struct {
   Name string
+}
+
+// SentryLogHandler will intercept logging and send all errors
+// with a log level greater then info to the specified DSN
+type SentryLogHandler struct {}
+
+func (handler SentryLogHandler) Log(record *log15.Record) error {
+  // if log level is info or debug return and do nothing
+  if record.Lvl == log15.LvlInfo || record.Lvl == log15.LvlDebug {
+    return revel.GetRootLogHandler().Log(record)
+  }
+
+  // search for errors and send them
+  // asynchronously to the sentry endpoint
+  for _, ctx := range record.Ctx {
+    if err, ok := ctx.(error); ok {
+      raven.CaptureError(err, nil)
+    }
+  }
+  return revel.GetRootLogHandler().Log(record)
 }
 
 func (wrap AppLogWrapper) Println(v ...interface{}) { wrap.Print(v) }
