@@ -59,6 +59,12 @@
   version = "v1.13.2"
 
 [[projects]]
+  name = "github.com/certifi/gocertifi"
+  packages = ["."]
+  revision = "deb3ae2ef2610fde3330947281941c562861188b"
+  version = "2018.01.18"
+
+[[projects]]
   branch = "master"
   name = "github.com/dchest/captcha"
   packages = ["."]
@@ -91,6 +97,12 @@
   name = "github.com/ganggo/federation"
   packages = ["."]
   revision = "9abcf5eec0dcc846a94586055522860d79550a70"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getsentry/raven-go"
+  packages = ["."]
+  revision = "7562301a6763c9ac631b0a2011b4aa0e064e45d4"
 
 [[projects]]
   name = "github.com/go-ini/ini"
@@ -191,6 +203,12 @@
   name = "github.com/mgutz/ansi"
   packages = ["."]
   revision = "9520e82c474b0a04dd04f8a40959027271bab992"
+
+[[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [[projects]]
   name = "github.com/revel/cmd"
@@ -331,6 +349,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e5165afc0ebe22ad8ab93707ffc02b66dd0955221d591d904bad606a724cb0bf"
+  inputs-digest = "14b643ec3911f1cb78773075d5a0a8f051e4e415b2629d5fa1a8d0ccea86efb5"
   solver-name = "gps-cdcl"
   solver-version = 1
