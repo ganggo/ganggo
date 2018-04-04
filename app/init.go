@@ -31,6 +31,7 @@ import (
   "strings"
   "fmt"
   "time"
+  "github.com/getsentry/raven-go"
 )
 
 // will be set on compile time
@@ -106,11 +107,19 @@ func init() {
   revel.OnAppStart(InitDB)
   revel.OnAppStart(InitSocialRelay)
 
-  // set federation logger to revel
+  // set custom logger options
   revel.OnAppStart(func() {
     federation.SetLogger(helpers.AppLogWrapper{
       Name: "federation",
     })
+    // if sentry credentials exists
+    // send reports to upstream
+    revel.Config.SetSection("ganggo")
+    sentryDSN, found := revel.Config.String("sentry.DSN")
+    if found {
+      raven.SetDSN(sentryDSN)
+      revel.RootLog.SetHandler(helpers.SentryLogHandler{})
+    }
   })
 
   // register jobs running on an interval
