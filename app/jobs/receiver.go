@@ -32,18 +32,12 @@ type Receiver struct {
 func (receiver Receiver) Run() {
   // Check and search for author in the database
   // if it doesn't exists lookup the network
-  if base, ok := receiver.Message.Entity().(federation.MessageBase); ok {
-    if _, ok := receiver.CheckAuthor(base.Author()); !ok {
-      return
-    }
-  } else {
-    revel.AppLog.Error(
-      "Expected a federation.MessageBase type",
-      "entity", receiver.Message.Entity())
+  base := receiver.Message.Entity()
+  if _, ok := receiver.CheckAuthor(base.Author()); !ok {
     return
   }
 
-  switch entity := receiver.Message.Entity().(type) {
+  switch entity := base.(type) {
   case federation.MessageContact:
     revel.AppLog.Debug("Starting contact receiver")
     receiver.Contact(entity)

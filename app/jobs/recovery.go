@@ -52,15 +52,14 @@ func (recovery Recovery) Run() {
         "host", pod.Host, "err", err)
       continue
     }
-    _, err := message.Parse()
+    err := message.Parse()
     if err != nil {
       revel.AppLog.Error("Parsing message from host failed",
         "host", pod.Host, "err", err)
       continue
     }
-    // XXX
-    //receiver := Receiver{Message: message, Entity: entity}
-    //receiver.Run()
+    receiver := Receiver{Message: message}
+    receiver.Run()
     break
   }
 }

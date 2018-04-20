@@ -52,7 +52,7 @@ func (r Receiver) Public() revel.Result {
   // in case it succeeds reply with status 202
   r.Response.Status = http.StatusAccepted
 
-  msg, _, err := diaspora.ParseDecryptedRequest(content)
+  msg, err := diaspora.ParseDecryptedRequest(content)
   if err != nil {
     r.Log.Error("Cannot parse decrypted request", "error", err)
     // NOTE Send accept code even tho the entity is not
@@ -108,7 +108,7 @@ func (r Receiver) Private() revel.Result {
     return r.Render()
   }
 
-  msg, _, err := diaspora.ParseEncryptedRequest(wrapper, privKey)
+  msg, err := diaspora.ParseEncryptedRequest(wrapper, privKey)
   if err != nil {
     r.Log.Error("Cannot parse encrypted request", "error", err)
     // NOTE Send accept code even tho the entity is not
