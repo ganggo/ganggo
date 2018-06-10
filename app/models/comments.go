@@ -21,6 +21,7 @@ import (
   "time"
   "github.com/revel/revel"
   federation "github.com/ganggo/federation"
+  diaspora "github.com/ganggo/federation/diaspora"
   "gopkg.in/ganggo/gorm.v2"
 )
 
@@ -117,7 +118,7 @@ func (c *Comment) AfterSave(db *gorm.DB) error {
   }
 }
 
-func (c *Comment) Create(entity *federation.EntityComment) (err error) {
+func (c *Comment) Create(entity diaspora.EntityComment) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return
@@ -178,7 +179,7 @@ func (c *Comment) AfterDelete(db *gorm.DB) (err error) {
   return db.Where("like_id = ?", c.ID).Delete(LikeSignature{}).Error
 }
 
-func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
+func (c *Comment) Cast(entity federation.MessageComment) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return
@@ -186,27 +187,27 @@ func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
   defer db.Close()
 
   var post Post
-  err = db.Where("guid = ?", entity.ParentGuid).First(&post).Error
+  err = db.Where("guid = ?", entity.Parent()).First(&post).Error
   if err != nil {
     return
   }
   var person Person
-  err = db.Where("author = ?", entity.Author).First(&person).Error
+  err = db.Where("author = ?", entity.Author()).First(&person).Error
   if err != nil {
     return
   }
 
-  createdAt, err := entity.CreatedAt.Time()
+  createdAt, err := entity.CreatedAt().Time()
   if err != nil {
     createdAt = time.Now()
   }
   (*c).CreatedAt = createdAt
-  (*c).Text = entity.Text
+  (*c).Text = entity.Text()
   (*c).ShareableID = post.ID
   (*c).PersonID = person.ID
-  (*c).Guid = entity.Guid
+  (*c).Guid = entity.Guid()
   (*c).ShareableType = ShareablePost
-  (*c).Signature.AuthorSignature = entity.AuthorSignature
+  (*c).Signature.AuthorSignature = entity.Signature()
   return nil
 }
 

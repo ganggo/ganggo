@@ -203,55 +203,58 @@ func (p *Post) Cast(entity interface{}) (err error) {
   defer db.Close()
 
   var person Person
-  if statusMessage, ok := entity.(*federation.EntityStatusMessage); ok {
-    err = person.FindByAuthor(statusMessage.Author)
+  if statusMessage, ok := entity.(federation.MessagePost); ok {
+    err = person.FindByAuthor(statusMessage.Author())
     if err != nil {
       return
     }
 
     var photos Photos
-    if statusMessage.Photos != nil {
-      err = photos.Cast(*statusMessage.Photos)
-      if err != nil {
-        return
-      }
-    }
+    // XXX fix photos
+    //if statusMessage.Photos != nil {
+    //  err = photos.Cast(*statusMessage.Photos)
+    //  if err != nil {
+    //    return
+    //  }
+    //}
 
-    createdAt, err := statusMessage.CreatedAt.Time()
+    createdAt, err := statusMessage.CreatedAt().Time()
     if err != nil {
       return err
     }
 
     (*p).CreatedAt = createdAt
     (*p).Photos = photos
-    (*p).Public = statusMessage.Public
-    (*p).Guid = statusMessage.Guid
+    (*p).Public = statusMessage.Public()
+    (*p).Guid = statusMessage.Guid()
     (*p).Type = StatusMessage
-    (*p).Text = statusMessage.Text
-    (*p).ProviderName = statusMessage.ProviderName
-  } else if reshare, ok := entity.(*federation.EntityReshare); ok {
-    err = person.FindByAuthor(reshare.Author)
+    (*p).Text = statusMessage.Text()
+    (*p).ProviderName = statusMessage.Provider()
+  } else if reshare, ok := entity.(federation.MessageReshare); ok {
+    err = person.FindByAuthor(reshare.Author())
     if err != nil {
       return
     }
 
     var rootPerson Person
-    err = rootPerson.FindByAuthor(reshare.RootAuthor)
+    err = rootPerson.FindByAuthor(reshare.ParentAuthor())
     if err != nil {
       return
     }
 
-    createdAt, err := statusMessage.CreatedAt.Time()
+    createdAt, err := statusMessage.CreatedAt().Time()
     if err != nil {
       return err
     }
 
     (*p).CreatedAt = createdAt
     (*p).Public = true
-    (*p).Guid = reshare.Guid
+    (*p).Guid = reshare.Guid()
     (*p).Type = Reshare
     (*p).RootPersonID = rootPerson.ID
-    (*p).RootGuid = &reshare.RootGuid
+
+    rootGuid := reshare.Parent()
+    (*p).RootGuid = &rootGuid
   } else {
     panic("Post.Cast requires type EntityStatusMessage or EntityReshare!")
   }
@@ -286,6 +289,19 @@ func (posts *Posts) FindAllPublic(offset uint) (err error) {
 
   query := db.Offset(offset).Limit(10).
     Where(`public = ?`, true).Order(`created_at desc`)
+
+  return query.Find(posts).Error
+}
+
+func (posts *Posts) FindAllPublicByPerson(person Person, offset uint) (err error) {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  query := db.Offset(offset).Limit(10).
+    Where(`person_id = ? and public = ?`, person.ID, true).Order(`created_at desc`)
 
   return query.Find(posts).Error
 }

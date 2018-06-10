@@ -22,6 +22,7 @@ import (
   "github.com/revel/revel"
   federation "github.com/ganggo/federation"
   "gopkg.in/ganggo/gorm.v2"
+  diaspora "github.com/ganggo/federation/diaspora"
 )
 
 type Like struct {
@@ -74,7 +75,7 @@ func (Like) HasPublic() bool { return false }
 func (Like) IsPublic() bool { return false }
 // Model Interface Type
 
-func (l *Like) Create(entity *federation.EntityLike) (err error) {
+func (l *Like) Create(entity *diaspora.EntityLike) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return
@@ -142,7 +143,7 @@ func (l *Like) AfterDelete(db *gorm.DB) (err error) {
   return db.Where("like_id = ?", l.ID).Delete(LikeSignature{}).Error
 }
 
-func (l *Like) Cast(entity *federation.EntityLike) (err error) {
+func (l *Like) Cast(entity federation.MessageLike) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return
@@ -154,23 +155,23 @@ func (l *Like) Cast(entity *federation.EntityLike) (err error) {
     person Person
   )
 
-  err = db.Where("guid = ?", entity.ParentGuid).First(&post).Error
+  err = db.Where("guid = ?", entity.Parent()).First(&post).Error
   if err != nil {
     return
   }
 
-  err = db.Where("author = ?", entity.Author).First(&person).Error
+  err = db.Where("author = ?", entity.Author()).First(&person).Error
   if err != nil {
     return
   }
 
-  (*l).Positive = entity.Positive
+  (*l).Positive = entity.Positive()
   (*l).ShareableID = post.ID
   (*l).PersonID = person.ID
-  (*l).Guid = entity.Guid
-  (*l).Signature.AuthorSignature = entity.AuthorSignature
-  (*l).ShareableType = entity.ParentType
-
+  (*l).Guid = entity.Guid()
+  (*l).Signature.AuthorSignature = entity.Signature()
+  // XXX in future that should be dynamic
+  (*l).ShareableType = ShareablePost
   return
 }
 

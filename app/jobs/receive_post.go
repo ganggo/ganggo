@@ -23,7 +23,7 @@ import (
   federation "github.com/ganggo/federation"
 )
 
-func (receiver *Receiver) Reshare(entity federation.EntityReshare) {
+func (receiver *Receiver) Reshare(entity federation.MessageReshare) {
   db, err := models.OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
@@ -31,47 +31,42 @@ func (receiver *Receiver) Reshare(entity federation.EntityReshare) {
   }
   defer db.Close()
 
-  fetch := FetchAuthor{Author: entity.Author}
+  fetch := FetchAuthor{Author: entity.ParentAuthor()}
   fetch.Run()
   if fetch.Err != nil {
     revel.AppLog.Error(fetch.Err.Error())
     return
   }
 
-  fetchRoot := FetchAuthor{Author: entity.RootAuthor}
-  fetchRoot.Run()
-  if fetchRoot.Err != nil {
-    revel.AppLog.Error(fetchRoot.Err.Error())
-    return
-  }
-
-  createdAt, err := entity.CreatedAt.Time()
+  createdAt, err := entity.CreatedAt().Time()
   if err != nil {
     revel.AppLog.Error(err.Error())
     return
   }
 
   var post models.Post
-  err = post.FindByGuid(entity.RootGuid)
+  err = post.FindByGuid(entity.Parent())
   if err != nil {
-    // try to recover entity
-    recovery := Recovery{models.ShareablePost, entity.RootGuid}
-    recovery.Run()
+    // XXX RECOVERY
+    //// try to recover entity
+    //recovery := Recovery{models.ShareablePost, entity.RootGuid}
+    //recovery.Run()
 
-    err = post.FindByGuid(entity.RootGuid)
-    if err != nil {
+    //err = post.FindByGuid(entity.RootGuid)
+    //if err != nil {
       revel.AppLog.Error(err.Error())
       return
-    }
+    //}
   }
 
+  rootGuid := entity.Parent()
   reshare := models.Post{
     Type: models.Reshare,
-    Guid: entity.Guid,
+    Guid: entity.Guid(),
     PersonID: fetch.Person.ID,
     CreatedAt: createdAt,
-    RootPersonID: fetchRoot.Person.ID,
-    RootGuid: &entity.RootGuid,
+    RootPersonID: fetch.Person.ID,
+    RootGuid: &rootGuid,
     Public: true,
   }
   err = db.Create(&reshare).Error
@@ -81,7 +76,7 @@ func (receiver *Receiver) Reshare(entity federation.EntityReshare) {
   }
 }
 
-func (receiver *Receiver) StatusMessage(entity federation.EntityStatusMessage) {
+func (receiver *Receiver) StatusMessage(entity federation.MessagePost) {
   var (
     post models.Post
     user models.Person
@@ -95,14 +90,7 @@ func (receiver *Receiver) StatusMessage(entity federation.EntityStatusMessage) {
   }
   defer db.Close()
 
-  fetch := FetchAuthor{Author: entity.Author}
-  fetch.Run()
-  if fetch.Err != nil {
-    revel.AppLog.Error(fetch.Err.Error())
-    return
-  }
-
-  err = post.Cast(&entity)
+  err = post.Cast(entity)
   if err != nil {
     revel.AppLog.Error(err.Error())
     return
@@ -115,7 +103,7 @@ func (receiver *Receiver) StatusMessage(entity federation.EntityStatusMessage) {
   // even if the post already exists
   db.Create(&post)
 
-  if receiver.Guid != "" {
+  if !entity.Public() && receiver.Guid != "" {
     err = db.Where("guid = ?", receiver.Guid).First(&person).Error
     if err != nil {
       revel.AppLog.Error(err.Error(), "guid", receiver.Guid)

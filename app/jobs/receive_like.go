@@ -20,11 +20,11 @@ package jobs
 import (
   "github.com/revel/revel"
   "github.com/ganggo/ganggo/app/models"
-  federation "github.com/ganggo/federation"
-  run "github.com/revel/modules/jobs/app/jobs"
+  "github.com/ganggo/federation"
+  //run "github.com/revel/modules/jobs/app/jobs"
 )
 
-func (receiver *Receiver) Like(entity federation.EntityLike) {
+func (receiver *Receiver) Like(entity federation.MessageLike) {
   var like models.Like
   db, err := models.OpenDatabase()
   if err != nil {
@@ -35,34 +35,36 @@ func (receiver *Receiver) Like(entity federation.EntityLike) {
 
   revel.AppLog.Debug("Found a like entity", "entity", entity)
 
-  err = like.Cast(&entity)
+  err = like.Cast(entity)
   if err != nil {
     // try to recover entity
-    recovery := Recovery{models.ShareablePost, entity.ParentGuid}
-    recovery.Run()
+    // XXX recovery
+    //recovery := Recovery{models.ShareablePost, entity.ParentGuid}
+    //recovery.Run()
 
-    err = like.Cast(&entity)
-    if err != nil {
+    //err = like.Cast(&entity)
+    //if err != nil {
       revel.AppLog.Error(err.Error())
       return
-    }
+    //}
   }
 
-  _, _, local := like.ParentPostUser()
-  // if parent post is local we have
-  // to relay the entity to all recipiens
-  if local {
-    // store order for later use
-    order := models.SignatureOrder{
-      Order: receiver.Entity.SignatureOrder,
-    }
-    err = order.CreateOrFind()
-    if err != nil {
-      revel.AppLog.Error(err.Error())
-      return
-    }
-    like.Signature.SignatureOrderID = order.ID
-  }
+  // XXX RELAY
+  //_, _, local := like.ParentPostUser()
+  //// if parent post is local we have
+  //// to relay the entity to all recipiens
+  //if local {
+  //  // store order for later use
+  //  order := models.SignatureOrder{
+  //    Order: receiver.Entity.SignatureOrder,
+  //  }
+  //  err = order.CreateOrFind()
+  //  if err != nil {
+  //    revel.AppLog.Error(err.Error())
+  //    return
+  //  }
+  //  like.Signature.SignatureOrderID = order.ID
+  //}
 
   err = db.Create(&like).Error
   if err != nil {
@@ -70,11 +72,11 @@ func (receiver *Receiver) Like(entity federation.EntityLike) {
     return
   }
 
-  if local {
-    run.Now(Dispatcher{
-      Model: like,
-      Message: entity,
-      Relay: true,
-    })
-  }
+  //if local {
+  //  run.Now(Dispatcher{
+  //    Model: like,
+  //    Message: entity,
+  //    Relay: true,
+  //  })
+  //}
 }

@@ -20,7 +20,7 @@ package models
 import (
   "time"
   "github.com/ganggo/ganggo/app/helpers"
-  federation "github.com/ganggo/federation"
+  "github.com/ganggo/federation"
   "github.com/revel/revel"
 )
 
@@ -29,25 +29,26 @@ type Profile struct {
   CreatedAt time.Time
   UpdatedAt time.Time
 
+  PersonID uint `gorm:"size:4"`
   // size should be max 191 with mysql innodb
   // cause asumming we use utf8mb 4*191 = 764 < 767
+  Protocol string `gorm:"size:191"`
   Author string `gorm:"size:191"`
+  ImageUrl string
+  Public bool
+
   FirstName string `gorm:"null"`
   LastName string `gorm:"null"`
-  ImageUrl string
-  ImageUrlSmall string
-  ImageUrlMedium string
   Birthday time.Time `gorm:"null"`
   Gender string `gorm:"null"`
   Bio string `gorm:"type:text;null"`
   Searchable bool
-  PersonID uint `gorm:"size:4"`
   Location string `gorm:"null"`
   FullName string `gorm:"size:70"`
   Nsfw bool
 }
 
-func (p *Profile) Cast(entity *federation.EntityProfile) (err error) {
+func (p *Profile) Cast(entity federation.MessageProfile) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return
@@ -55,35 +56,33 @@ func (p *Profile) Cast(entity *federation.EntityProfile) (err error) {
   defer db.Close()
 
   var person Person
-  err = db.Where("author = ?", entity.Author).First(&person).Error
+  err = db.Where("author = ?", entity.Author()).First(&person).Error
   if err != nil {
     return
   }
 
-  birthday, timeErr := time.Parse("2006-02-01", entity.Birthday)
+  birthday, timeErr := time.Parse("2006-02-01", entity.Birthday())
   if timeErr == nil {
     (*p).Birthday = birthday
   }
 
-  (*p).Author = entity.Author
-  (*p).FirstName = entity.FirstName
-  (*p).LastName = entity.LastName
-  (*p).ImageUrl = entity.ImageUrl
-  (*p).ImageUrlMedium = entity.ImageUrlMedium
-  (*p).ImageUrlSmall = entity.ImageUrlSmall
-  (*p).Gender = entity.Gender
-  (*p).Bio = entity.Bio
-  (*p).Searchable = entity.Searchable
+  (*p).Author = entity.Author()
+  (*p).FirstName = entity.FirstName()
+  (*p).LastName = entity.LastName()
+  (*p).ImageUrl = entity.ImageUrl()
+  (*p).Gender = entity.Gender()
+  (*p).Bio = entity.Bio()
   (*p).PersonID = person.ID
-  (*p).Location = entity.Location
-  (*p).FullName = entity.FirstName + " " + entity.LastName
-  (*p).Nsfw = entity.Nsfw
+  (*p).Location = entity.Location()
+  (*p).FullName = entity.FirstName() + " " + entity.LastName()
+  (*p).Public = entity.Public()
+  (*p).Nsfw = entity.Nsfw()
 
   return
 }
 
 func (p Profile) Nickname() (nickname string) {
-  nickname, _, _ = helpers.ParseAuthor(p.Author)
+  nickname, _ = helpers.ParseUsername(p.Author)
   return
 }
 

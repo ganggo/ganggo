@@ -32,7 +32,6 @@ type Contact struct {
   UserID uint `gorm:"size:4"`
   PersonID uint `gorm:"size:4"`
   Sharing bool
-  Receiving bool
 }
 
 type Contacts []Contact
@@ -62,7 +61,7 @@ func (Contact) IsPublic() bool { return false }
 // Model Interface Type
 
 func (c *Contact) AfterSave(db *gorm.DB) error {
-  if c.Sharing && c.Receiving {
+  if c.Sharing {
     var user User
     err := user.FindByID(c.UserID)
     if err != nil {
@@ -73,7 +72,7 @@ func (c *Contact) AfterSave(db *gorm.DB) error {
   return nil
 }
 
-func (c *Contact) Cast(entity *federation.EntityContact) (err error) {
+func (c *Contact) Cast(entity federation.MessageContact) (err error) {
   var recipient User
   var sender Person
 
@@ -83,7 +82,7 @@ func (c *Contact) Cast(entity *federation.EntityContact) (err error) {
   }
   defer db.Close()
 
-  username, _, err := helpers.ParseAuthor(entity.Recipient)
+  username, err := helpers.ParseUsername(entity.Recipient())
   if err != nil {
     return err
   }
@@ -93,14 +92,25 @@ func (c *Contact) Cast(entity *federation.EntityContact) (err error) {
     return
   }
 
-  err = db.Where("author = ?", entity.Author).First(&sender).Error
+  err = db.Where("author = ?", entity.Author()).Or(
+    "guid = ?", helpers.UuidFromSalt(entity.Author()),
+  ).First(&sender).Error
   if err != nil {
     return
   }
 
   (*c).UserID = recipient.ID
   (*c).PersonID = sender.ID
-  (*c).Receiving = entity.Following
-  (*c).Sharing = entity.Sharing
+  (*c).Sharing = entity.Sharing()
   return
+}
+
+func (c *Contacts) FindByUserID(id uint) error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("user_id = ?", id).Find(c).Error
 }

@@ -23,6 +23,8 @@ import (
   "github.com/ganggo/ganggo/app/models"
   "github.com/ganggo/ganggo/app/helpers"
   federation "github.com/ganggo/federation"
+  fhelpers "github.com/ganggo/federation/helpers"
+  diaspora "github.com/ganggo/federation/diaspora"
   run "github.com/revel/modules/jobs/app/jobs"
   "bytes"
 )
@@ -32,6 +34,8 @@ type Dispatcher struct {
   Model interface{}
   Message interface{}
   Relay bool
+
+  Message2 federation.Message
 }
 
 type send struct {
@@ -40,23 +44,30 @@ type send struct {
 }
 
 func (dispatcher Dispatcher) Run() {
+  //switch entity := dispatcher.Message2.Entity().(type) {
+  //case federation.MessageContact:
+  //  revel.AppLog.Debug("Starting contact dispatcher")
+  //  dispatcher.Contact(entity)
+  //  return // XXX
+  //}
+
   switch entity := dispatcher.Message.(type) {
-  case federation.EntityLike:
+  case diaspora.EntityLike:
     revel.AppLog.Debug("Starting like dispatcher")
     dispatcher.Like(entity)
-  case federation.EntityComment:
+  case diaspora.EntityComment:
     revel.AppLog.Debug("Starting comment dispatcher")
     dispatcher.Comment(entity)
-  case federation.EntityRetraction:
+  case diaspora.EntityRetraction:
     revel.AppLog.Debug("Starting retraction dispatcher")
     dispatcher.Retraction(entity)
-  case federation.EntityContact:
+  case diaspora.EntityContact:
     revel.AppLog.Debug("Starting contact dispatcher")
     dispatcher.Contact(entity)
-  case federation.EntityStatusMessage:
+  case diaspora.EntityStatusMessage:
     revel.AppLog.Debug("Starting post dispatcher")
     dispatcher.StatusMessage(entity)
-  case federation.EntityReshare:
+  case diaspora.EntityReshare:
     revel.AppLog.Debug("Starting reshare dispatcher")
     dispatcher.Reshare(entity)
   default:
@@ -72,14 +83,14 @@ func (dispatcher Dispatcher) Send(parentPost models.Post, parentUser models.User
     var order models.SignatureOrder
     err := order.FindByID(orderID)
     if err == nil {
-      entityXml, err = federation.SortByEntityOrder(order.Order, entityXml)
+      entityXml, err = diaspora.SortByEntityOrder(order.Order, entityXml)
       if err != nil {
         revel.AppLog.Error(err.Error())
         return
       }
     }
 
-    privKey, err := federation.ParseRSAPrivateKey(
+    privKey, err := fhelpers.ParseRSAPrivateKey(
       []byte(parentUser.SerializedPrivateKey))
     if err != nil {
       revel.AppLog.Error(err.Error())
@@ -88,7 +99,7 @@ func (dispatcher Dispatcher) Send(parentPost models.Post, parentUser models.User
 
     // send to public or aspect
     if parentPost.Public {
-      payload, err := federation.MagicEnvelope(
+      payload, err := diaspora.MagicEnvelope(
         privKey, parentUser.Person.Author, entityXml,
       )
       if err != nil {
@@ -109,7 +120,7 @@ func (dispatcher Dispatcher) Send(parentPost models.Post, parentUser models.User
   } else if parentPost.ID > 0 {
     revel.AppLog.Debug("Dispatcher send to public or person")
 
-    privKey, err := federation.ParseRSAPrivateKey(
+    privKey, err := fhelpers.ParseRSAPrivateKey(
       []byte(dispatcher.User.SerializedPrivateKey))
     if err != nil {
       revel.AppLog.Error(err.Error())
@@ -118,7 +129,7 @@ func (dispatcher Dispatcher) Send(parentPost models.Post, parentUser models.User
 
     // send to public or person
     if parentPost.Public {
-      payload, err := federation.MagicEnvelope(
+      payload, err := diaspora.MagicEnvelope(
         privKey, dispatcher.User.Person.Author, entityXml,
       )
       if err != nil {
@@ -127,14 +138,14 @@ func (dispatcher Dispatcher) Send(parentPost models.Post, parentUser models.User
       }
       sendPublic(payload)
     } else {
-      pubKey, err := federation.ParseRSAPublicKey(
+      pubKey, err := fhelpers.ParseRSAPublicKey(
         []byte(parentPost.Person.SerializedPublicKey))
       if err != nil {
         revel.AppLog.Error(err.Error())
         return
       }
 
-      payload, err := federation.EncryptedMagicEnvelope(
+      payload, err := diaspora.EncryptedMagicEnvelope(
         privKey, pubKey, dispatcher.User.Person.Author, entityXml,
       )
       if err != nil {
@@ -142,7 +153,7 @@ func (dispatcher Dispatcher) Send(parentPost models.Post, parentUser models.User
         return
       }
 
-      _, host, err := helpers.ParseAuthor(parentPost.Person.Author)
+      host, err := helpers.ParseHost(parentPost.Person.Author)
       if err != nil {
         revel.AppLog.Error(err.Error())
         return
@@ -189,21 +200,21 @@ func sendToAspect(aspectID uint, privKey *rsa.PrivateKey, handle string, xml []b
       continue
     }
 
-    pubKey, err := federation.ParseRSAPublicKey(
+    pubKey, err := fhelpers.ParseRSAPublicKey(
       []byte(person.SerializedPublicKey))
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
     }
 
-    payload, err := federation.EncryptedMagicEnvelope(
+    payload, err := diaspora.EncryptedMagicEnvelope(
       privKey, pubKey, handle, xml)
     if err != nil {
       revel.AppLog.Error(err.Error())
       continue
     }
 
-    _, host, err := helpers.ParseAuthor(person.Author)
+    host, err := helpers.ParseHost(person.Author)
     if err != nil {
       revel.AppLog.Error(err.Error())
       continue
@@ -237,11 +248,9 @@ func (s send) Run() {
   }
 
   if s.Guid == "" {
-    err = federation.PushToPublic(s.Host,
-      bytes.NewBuffer(s.Payload))
+    err = federation.PushToPublic(s.Host, bytes.NewBuffer(s.Payload))
   } else {
-    err = federation.PushToPrivate(s.Host, s.Guid,
-      bytes.NewBuffer(s.Payload))
+    err = federation.PushToPrivate(s.Host, s.Guid, bytes.NewBuffer(s.Payload))
   }
   if err != nil {
     revel.AppLog.Error("Something went wrong while pushing", "host", s.Host, "err", err)

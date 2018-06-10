@@ -23,18 +23,19 @@ import (
   run "github.com/revel/modules/jobs/app/jobs"
   "github.com/ganggo/ganggo/app/models"
   "github.com/ganggo/ganggo/app/helpers"
-  federation "github.com/ganggo/federation"
+  fhelpers "github.com/ganggo/federation/helpers"
+  diaspora "github.com/ganggo/federation/diaspora"
 )
 
-func (dispatcher *Dispatcher) Contact(contact federation.EntityContact) {
-  _, host, err := helpers.ParseAuthor(contact.Recipient)
+func (dispatcher *Dispatcher) Contact(contact diaspora.EntityContact) {
+  host, err := helpers.ParseHost(contact.EntityRecipient)
   if err != nil {
     revel.AppLog.Error(err.Error())
     return
   }
 
   var person models.Person
-  err = person.FindByAuthor(contact.Recipient)
+  err = person.FindByAuthor(contact.EntityRecipient)
   if err != nil {
     revel.AppLog.Error(err.Error())
     return
@@ -46,22 +47,22 @@ func (dispatcher *Dispatcher) Contact(contact federation.EntityContact) {
     return
   }
 
-  privKey, err := federation.ParseRSAPrivateKey(
+  privKey, err := fhelpers.ParseRSAPrivateKey(
     []byte(dispatcher.User.SerializedPrivateKey))
   if err != nil {
     revel.AppLog.Error(err.Error())
     return
   }
 
-  pubKey, err := federation.ParseRSAPublicKey(
+  pubKey, err := fhelpers.ParseRSAPublicKey(
     []byte(person.SerializedPublicKey))
   if err != nil {
     revel.AppLog.Error(err.Error())
     return
   }
 
-  payload, err := federation.EncryptedMagicEnvelope(
-    privKey, pubKey, contact.Author, entityXml)
+  payload, err := diaspora.EncryptedMagicEnvelope(
+    privKey, pubKey, contact.EntityAuthor, entityXml)
   if err != nil {
     revel.AppLog.Error(err.Error())
     return

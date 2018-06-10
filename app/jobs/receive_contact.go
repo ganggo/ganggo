@@ -23,7 +23,7 @@ import (
   federation "github.com/ganggo/federation"
 )
 
-func (receiver *Receiver) Contact(entity federation.EntityContact) {
+func (receiver *Receiver) Contact(entity federation.MessageContact) {
   db, err := models.OpenDatabase()
   if err != nil {
     revel.AppLog.Warn(err.Error())
@@ -34,7 +34,7 @@ func (receiver *Receiver) Contact(entity federation.EntityContact) {
   revel.AppLog.Debug("Found a contact entity", "entity", entity)
 
   var contact models.Contact
-  err = contact.Cast(&entity)
+  err = contact.Cast(entity)
   if err != nil {
     revel.AppLog.Warn(err.Error())
     return
@@ -45,12 +45,8 @@ func (receiver *Receiver) Contact(entity federation.EntityContact) {
     contact.UserID, contact.PersonID,
   ).First(&oldContact).Error
   if err == nil {
-    if err = db.Model(&oldContact).Updates(
-      map[string]interface{}{
-        "sharing": contact.Sharing,
-        "receiving": contact.Receiving,
-      },
-    ).Error; err != nil {
+    err = db.Model(&oldContact).Update("sharing", contact.Sharing).Error
+    if err != nil {
       revel.AppLog.Warn(err.Error())
       return
     }
