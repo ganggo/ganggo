@@ -15,12 +15,12 @@ address = "localhost:9000"
 db.driver = "postgres"
 db.user = "postgres"
 db.password = ""
-db.host = ""
+db.host = "postgres"
 db.database = "ganggo"
 # mysql
 #db.dsn = "%s:%s@tcp(%s)/%s?parseTime=true"
 # postgres
-db.dsn = "user=%s password=%s host=%s dbname=%s sslmode=disable"
+db.dsn = "postgres://%s:%s@%s/%s?sslmode=disable"
 
 # The relay is disabled on default
 # in respect of privacy matters
@@ -238,9 +238,9 @@ log.error.flags = 3
 log.request.output = off
 
 ################################################################################
-# Section: travis
+# Section: ci
 # This section is dedicated to the continuous integration service only
-[travis]
+[ci]
 mode.dev = true
 results.pretty = true
 watch = false

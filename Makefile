@@ -95,7 +95,7 @@ endif
 	cp $(srcdir)/conf/app.conf.example $(srcdir)/conf/app.conf
 	# XXX revel will not print error stacks to console
 	# (see https://github.com/revel/cmd/issues/121)
-	revel test $(package) travis || { \
+	revel test $(package) ci || { \
 		cd $(srcdir) && bash tests/scripts/test_results.sh ;\
 		exit 1 ;\
 	}

@@ -1,0 +1,45 @@
+image: golang:1.9-stretch
+services:
+- postgres:latest
+variables:
+  POSTGRES_DB: ganggo
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: ""
+  UPDATE_CHANNEL: alpha
+  #PATH: $PATH:$GOPATH/bin
+  #VERSION: $(git describe --abbrev=0 --tags)
+  BUILD_GOOS: linux
+  BUILD_GOARCH: amd64
+  # XXX not working yet see https://gitlab.com/gitlab-org/gitlab-runner/merge_requests/876
+  CI_PROJECT_DIR: $GOPATH/src/github.com/ganggo/ganggo
+stages:
+- test
+- package
+- deploy
+before_script:
+- export VERSION=$(git describe --abbrev=0 --tags)
+- curl -sL https://deb.nodesource.com/setup_10.x | bash -
+- apt-get install -y nodejs
+# XXX remove clone workaround if CI_PROJECT_DIR is implemented
+- mkdir -p $GOPATH/src/github.com/ganggo
+- ln -s $(pwd) $GOPATH/src/github.com/ganggo/ganggo
+# XXX end
+- cd $GOPATH/src/github.com/ganggo/ganggo && make install
+running unit tests:
+  stage: test
+  script:
+  # if we define GOARCH, GOOS and GOARM directly
+  # it will be resetted after calling install/script function
+  # to avoid it we wrap the values in the BUILD-variables
+  - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS GOARM=$BUILD_GOARM make test
+build update package:
+  stage: package
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+    paths:
+    - updater.*
+  script:
+  - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS GOARM=$BUILD_GOARM make release
+  after_script:
+  - export LABEL=$BUILD_GOOS-$BUILD_GOARCH.$UPDATE_CHANNEL
+  - mv updater updater.$LABEL
