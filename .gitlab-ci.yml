@@ -6,8 +6,6 @@ variables:
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: ""
   UPDATE_CHANNEL: alpha
-  #PATH: $PATH:$GOPATH/bin
-  #VERSION: $(git describe --abbrev=0 --tags)
   BUILD_GOOS: linux
   BUILD_GOARCH: amd64
   # XXX not working yet see https://gitlab.com/gitlab-org/gitlab-runner/merge_requests/876
@@ -35,11 +33,9 @@ running unit tests:
 build update package:
   stage: package
   artifacts:
-    name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+    name: "$BUILD_GOOS-$BUILD_GOARCH-$UPDATE_CHANNEL"
     paths:
-    - updater.*
+    - updater
   script:
   - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS GOARM=$BUILD_GOARM make release
-  after_script:
-  - export LABEL=$BUILD_GOOS-$BUILD_GOARCH.$UPDATE_CHANNEL
-  - mv updater updater.$LABEL
+  when: manual
