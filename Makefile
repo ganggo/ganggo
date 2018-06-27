@@ -7,26 +7,30 @@ package := github.com/ganggo/ganggo
 srcdir := $(GOPATH)/src/$(package)
 
 go := $(shell command -v go 2> /dev/null)
+godep := $(shell command -v dep 2> /dev/null)
 gobin := $(shell command -v go-bindata 2> /dev/null)
 npm := $(shell command -v npm 2> /dev/null)
 revel := $(shell command -v revel 2> /dev/null)
 train := $(shell command -v train 2> /dev/null)
 
+ifndef go
+	$(error "go is not available: https://golang.org/dl/")
+endif
+
 define version_info
-Please define a version you want to build e.g. VERSION=v0 make
+	Please define a version you want to build e.g. VERSION=v0 make
 endef
 
-define install_deps_info
-is not available please run 'make install-deps'
-endef
-
-define train_info
-$(install_deps_info)
-
-And don't forget to add the node modules to your path
-
-e.g. export PATH=$$PATH:$$(pwd)/node_modules/.bin
-
+define install-tools
+	# go dependencies
+	go get -u github.com/golang/dep/cmd/dep
+	# web framework
+	go get -u github.com/revel/cmd/revel
+	# asset compilation
+	go get -u github.com/shaoshing/train/cmd
+	go build -o $$GOPATH/bin/train github.com/shaoshing/train/cmd
+	# embedding binary data e.g. assets
+	go get -u github.com/jteeuwen/go-bindata/...
 endef
 
 install: clean install-deps
@@ -34,38 +38,25 @@ install: clean install-deps
 release: precompile compile u2d-wrapper
 
 install-deps:
-ifndef go
-	$(error "go is not available: https://golang.org/dl/")
-endif
 ifndef npm
 	$(error "npm is not available please install it first!")
 endif
+ifndef godep
+	$(install-tools)
+endif
 	# Install CSS and Javascript dependencies
 	cd $(srcdir) && npm install --prefix .
-	# GangGo dependencies
-	go get -u github.com/golang/dep/cmd/dep
+	# ganggo dependencies
 	cd $(srcdir) && dep ensure
-	# XXX this seams to be a bug in revel
-	# it cannot find the api module within
-	# the vendor directory even though it exists
-	go get -d github.com/ganggo/api/...
-	## CLI for train asset library / revel webframework
-	go get -d \
-		github.com/shaoshing/train \
-		github.com/revel/cmd/...
-	go build -o $(GOPATH)/bin/train github.com/shaoshing/train/cmd
-	go build -o $(GOPATH)/bin/revel github.com/revel/cmd/revel
-	# Embedding binary data e.g. assets
-	go get -u github.com/jteeuwen/go-bindata/...
 
 clean:
-	rm -r app/assets/vendor/* \
-		tmp node_modules || true
-	rm bindata.go updater *.tar.gz || true
+	rm -r tmp vendor node_modules \
+		test-results bindata.go \
+		updater.*.bin *.tar.gz || true
 
 precompile:
 ifndef train
-	$(error "train $(train_info)")
+	$(install-tools)
 endif
 	cd $(srcdir) && train -out public -source app/assets
 	# Append vendor files to manifest
@@ -82,21 +73,23 @@ ifndef version
 	$(error $(version_info))
 endif
 ifndef revel
-	$(error "revel $(install_deps_info)")
+	$(install-tools)
 endif
 	cp $(srcdir)/conf/app.conf.example $(srcdir)/conf/app.conf
-	cd $(srcdir) && APP_VERSION=$(version) revel package $(package)
+	cd $(srcdir) && \
+		APP_VERSION=$(version) revel package $(package)
 
 test:
-	go tool vet -v -all app/
 ifndef revel
-	$(error "revel $(install_deps_info)")
+	$(install-tools)
 endif
+	cd $(srcdir) && \
+		go tool vet -v -all app/
 	cp $(srcdir)/conf/app.conf.example $(srcdir)/conf/app.conf
 	# XXX revel will not print error stacks to console
 	# (see https://github.com/revel/cmd/issues/121)
 	revel test $(package) ci || { \
-		cd $(srcdir) && bash tests/scripts/test_results.sh ;\
+		cd $(srcdir) && bash ci/scripts/test_results.sh ;\
 		exit 1 ;\
 	}
 
@@ -105,12 +98,15 @@ ifndef version
 	$(error $(version_info))
 endif
 ifndef gobin
-	$(error "go-bindata $(install_deps_info)")
+	$(install-tools)
 endif
-	mkdir -p $(srcdir)/tmp && cd $(srcdir)/tmp && \
-		tar -x -f "../ganggo.tar.gz" && \
-		rm -rf src/$(package)/{vendor,node_modules} && \
-		go-bindata -o ../bindata.go ganggo src/...
+	mkdir -p $(srcdir)/tmp && cd $$_ && { \
+		tar -x -f "../ganggo.tar.gz" ;\
+		[ -f "ganggo.exe" ] && mv ganggo.exe ganggo ;\
+		go-bindata -ignore \
+			'src/$(package)/[vendor|node_modules|bindata.go|.*\.tar\.gz|tmp]' \
+			-o ../bindata.go ganggo src/... ;\
+	}
 	cd $(srcdir) && go build \
 		-ldflags "-X main.version=$(version)" \
-		-o updater updater.go bindata.go
+		-o updater.$$GOOS-$$GOARCH$$GOARM.bin updater.go bindata.go

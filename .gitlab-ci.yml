@@ -1,4 +1,6 @@
-image: golang:1.9-stretch
+# you will find the build script
+# for the image in ci/docker/Dockerfile
+image: zauberstuhl/ganggo-ci:1.9-stretch
 services:
 - postgres:latest
 variables:
@@ -6,36 +8,64 @@ variables:
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: ""
   UPDATE_CHANNEL: alpha
-  BUILD_GOOS: linux
-  BUILD_GOARCH: amd64
-  # XXX not working yet see https://gitlab.com/gitlab-org/gitlab-runner/merge_requests/876
-  CI_PROJECT_DIR: $GOPATH/src/github.com/ganggo/ganggo
 stages:
 - test
-- package
+- packages
 - deploy
+cache:
+  key: "ganggo-$CI_PIPELINE_ID"
+  paths:
+  - vendor
+  - node_modules
 before_script:
 - export VERSION=$(git describe --abbrev=0 --tags)
-- curl -sL https://deb.nodesource.com/setup_10.x | bash -
-- apt-get install -y nodejs
-# XXX remove clone workaround if CI_PROJECT_DIR is implemented
 - mkdir -p $GOPATH/src/github.com/ganggo
 - ln -s $(pwd) $GOPATH/src/github.com/ganggo/ganggo
-# XXX end
-- cd $GOPATH/src/github.com/ganggo/ganggo && make install
+- if [ ! -d "vendor" ]; then make install; fi
 running unit tests:
   stage: test
   script:
-  # if we define GOARCH, GOOS and GOARM directly
-  # it will be resetted after calling install/script function
-  # to avoid it we wrap the values in the BUILD-variables
-  - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS GOARM=$BUILD_GOARM make test
-build update package:
-  stage: package
-  artifacts:
-    name: "$BUILD_GOOS-$BUILD_GOARCH-$UPDATE_CHANNEL"
-    paths:
-    - updater
+  - make test
+building with GOARCH=amd64 GOOS=linux:
+  stage: packages
   script:
-  - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS GOARM=$BUILD_GOARM make release
+  - export GOARCH=amd64
+  - export GOOS=linux
+  - make release
+building with GOARCH=amd64 GOOS=windows:
+  stage: packages
+  script:
+  - export CGO_ENABLED=1
+  - export CXX=x86_64-w64-mingw32-g++
+  - export CC=x86_64-w64-mingw32-gcc
+  - export GOARCH=amd64
+  - export GOOS=windows
+  - make release
+building with GOARCH=386 GOOS=windows:
+  stage: packages
+  script:
+  - export CGO_ENABLED=1
+  - export CXX=i686-w64-mingw32-g++
+  - export CC=i686-w64-mingw32-gcc
+  - export GOARCH=386
+  - export GOOS=windows
+  - make release
+building with GOARCH=arm GOOS=linux GOARM=7:
+  stage: packages
+  script:
+  - export CGO_ENABLED=1
+  - export CC=arm-linux-gnueabihf-gcc
+  - export GOARCH=arm
+  - export GOOS=linux
+  - export GOARM=7
+  - make release
+deploy update packages:
+  stage: deploy
+  artifacts:
+    name: "$UPDATE_CHANNEL"
+    expire_in: "1 day"
+    paths:
+    - updater.*.bin
+  script:
+  - bash -c true
   when: manual
