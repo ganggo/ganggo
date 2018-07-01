@@ -9,31 +9,57 @@ variables:
   POSTGRES_PASSWORD: ""
   UPDATE_CHANNEL: alpha
 stages:
+- dependency
 - test
-- packages
-- deploy
-cache:
-  key: "ganggo-$CI_PIPELINE_ID"
+- package
+artifacts:
+  name: "$UPDATE_CHANNEL"
+  expire_in: "1 day"
   paths:
-  - vendor
-  - node_modules
+  - updater.*.bin
 before_script:
 - export VERSION=$(git describe --abbrev=0 --tags)
 - mkdir -p $GOPATH/src/github.com/ganggo
 - ln -s $(pwd) $GOPATH/src/github.com/ganggo/ganggo
-- if [ ! -d "vendor" ]; then make install; fi
-running unit tests:
+install dependencies:
+  stage: dependency
+  cache:
+    key: "ganggo-$CI_PIPELINE_ID"
+    paths:
+    - vendor
+    - node_modules
+  script:
+  - make install
+run unit tests:
   stage: test
+  cache:
+    key: "ganggo-$CI_PIPELINE_ID"
+    paths:
+    - vendor
+    - node_modules
+    policy: pull
   script:
   - make test
-building with GOARCH=amd64 GOOS=linux:
-  stage: packages
+build with GOARCH=amd64 GOOS=linux:
+  stage: package
+  cache:
+    key: "ganggo-$CI_PIPELINE_ID"
+    paths:
+    - vendor
+    - node_modules
+    policy: pull
   script:
   - export GOARCH=amd64
   - export GOOS=linux
   - make release
-building with GOARCH=amd64 GOOS=windows:
-  stage: packages
+build with GOARCH=amd64 GOOS=windows:
+  stage: package
+  cache:
+    key: "ganggo-$CI_PIPELINE_ID"
+    paths:
+    - vendor
+    - node_modules
+    policy: pull
   script:
   - export CGO_ENABLED=1
   - export CXX=x86_64-w64-mingw32-g++
@@ -41,8 +67,14 @@ building with GOARCH=amd64 GOOS=windows:
   - export GOARCH=amd64
   - export GOOS=windows
   - make release
-building with GOARCH=386 GOOS=windows:
-  stage: packages
+build with GOARCH=386 GOOS=windows:
+  stage: package
+  cache:
+    key: "ganggo-$CI_PIPELINE_ID"
+    paths:
+    - vendor
+    - node_modules
+    policy: pull
   script:
   - export CGO_ENABLED=1
   - export CXX=i686-w64-mingw32-g++
@@ -50,8 +82,14 @@ building with GOARCH=386 GOOS=windows:
   - export GOARCH=386
   - export GOOS=windows
   - make release
-building with GOARCH=arm GOOS=linux GOARM=7:
-  stage: packages
+build with GOARCH=arm GOOS=linux GOARM=7:
+  stage: package
+  cache:
+    key: "ganggo-$CI_PIPELINE_ID"
+    paths:
+    - vendor
+    - node_modules
+    policy: pull
   script:
   - export CGO_ENABLED=1
   - export CC=arm-linux-gnueabihf-gcc
@@ -59,13 +97,3 @@ building with GOARCH=arm GOOS=linux GOARM=7:
   - export GOOS=linux
   - export GOARM=7
   - make release
-deploy update packages:
-  stage: deploy
-  artifacts:
-    name: "$UPDATE_CHANNEL"
-    expire_in: "1 day"
-    paths:
-    - updater.*.bin
-  script:
-  - bash -c true
-  when: manual
