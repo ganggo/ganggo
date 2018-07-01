@@ -30,6 +30,14 @@ required = ["github.com/revel/cmd/revel"]
   branch = "master"
   name = "github.com/ganggo/federation"
 
+[[override]]
+  branch = "master"
+  name = "github.com/xeonx/timeago"
+
+[[override]]
+  branch = "master"
+  name = "github.com/revel/log15"
+
 [[constraint]]
   name = "gopkg.in/AlecAivazis/survey.v1"
   version = "1.4.1"
