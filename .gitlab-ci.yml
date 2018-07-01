@@ -8,58 +8,40 @@ variables:
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: ""
   UPDATE_CHANNEL: alpha
-stages:
-- dependency
-- test
-- package
-artifacts:
-  name: "$UPDATE_CHANNEL"
-  expire_in: "1 day"
+cache:
+  key: "ganggo"
   paths:
-  - updater.*.bin
+  - vendor
+  - node_modules
+stages:
+- test
+- build
+- deploy
 before_script:
 - export VERSION=$(git describe --abbrev=0 --tags)
 - mkdir -p $GOPATH/src/github.com/ganggo
 - ln -s $(pwd) $GOPATH/src/github.com/ganggo/ganggo
-install dependencies:
-  stage: dependency
-  cache:
-    key: "ganggo-$CI_PIPELINE_ID"
-    paths:
-    - vendor
-    - node_modules
-  script:
-  - make install
+- make install
 run unit tests:
   stage: test
-  cache:
-    key: "ganggo-$CI_PIPELINE_ID"
-    paths:
-    - vendor
-    - node_modules
-    policy: pull
   script:
   - make test
 build with GOARCH=amd64 GOOS=linux:
-  stage: package
-  cache:
-    key: "ganggo-$CI_PIPELINE_ID"
+  artifacts:
+    expire_in: "1 day"
     paths:
-    - vendor
-    - node_modules
-    policy: pull
+    - updater.*.bin
+  stage: build
   script:
   - export GOARCH=amd64
   - export GOOS=linux
   - make release
 build with GOARCH=amd64 GOOS=windows:
-  stage: package
-  cache:
-    key: "ganggo-$CI_PIPELINE_ID"
+  artifacts:
+    expire_in: "1 day"
     paths:
-    - vendor
-    - node_modules
-    policy: pull
+    - updater.*.bin
+  stage: build
   script:
   - export CGO_ENABLED=1
   - export CXX=x86_64-w64-mingw32-g++
@@ -68,13 +50,11 @@ build with GOARCH=amd64 GOOS=windows:
   - export GOOS=windows
   - make release
 build with GOARCH=386 GOOS=windows:
-  stage: package
-  cache:
-    key: "ganggo-$CI_PIPELINE_ID"
+  artifacts:
+    expire_in: "1 day"
     paths:
-    - vendor
-    - node_modules
-    policy: pull
+    - updater.*.bin
+  stage: build
   script:
   - export CGO_ENABLED=1
   - export CXX=i686-w64-mingw32-g++
@@ -83,13 +63,11 @@ build with GOARCH=386 GOOS=windows:
   - export GOOS=windows
   - make release
 build with GOARCH=arm GOOS=linux GOARM=7:
-  stage: package
-  cache:
-    key: "ganggo-$CI_PIPELINE_ID"
+  artifacts:
+    expire_in: "1 day"
     paths:
-    - vendor
-    - node_modules
-    policy: pull
+    - updater.*.bin
+  stage: build
   script:
   - export CGO_ENABLED=1
   - export CC=arm-linux-gnueabihf-gcc
@@ -97,3 +75,13 @@ build with GOARCH=arm GOOS=linux GOARM=7:
   - export GOOS=linux
   - export GOARM=7
   - make release
+deploy artifacts to bintray:
+  artifacts:
+    expire_in: "1 day"
+    paths:
+    - updater.*.bin
+  stage: deploy
+  script:
+  - bash ci/scripts/bintray.sh
+  when: manual
+  allow_failure: true
