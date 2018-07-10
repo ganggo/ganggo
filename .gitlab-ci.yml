@@ -26,7 +26,7 @@ run unit tests:
   stage: test
   script:
   - make test
-build with GOARCH=amd64 GOOS=linux:
+linux:amd64:
   artifacts:
     expire_in: "1 day"
     paths:
@@ -36,7 +36,7 @@ build with GOARCH=amd64 GOOS=linux:
   - export GOARCH=amd64
   - export GOOS=linux
   - make release
-build with GOARCH=amd64 GOOS=windows:
+windows:amd64:
   artifacts:
     expire_in: "1 day"
     paths:
@@ -49,7 +49,7 @@ build with GOARCH=amd64 GOOS=windows:
   - export GOARCH=amd64
   - export GOOS=windows
   - make release
-build with GOARCH=386 GOOS=windows:
+windows:386:
   artifacts:
     expire_in: "1 day"
     paths:
@@ -62,7 +62,7 @@ build with GOARCH=386 GOOS=windows:
   - export GOARCH=386
   - export GOOS=windows
   - make release
-build with GOARCH=arm GOOS=linux GOARM=7:
+linux:arm:7:
   artifacts:
     expire_in: "1 day"
     paths:
@@ -76,12 +76,14 @@ build with GOARCH=arm GOOS=linux GOARM=7:
   - export GOARM=7
   - make release
 deploy artifacts to bintray:
-  artifacts:
-    expire_in: "1 day"
-    paths:
-    - updater.*.bin
+  before_script: []
   stage: deploy
   script:
   - bash ci/scripts/bintray.sh
   when: manual
   allow_failure: true
+  dependencies:
+  - linux:amd64
+  - windows:amd64
+  - windows:386
+  - linux:arm:7
