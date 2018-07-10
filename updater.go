@@ -244,6 +244,9 @@ func AssetValidator(filename string) bool {
 func prog(state overseer.State) {
   buildID := int32(time.Now().Unix())
   binFile := fmt.Sprintf("./ganggo.%s.%d", version, buildID)
+  if runtime.GOOS == "windows" {
+    binFile = fmt.Sprintf("ganggo.%s.%d.exe", version, buildID)
+  }
   // clean-up binaries
   defer func() {
     os.Remove(binFile)

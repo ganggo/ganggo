@@ -1,0 +1,89 @@
+# you will find the build script
+# for the image in ci/docker/Dockerfile
+image: zauberstuhl/ganggo-ci:1.9-stretch
+services:
+- postgres:latest
+variables:
+  POSTGRES_DB: ganggo
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: ""
+  UPDATE_CHANNEL: alpha
+cache:
+  key: "ganggo"
+  paths:
+  - vendor
+  - node_modules
+stages:
+- test
+- build
+- deploy
+before_script:
+- export VERSION=$(git describe --abbrev=0 --tags)
+- mkdir -p $GOPATH/src/github.com/ganggo
+- ln -s $(pwd) $GOPATH/src/github.com/ganggo/ganggo
+- make install
+run unit tests:
+  stage: test
+  script:
+  - make test
+linux:amd64:
+  artifacts:
+    expire_in: "1 day"
+    paths:
+    - updater.*.bin
+  stage: build
+  script:
+  - export GOARCH=amd64
+  - export GOOS=linux
+  - make release
+windows:amd64:
+  artifacts:
+    expire_in: "1 day"
+    paths:
+    - updater.*.bin
+  stage: build
+  script:
+  - export CGO_ENABLED=1
+  - export CXX=x86_64-w64-mingw32-g++
+  - export CC=x86_64-w64-mingw32-gcc
+  - export GOARCH=amd64
+  - export GOOS=windows
+  - make release
+windows:386:
+  artifacts:
+    expire_in: "1 day"
+    paths:
+    - updater.*.bin
+  stage: build
+  script:
+  - export CGO_ENABLED=1
+  - export CXX=i686-w64-mingw32-g++
+  - export CC=i686-w64-mingw32-gcc
+  - export GOARCH=386
+  - export GOOS=windows
+  - make release
+linux:arm:7:
+  artifacts:
+    expire_in: "1 day"
+    paths:
+    - updater.*.bin
+  stage: build
+  script:
+  - export CGO_ENABLED=1
+  - export CC=arm-linux-gnueabihf-gcc
+  - export GOARCH=arm
+  - export GOOS=linux
+  - export GOARM=7
+  - make release
+deploy artifacts to bintray:
+  before_script: []
+  stage: deploy
+  script:
+  - bash ci/scripts/bintray.sh
+  when: manual
+  allow_failure: true
+  dependencies:
+  - linux:amd64
+  - windows:amd64
+  - windows:386
+  - linux:arm:7
