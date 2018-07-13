@@ -20,7 +20,7 @@ package helpers
 import (
   "fmt"
   "github.com/revel/revel"
-  federation "github.com/ganggo/federation"
+  federation "git.feneas.org/ganggo/federation"
   "github.com/revel/log15"
   "github.com/getsentry/raven-go"
 )

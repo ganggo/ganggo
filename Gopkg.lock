@@ -4,8 +4,24 @@
 [[projects]]
   name = "cloud.google.com/go"
   packages = ["civil"]
-  revision = "777200caa7fb8936aed0f12b1fd79af64cc83ec9"
-  version = "v0.24.0"
+  revision = "aad3f485ee528456e0768f20397b4d9dd941e755"
+  version = "v0.25.0"
+
+[[projects]]
+  branch = "master"
+  name = "git.feneas.org/ganggo/api"
+  packages = [
+    "app",
+    "app/controllers",
+    "app/helpers"
+  ]
+  revision = "f4932ab8362e8e2a4e63aa88f07d17bed21f7134"
+
+[[projects]]
+  branch = "master"
+  name = "git.feneas.org/ganggo/federation"
+  packages = ["."]
+  revision = "59eaaf5c998263705f44bc1706686515b5f028f5"
 
 [[projects]]
   name = "github.com/PuerkitoBio/goquery"
@@ -53,6 +69,7 @@
     "aws/signer/v4",
     "internal/sdkio",
     "internal/sdkrand",
+    "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/eventstream",
@@ -65,8 +82,8 @@
     "service/s3",
     "service/sts"
   ]
-  revision = "852052a10992d92f68b9a60862a3312292524903"
-  version = "v1.14.17"
+  revision = "9e9afa0895e9daff556cc18f90dc53eb91f41ffd"
+  version = "v1.14.26"
 
 [[projects]]
   name = "github.com/certifi/gocertifi"
@@ -87,29 +104,13 @@
     ".",
     "internal/cp"
   ]
-  revision = "3724b4745ca99cd0374ace516e93c022c00dfda9"
+  revision = "242fa5aa1b45aeb9fcdfeee88822982e3f548e22"
 
 [[projects]]
   name = "github.com/fatih/structs"
   packages = ["."]
   revision = "a720dfa8df582c51dee1b36feabb906bde1588bd"
   version = "v1.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/ganggo/api"
-  packages = [
-    "app",
-    "app/controllers",
-    "app/helpers"
-  ]
-  revision = "76ef70519c7a7baf90804fededc1126528f269d5"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/ganggo/federation"
-  packages = ["."]
-  revision = "59eaaf5c998263705f44bc1706686515b5f028f5"
 
 [[projects]]
   branch = "master"
@@ -120,8 +121,8 @@
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "06f5f3d67269ccec1fe5fe4134ba6e982984f7f5"
-  version = "v1.37.0"
+  revision = "358ee7663966325963d4e8b2e1fbd570c5195153"
+  version = "v1.38.1"
 
 [[projects]]
   name = "github.com/go-sql-driver/mysql"
@@ -168,8 +169,8 @@
     "gzip",
     "zlib"
   ]
-  revision = "5fb1f31b0a61e9858f12f39266e059848a5f1cea"
-  version = "v1.3.0"
+  revision = "b939724e787a27c0005cabe3f78e7ed7987ac74f"
+  version = "v1.4.0"
 
 [[projects]]
   name = "github.com/klauspost/cpuid"
@@ -305,13 +306,13 @@
     "html/atom",
     "websocket"
   ]
-  revision = "4cb1c02c05b0e749b0365f61ae859a8e0cfceed9"
+  revision = "d0887baf81f4598189d4e12a37c6da86f0bba4d0"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "7138fd3d9dc8335c567ca206f4333fb75eb05d56"
+  revision = "1b2967e3c290b7c545b3db0deeda16e9be4f98a2"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -326,8 +327,8 @@
     "core",
     "terminal"
   ]
-  revision = "db8e629a54ae1a4442be0deae7be60062c69d111"
-  version = "v1.6.0"
+  revision = "17861e192dc11fd2f5081df1932c94cce262fa1e"
+  version = "v1.6.1"
 
 [[projects]]
   name = "gopkg.in/fsnotify/fsnotify.v1"
@@ -362,6 +363,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "86921838c2c160e5e2b830a9252ed2997990ccd2a2d906e37a37fc5349201c35"
+  inputs-digest = "04468b6173142c89caa5e22e90c6af57fdf861768634cf0be4a8f5d8815e1b6d"
   solver-name = "gps-cdcl"
   solver-version = 1

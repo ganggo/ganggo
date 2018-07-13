@@ -19,8 +19,8 @@ stages:
 - deploy
 before_script:
 - export VERSION=$(git describe --abbrev=0 --tags)
-- mkdir -p $GOPATH/src/github.com/ganggo
-- ln -s $(pwd) $GOPATH/src/github.com/ganggo/ganggo
+- mkdir -p $GOPATH/src/git.feneas.org/ganggo
+- ln -s $(pwd) $GOPATH/src/git.feneas.org/ganggo/ganggo
 - make install
 run unit tests:
   stage: test
@@ -76,12 +76,13 @@ linux:arm:7:
   - export GOARM=7
   - make release
 deploy artifacts to bintray:
+  # NOTE deployment only works on protected branches!
   before_script: []
   stage: deploy
   script:
   - bash ci/scripts/bintray.sh
-  when: manual
-  allow_failure: true
+  only:
+  - /^v[\d\.]+-\w.*$/
   dependencies:
   - linux:amd64
   - windows:amd64

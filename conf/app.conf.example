@@ -131,7 +131,7 @@ module.static=github.com/revel/modules/static
 # Module to serve a restful API
 # Adds Routes like this:
 #   /api/v1/...
-module.api=github.com/ganggo/api
+module.api=git.feneas.org/ganggo/api
 
 # Module enables performing tasks
 # asynchronously, outside of the request flow.

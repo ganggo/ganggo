@@ -22,13 +22,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ganggo/ganggo.git"
+    "url": "git+https://git.feneas.org/ganggo/ganggo.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ganggo/ganggo/issues"
+    "url": "https://git.feneas.org/ganggo/ganggo/issues"
   },
-  "homepage": "https://github.com/ganggo/ganggo#readme"
+  "homepage": "https://git.feneas.org/ganggo/ganggo#readme"
 }

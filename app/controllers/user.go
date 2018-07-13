@@ -20,8 +20,8 @@ package controllers
 import (
   "github.com/revel/revel"
   "github.com/dchest/captcha"
-  "github.com/ganggo/ganggo/app/models"
-  "github.com/ganggo/ganggo/app/helpers"
+  "git.feneas.org/ganggo/ganggo/app/models"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
   "net/http"
 )
 

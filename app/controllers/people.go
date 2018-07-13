@@ -19,7 +19,7 @@ package controllers
 
 import (
   "github.com/revel/revel"
-  api "github.com/ganggo/api/app/controllers"
+  api "git.feneas.org/ganggo/api/app/controllers"
 )
 
 type People struct {
