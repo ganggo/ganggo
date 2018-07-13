@@ -18,8 +18,8 @@ package tests
 //
 
 import (
-  "github.com/ganggo/ganggo/app/jobs"
-  "github.com/ganggo/ganggo/app/models"
+  "git.feneas.org/ganggo/ganggo/app/jobs"
+  "git.feneas.org/ganggo/ganggo/app/models"
   "gopkg.in/ganggo/gorm.v2"
   "time"
 )

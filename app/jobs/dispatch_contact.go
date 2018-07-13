@@ -21,9 +21,9 @@ import (
   "encoding/xml"
   "github.com/revel/revel"
   run "github.com/revel/modules/jobs/app/jobs"
-  "github.com/ganggo/ganggo/app/models"
-  "github.com/ganggo/ganggo/app/helpers"
-  federation "github.com/ganggo/federation"
+  "git.feneas.org/ganggo/ganggo/app/models"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
+  federation "git.feneas.org/ganggo/federation"
 )
 
 func (dispatcher *Dispatcher) Contact(contact federation.EntityContact) {

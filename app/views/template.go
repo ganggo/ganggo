@@ -24,8 +24,8 @@ import (
   "github.com/shaoshing/train"
   "github.com/revel/revel"
   "github.com/revel/config"
-  "github.com/ganggo/ganggo/app/models"
-  "github.com/ganggo/ganggo/app/helpers"
+  "git.feneas.org/ganggo/ganggo/app/models"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
   "html/template"
   "github.com/dchest/captcha"
 )

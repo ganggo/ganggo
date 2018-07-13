@@ -20,7 +20,7 @@ package models
 import (
   "time"
   "github.com/revel/revel"
-  federation "github.com/ganggo/federation"
+  federation "git.feneas.org/ganggo/federation"
   "gopkg.in/ganggo/gorm.v2"
 )
 

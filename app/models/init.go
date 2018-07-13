@@ -21,7 +21,7 @@ import (
   "time"
   "errors"
   "github.com/revel/revel"
-  "github.com/ganggo/ganggo/app/helpers"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
   "gopkg.in/ganggo/gorm.v2"
   _ "gopkg.in/ganggo/gorm.v2/dialects/postgres"
   _ "gopkg.in/ganggo/gorm.v2/dialects/mssql"

@@ -29,7 +29,7 @@ import (
   "crypto/x509"
   "encoding/pem"
   "golang.org/x/crypto/bcrypt"
-  "github.com/ganggo/ganggo/app/helpers"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
 )
 
 type User struct {
