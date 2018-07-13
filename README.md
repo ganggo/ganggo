@@ -8,7 +8,7 @@ GangGo is a decentralized social network written in [GoLang](https://golang.org/
 
 ## Selfhost
 
-Fetch the latest updater version from [github.com/ganggo/ganggo/releases](https://github.com/ganggo/ganggo/releases) and execute it. It will come with a small installation wizard and guide you through the first steps.
+Fetch the latest updater version [![Download](https://api.bintray.com/packages/ganggo/ganggo/alpha/images/download.svg)](https://bintray.com/ganggo/ganggo/alpha/_latestVersion) and execute it. It will come with a small installation wizard and guide you through the first steps.
 
 There is also a small installation video for how to quick-start with our updater binary on [ganggo.github.io](https://ganggo.github.io/)!
 

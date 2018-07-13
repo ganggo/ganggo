@@ -97,7 +97,7 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/ganggo/api"
+  name = "git.feneas.org/ganggo/api"
   packages = [
     "app",
     "app/controllers",
@@ -107,7 +107,7 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/ganggo/federation"
+  name = "git.feneas.org/ganggo/federation"
   packages = ["."]
   revision = "59eaaf5c998263705f44bc1706686515b5f028f5"
 

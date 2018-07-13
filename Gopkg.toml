@@ -24,11 +24,11 @@ required = ["github.com/revel/cmd/revel"]
 
 [[override]]
   branch = "master"
-  name = "github.com/ganggo/api"
+  name = "git.feneas.org/ganggo/api"
 
 [[override]]
   branch = "master"
-  name = "github.com/ganggo/federation"
+  name = "git.feneas.org/ganggo/federation"
 
 [[override]]
   branch = "master"

@@ -19,8 +19,8 @@ stages:
 - deploy
 before_script:
 - export VERSION=$(git describe --abbrev=0 --tags)
-- mkdir -p $GOPATH/src/github.com/ganggo
-- ln -s $(pwd) $GOPATH/src/github.com/ganggo/ganggo
+- mkdir -p $GOPATH/src/git.feneas.org/ganggo
+- ln -s $(pwd) $GOPATH/src/git.feneas.org/ganggo/ganggo
 - make install
 run unit tests:
   stage: test
