@@ -20,10 +20,10 @@ package controllers
 import (
   "net/http"
   "github.com/revel/revel"
-  federation "github.com/ganggo/federation"
+  federation "git.feneas.org/ganggo/federation"
   run "github.com/revel/modules/jobs/app/jobs"
-  "github.com/ganggo/ganggo/app/models"
-  "github.com/ganggo/ganggo/app/jobs"
+  "git.feneas.org/ganggo/ganggo/app/models"
+  "git.feneas.org/ganggo/ganggo/app/jobs"
   "io/ioutil"
 )
 

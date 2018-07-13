@@ -36,7 +36,7 @@ var (
   mode string = "prod"
   updateChannel string = "alpha"
   version string  // version will be defined on compile time
-  packageName = "github.com/ganggo/ganggo"
+  packageName = "git.feneas.org/ganggo/ganggo"
   srcDir = "src/" + packageName
   configPath = srcDir + "/conf/app.conf"
   userConfigPath = "app.conf"

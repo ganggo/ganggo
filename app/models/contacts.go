@@ -19,8 +19,8 @@ package models
 
 import (
   "time"
-  "github.com/ganggo/ganggo/app/helpers"
-  federation "github.com/ganggo/federation"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
+  federation "git.feneas.org/ganggo/federation"
   "gopkg.in/ganggo/gorm.v2"
 )
 

@@ -20,9 +20,9 @@ package controllers
 import (
   "strings"
   "github.com/revel/revel"
-  "github.com/ganggo/ganggo/app/helpers"
-  "github.com/ganggo/ganggo/app/jobs"
-  "github.com/ganggo/ganggo/app/models"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
+  "git.feneas.org/ganggo/ganggo/app/jobs"
+  "git.feneas.org/ganggo/ganggo/app/models"
 )
 
 type Search struct {

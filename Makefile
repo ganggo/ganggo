@@ -3,7 +3,7 @@
 SHELL=/bin/bash
 
 version := $(shell echo -n $(VERSION) |cut -d- -f1)
-package := github.com/ganggo/ganggo
+package := git.feneas.org/ganggo/ganggo
 srcdir := $(GOPATH)/src/$(package)
 
 go := $(shell command -v go 2> /dev/null)

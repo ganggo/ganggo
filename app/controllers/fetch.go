@@ -21,9 +21,9 @@ import (
   "net/http"
   "encoding/xml"
   "github.com/revel/revel"
-  "github.com/ganggo/ganggo/app/models"
-  "github.com/ganggo/ganggo/app/helpers"
-  federation "github.com/ganggo/federation"
+  "git.feneas.org/ganggo/ganggo/app/models"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
+  federation "git.feneas.org/ganggo/federation"
   "strings"
 )
 

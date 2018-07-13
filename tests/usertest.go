@@ -20,7 +20,7 @@ package tests
 import (
   "net/url"
   "net/http"
-  "github.com/ganggo/ganggo/app/helpers"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
 )
 
 type UserTest struct {
