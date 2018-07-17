@@ -7,12 +7,11 @@ API=https://api.bintray.com
 # BINTRAY_API_KEY=$2
 # BINTRAY_REPO=$3
 PCK_NAME=${UPDATE_CHANNEL}
-PCK_VERSION=$(git describe --abbrev=0 --tags)
 CURL="curl -u${BINTRAY_USER}:${BINTRAY_API_KEY} -H Content-Type:application/json -H Accept:application/json"
 
 data="{
 \"name\": \"${PCK_NAME}\",
-\"desc\": \"bump to v${PCK_VERSION}\",
+\"desc\": \"bump to v${VERSION}\",
 \"vcs_url\": \"${CI_PROJECT_URL}\",
 \"licenses\": [\"GPL-3.0\"],
 \"issue_tracker_url\": \"${CI_PROJECT_URL}/issues\",
@@ -29,12 +28,12 @@ echo $(${CURL} -X POST -d "${data}" ${API}/packages/${BINTRAY_REPO})
 for BIN in $(ls updater.*.bin); do
   status_code=$(${CURL} --write-out %{http_code} --silent --output /dev/null \
     -T ${BIN} -H X-Bintray-Package:${PCK_NAME} \
-    -H X-Bintray-Version:${PCK_VERSION} ${API}/content/${BINTRAY_REPO}/${BIN})
+    -H X-Bintray-Version:${VERSION} ${API}/content/${BINTRAY_REPO}/${BIN})
 
   if [ $status_code -eq 201 ]; then
     echo "Publishing ${BIN}..."
     echo $(${CURL} -X POST -d "{ \"discard\": \"false\" }" \
-      ${API}/content/${BINTRAY_REPO}/${PCK_NAME}/${PCK_VERSION}/publish)
+      ${API}/content/${BINTRAY_REPO}/${PCK_NAME}/${VERSION}/publish)
   else
     echo "Cannot publish ${BIN}!"
   fi

@@ -18,7 +18,7 @@ stages:
 - build
 - deploy
 before_script:
-- export VERSION=$(git describe --abbrev=0 --tags)
+- export VERSION=$(git tag -l --sort=-v:refname |head -n1)
 - mkdir -p $GOPATH/src/git.feneas.org/ganggo
 - ln -s $(pwd) $GOPATH/src/git.feneas.org/ganggo/ganggo
 - make install
@@ -49,6 +49,8 @@ windows:amd64:
   - export GOARCH=amd64
   - export GOOS=windows
   - make release
+  only:
+  - /^v[\d\.]+-\w.*$/
 windows:386:
   artifacts:
     expire_in: "1 day"
@@ -62,6 +64,8 @@ windows:386:
   - export GOARCH=386
   - export GOOS=windows
   - make release
+  only:
+  - /^v[\d\.]+-\w.*$/
 linux:arm:7:
   artifacts:
     expire_in: "1 day"
@@ -75,6 +79,8 @@ linux:arm:7:
   - export GOOS=linux
   - export GOARM=7
   - make release
+  only:
+  - /^v[\d\.]+-\w.*$/
 deploy artifacts to bintray:
   # NOTE deployment only works on protected branches!
   before_script: []
