@@ -12,8 +12,8 @@ CURL="curl -u${BINTRAY_USER}:${BINTRAY_API_KEY} -H Content-Type:application/json
 
 data="{
 \"name\": \"${PCK_NAME}\",
-\"desc\": \"${CI_COMMIT_MESSAGE}\",
-\"vcs_url\": \"${CI_REPOSITORY_URL}\",
+\"desc\": \"bump to v${PCK_VERSION}\",
+\"vcs_url\": \"${CI_PROJECT_URL}\",
 \"licenses\": [\"GPL-3.0\"],
 \"issue_tracker_url\": \"${CI_PROJECT_URL}/issues\",
 \"website_url\": \"${CI_PROJECT_URL}/wikis/home\",
