@@ -82,8 +82,8 @@ linux:arm:7:
   only:
   - /^v[\d\.]+-\w.*$/
 deploy artifacts to bintray:
-  # NOTE deployment only works on protected branches!
-  before_script: []
+  before_script:
+  - export VERSION=$(git tag -l --sort=-v:refname |head -n1)
   stage: deploy
   script:
   - bash ci/scripts/bintray.sh
