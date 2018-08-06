@@ -24,4 +24,3 @@ $("#flash-container .alert").click(function() {
   $(this).hide();
 });
 $("#flash-container .alert-success").fadeOut(2000);
-$("#flash-container .alert-danger").fadeOut(5000);
