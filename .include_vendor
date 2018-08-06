@@ -1,16 +1,11 @@
 # JQuery
 js:node_modules/jquery/dist/jquery.min.js
-js:node_modules/jquery/dist/jquery.min.map
 js:node_modules/jquery-form/dist/jquery.form.min.js
-js:node_modules/jquery-form/dist/jquery.form.min.js.map
 
 # Bootstrap 4
 css:node_modules/bootstrap/dist/css/bootstrap.min.css
-css:node_modules/bootstrap/dist/css/bootstrap.min.css.map
 css:node_modules/bootstrap/dist/css/bootstrap-grid.min.css
-css:node_modules/bootstrap/dist/css/bootstrap-grid.min.css.map
 css:node_modules/bootstrap/dist/css/bootstrap-reboot.min.css
-css:node_modules/bootstrap/dist/css/bootstrap-reboot.min.css.map
 css:node_modules/tether/dist/css/tether.min.css
 js:node_modules/bootstrap/dist/js/bootstrap.min.js
 js:node_modules/tether/dist/js/tether.min.js
@@ -26,7 +21,6 @@ css:node_modules/font-awesome/css/font-awesome.min.css
 
 # REST client
 js:node_modules/another-rest-client/rest-client.min.js
-js:node_modules/another-rest-client/rest-client.min.js.map
 
 # Markdown
 js:node_modules/marked/marked.min.js
