@@ -55,31 +55,26 @@ func (u User) Create() revel.Result {
 
   if !revel.DevMode && !captcha.VerifyString(captchaID, captchaValue) {
     u.Flash.Error(u.Message("flash.errors.captcha"))
-    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
   }
 
   if _, exists := helpers.UserBlacklist[username]; exists {
     u.Flash.Error(u.Message("flash.errors.username"))
-    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
   }
 
   if !db.Where("username = ?", username).First(&user).RecordNotFound() {
     u.Flash.Error(u.Message("flash.errors.username"))
-    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
   }
 
   if password == "" || password != verify {
     u.Flash.Error(u.Message("flash.errors.password_empty"))
-    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
   }
 
   if len(password) < 4 {
     u.Flash.Error(u.Message("flash.errors.password_length"))
-    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Index)
   }
 
@@ -155,13 +150,11 @@ func (u User) Login() revel.Result {
   if err != nil {
     u.Flash.Error(u.Message(
       "flash.errors.username_not_found",  username))
-    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Login)
   }
 
   if !helpers.CheckHash(password, user.EncryptedPassword) {
     u.Flash.Error(u.Message("flash.errors.login_failed"))
-    u.Response.Status = http.StatusNotAcceptable
     return u.Redirect(User.Login)
   }
 
