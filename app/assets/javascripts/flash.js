@@ -1,3 +1,10 @@
+// clicking the cross icon on any kind of
+// alert should hide the element
+$("#flash-container .alert").click(function() {
+  $(this).hide();
+});
+$("#flash-container .alert i").unbind();
+$("#flash-container .alert-success").fadeOut(2000);
 // display a status message
 function notify(msg) {
   var div = $('<div class="alert alert-success mb-1">');
