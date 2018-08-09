@@ -11,7 +11,7 @@ CURL="curl -u${BINTRAY_USER}:${BINTRAY_API_KEY} -H Content-Type:application/json
 
 data="{
 \"name\": \"${PCK_NAME}\",
-\"desc\": \"bump to v${VERSION}\",
+\"desc\": \"${PCK_NAME} update channel\",
 \"vcs_url\": \"${CI_PROJECT_URL}\",
 \"licenses\": [\"GPL-3.0\"],
 \"issue_tracker_url\": \"${CI_PROJECT_URL}/issues\",
@@ -26,15 +26,19 @@ echo "Creating package ${PCK_NAME}..."
 echo $(${CURL} -X POST -d "${data}" ${API}/packages/${BINTRAY_REPO})
 
 for BIN in $(ls updater.*.bin); do
-  status_code=$(${CURL} --write-out %{http_code} --silent --output /dev/null \
+  log=$(mktemp)
+  osarch=$(echo ${BIN} |cut -d. -f2)
+  upstream="updater.${osarch}.${VERSION}.bin"
+  status_code=$(${CURL} --write-out %{http_code} --silent --output ${log} \
     -T ${BIN} -H X-Bintray-Package:${PCK_NAME} \
-    -H X-Bintray-Version:${VERSION} ${API}/content/${BINTRAY_REPO}/${BIN})
+    -H X-Bintray-Version:${VERSION} ${API}/content/${BINTRAY_REPO}/${upstream})
 
   if [ $status_code -eq 201 ]; then
-    echo "Publishing ${BIN}..."
+    echo "Publishing ${upstream}..."
     echo $(${CURL} -X POST -d "{ \"discard\": \"false\" }" \
       ${API}/content/${BINTRAY_REPO}/${PCK_NAME}/${VERSION}/publish)
   else
-    echo "Cannot publish ${BIN}!"
+    echo -ne "Cannot publish ${upstream}!\n\n" && cat ${log} && exit 1
   fi
+  rm ${log}
 done
