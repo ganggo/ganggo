@@ -60,6 +60,7 @@ func (u User) Create() revel.Result {
 
   if _, exists := helpers.UserBlacklist[username]; exists {
     u.Flash.Error(u.Message("flash.errors.username"))
+    u.Response.Status = http.StatusResetContent
     return u.Redirect(User.Index)
   }
 

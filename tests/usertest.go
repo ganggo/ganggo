@@ -35,7 +35,7 @@ func (t *UserTest) TestCreateUser() {
     values.Set("confirm", "pppppp")
 
     t.PostForm("/users/sign_up", values)
-    t.Assertf(t.Response.StatusCode != http.StatusOK,
-      "Expected status code %d for %s, got %d", http.StatusOK, name, t.Response.StatusCode)
+    t.Assertf(t.Response.StatusCode == http.StatusResetContent,
+      "Expected status code '%d' for '%s', got '%d'", http.StatusResetContent, name, t.Response.StatusCode)
   }
 }
