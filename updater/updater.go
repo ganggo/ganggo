@@ -1,7 +1,7 @@
 package main
 //
 // GangGo Application Server
-// Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
+// Copyright (C) 2018 Lukas Matt <lukas@zauberstuhl.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,10 +21,8 @@ import (
   "io/ioutil"
   "time"
   "fmt"
-  "strings"
   "flag"
   "github.com/jpillora/overseer"
-  "github.com/jpillora/overseer/fetcher"
   "os"
   "os/exec"
   "github.com/revel/config"
@@ -222,23 +220,14 @@ func main() {
 
   overseer.Run(overseer.Config{
     Program: prog,
-    Fetcher: &fetcher.Github{
+    Fetcher: &Bintray{
       User: "ganggo",
       Repo: "ganggo",
-      Asset: AssetValidator,
+      Pkg: updateChannel,
       Interval: interval,
     },
     Debug: true,
   })
-}
-
-// Add the ability to use multiple update channel via Github-fetcher
-func AssetValidator(filename string) bool {
-  defaultAsset := strings.Contains(filename, runtime.GOOS) && strings.Contains(filename, runtime.GOARCH)
-  if defaultAsset && updateChannel == "stable" {
-    return true
-  }
-  return defaultAsset && strings.Contains(filename, updateChannel)
 }
 
 func prog(state overseer.State) {

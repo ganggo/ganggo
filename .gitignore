@@ -7,7 +7,7 @@ log/
 # build
 *.tar.gz
 conf/app.conf
-bindata.go
+updater/bindata.go
 
 # assets
 app/assets/vendor
