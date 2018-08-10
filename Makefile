@@ -103,8 +103,7 @@ endif
 	mkdir -p $(srcdir)/tmp && cd $$_ && { \
 		tar -x -f "../ganggo.tar.gz" ;\
 		[ -f "ganggo.exe" ] && mv ganggo.exe ganggo ;\
-		go-bindata -ignore \
-			'src/$(package)/[vendor|node_modules|bindata.go|.*\.tar\.gz|tmp]' \
+		go-bindata -ignore='(vendor|node_modules|updater|ci|.*\.tar\.gz|tmp)\/' \
 			-o ../updater/bindata.go ganggo src/... ;\
 	}
 	cd $(srcdir)/updater && go build \
