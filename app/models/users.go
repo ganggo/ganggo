@@ -32,6 +32,11 @@ import (
   "git.feneas.org/ganggo/ganggo/app/helpers"
 )
 
+const (
+  USER_ROLE_ADMIN = 100 + iota
+  USER_ROLE_MODERATOR
+)
+
 type User struct {
   gorm.Model
 
@@ -48,6 +53,17 @@ type User struct {
   Person Person `gorm:"ForeignKey:PersonID"`
 
   Aspects []Aspect `gorm:"AssociationForeignKey:UserID"`
+
+  Role UserRole
+}
+
+type UserRole struct {
+  ID uint `gorm:"primary_key"`
+  CreatedAt time.Time
+  UpdatedAt time.Time
+
+  UserID uint
+  RoleID int
 }
 
 type UserStream struct {
@@ -123,12 +139,25 @@ func (user *User) AfterFind(db *gorm.DB) error {
     return nil
   }
 
-  err := db.Model(user).Related(&user.Person).Error
+  err := db.Model(user).Related(&user.Role).Error
+  if err != nil && err != gorm.ErrRecordNotFound {
+    return err
+  }
+
+  err = db.Model(user).Related(&user.Person).Error
   if err != nil {
     return err
   }
 
   return db.Model(user).Related(&user.Aspects).Error
+}
+
+func (user *User) IsAdmin() bool {
+  return user.Role.RoleID == USER_ROLE_ADMIN
+}
+
+func (user *User) IsModerator() bool {
+  return user.Role.RoleID <= USER_ROLE_MODERATOR
 }
 
 func (user *User) FindByID(id uint) (err error) {
@@ -202,6 +231,23 @@ func (user *User) Notify(model Model) error {
     Unread: true,
   }
   return notify.Create()
+}
+
+func (role *UserRole) Create() error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  return db.Create(role).Error
+}
+
+func (role *UserRole) FindByUser(user User) (error, bool) {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err, false
+  }
+  err = db.Where("user_id = ?", user.ID).First(role).Error
+  return err, err != gorm.ErrRecordNotFound
 }
 
 func (stream *UserStream) Create() error {

@@ -22,6 +22,13 @@ db.database = "ganggo"
 # postgres
 db.dsn = "postgres://%s:%s@%s/%s?sslmode=disable"
 
+# Configure sending mails (optional)
+#
+#mail.username = "no-reply@examlpe.com"
+#mail.password = "s3cr3t"
+#mail.host = "example.com:25"
+#mail.sender = %(mail.username)s
+
 # The relay is disabled on default
 # in respect of privacy matters
 #

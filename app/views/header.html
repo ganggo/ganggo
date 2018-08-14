@@ -74,6 +74,15 @@
             {{end}}
           </ul>
           {{if .currentUser}}
+          {{if IsModerator .currentUser}}
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="{{url "Admin.Index"}}">
+                {{msg . "navigation.admin"}} <i class="fa fa-lock"></i>
+              </a>
+            </li>
+          </ul>
+          {{end}}
           <ul class="navbar-nav">
             <li class="nav-item">
               <a class="nav-link" data-method="delete" href="{{url "User.Logout"}}">{{msg . "navigation.logout" .currentUser.Username}}</a>

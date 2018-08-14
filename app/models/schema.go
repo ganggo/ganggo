@@ -145,6 +145,11 @@ func loadSchema(db *gorm.DB) {
   //db.Model(user).AddUniqueIndex("index_users_on_authentication_token", "authentication_token")
   db.AutoMigrate(user)
 
+  userRole := &UserRole{}
+  db.Model(userRole).AddUniqueIndex("index_user_roles_on_user_id_and_role_id", "user_id", "role_id")
+  db.Model(userRole).AddIndex("index_user_roles_on_user_id", "user_id")
+  db.AutoMigrate(userRole)
+
   like := &Like{}
   db.Model(like).AddUniqueIndex("index_likes_on_shareable_id_and_person_id_and_shareable_type", "shareable_id", "person_id", "shareable_type")
   db.Model(like).AddUniqueIndex("index_likes_on_guid", "guid")

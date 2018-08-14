@@ -2,14 +2,12 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-module:testrunner
-
-module:jobs
-
 # Restful API (see config file)
 module:api
 
 GET     /                                       App.Index
+
+GET     /admin                                  Admin.Index
 
 GET     /stream                                 Stream.Index
 
