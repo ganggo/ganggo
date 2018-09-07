@@ -103,8 +103,9 @@ endif
 	mkdir -p $(srcdir)/tmp && cd $$_ && { \
 		tar -x -f "../ganggo.tar.gz" ;\
 		[ -f "ganggo.exe" ] && mv ganggo.exe ganggo ;\
-		go-bindata -ignore='(vendor|node_modules|updater|ci|.*\.tar\.gz|tmp)\/' \
-			-o ../updater/bindata.go ganggo src/... ;\
+		go-bindata -o ../updater/bindata.go ganggo \
+			src/github.com/revel/... \
+			src/$(package)/{app,conf,messages,public}/... ;\
 	}
 	cd $(srcdir)/updater && go build \
 		-ldflags "-X main.version=$(version)" \
