@@ -51,7 +51,7 @@ endif
 
 clean:
 	rm -r tmp vendor node_modules \
-		test-results bindata.go \
+		test-results updater/bindata.go \
 		updater.*.bin *.tar.gz || true
 
 precompile:
@@ -103,10 +103,10 @@ endif
 	mkdir -p $(srcdir)/tmp && cd $$_ && { \
 		tar -x -f "../ganggo.tar.gz" ;\
 		[ -f "ganggo.exe" ] && mv ganggo.exe ganggo ;\
-		go-bindata -ignore \
-			'src/$(package)/[vendor|node_modules|bindata.go|.*\.tar\.gz|tmp]' \
-			-o ../bindata.go ganggo src/... ;\
+		go-bindata -o ../updater/bindata.go ganggo \
+			src/github.com/revel/... \
+			src/$(package)/{app,conf,messages,public}/... ;\
 	}
-	cd $(srcdir) && go build \
+	cd $(srcdir)/updater && go build \
 		-ldflags "-X main.version=$(version)" \
-		-o updater.$$GOOS-$$GOARCH$$GOARM.bin updater.go bindata.go
+		-o ../updater.$$GOOS-$$GOARCH$$GOARM.bin updater.go bin*.go
