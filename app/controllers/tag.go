@@ -20,6 +20,7 @@ package controllers
 import (
   "sort"
   "github.com/revel/revel"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
   "git.feneas.org/ganggo/ganggo/app/models"
 )
 
@@ -35,7 +36,6 @@ func (t Tag) IndexPagination(name string, page uint) revel.Result {
   var (
     posts models.Posts
     tag models.Tag
-    offset uint = ((page - 1) * 10)
   )
 
   user, err := models.CurrentUser(t.Controller)
@@ -43,7 +43,7 @@ func (t Tag) IndexPagination(name string, page uint) revel.Result {
     t.ViewArgs["currentUser"] = user
   }
 
-  err = tag.FindByName(name, user, offset)
+  err = tag.FindByName(name, user, helpers.PageOffset(page))
   if err != nil || len(tag.ShareableTaggings) <= 0 {
     return t.NotFound(
       revel.MessageFunc(t.Request.Locale, "errors.controller.post_not_found"),

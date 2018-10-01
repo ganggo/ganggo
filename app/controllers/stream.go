@@ -19,6 +19,7 @@ package controllers
 
 import (
   "github.com/revel/revel"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
   "git.feneas.org/ganggo/ganggo/app/models"
 )
 
@@ -28,7 +29,7 @@ type Stream struct {
 
 func (s Stream) Index(view string, page uint) revel.Result {
   var posts models.Posts
-  var offset uint = ((page - 1) * 10)
+  var offset = helpers.PageOffset(page)
 
   user, err := models.CurrentUser(s.Controller)
   if err == nil {

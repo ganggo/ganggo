@@ -19,6 +19,13 @@ package helpers
 
 import "github.com/revel/revel"
 
+func PageOffset(page uint) uint {
+  if page == 0 {
+    return page
+  }
+  return (page - 1) * 10
+}
+
 func IsLocalHandle(handle string) bool {
   revel.Config.SetSection("ganggo")
   localhost, found := revel.Config.String("address")

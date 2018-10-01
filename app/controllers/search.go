@@ -34,7 +34,6 @@ func (s Search) Index(text string) revel.Result {
 }
 
 func (s Search) IndexPagination(text string, page uint) revel.Result {
-  var offset uint = ((page - 1) * 10)
   text = strings.Replace(text, "'", "", -1)
   text = strings.Replace(text, "\"", "", -1)
 
@@ -46,7 +45,7 @@ func (s Search) IndexPagination(text string, page uint) revel.Result {
   s.ViewArgs["currentUser"] = user
 
   var posts models.Posts
-  err = posts.FindAllByUserAndText(user, text, offset)
+  err = posts.FindAllByUserAndText(user, text, helpers.PageOffset(page))
   if err != nil {
     s.Log.Error("Cannot find posts", "error", err)
     return s.RenderError(err)

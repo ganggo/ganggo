@@ -19,6 +19,7 @@ package controllers
 
 import (
   "github.com/revel/revel"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
   "git.feneas.org/ganggo/ganggo/app/models"
 )
 
@@ -32,7 +33,6 @@ func (p Profile) Index(guid string) revel.Result {
 
 func (p Profile) IndexPagination(guid string, page uint) revel.Result {
   var (
-    offset uint = ((page - 1) * 10)
     posts models.Posts
     person models.Person
   )
@@ -48,7 +48,7 @@ func (p Profile) IndexPagination(guid string, page uint) revel.Result {
     p.ViewArgs["currentUser"] = user
   }
 
-  err = posts.FindAllByUserAndPersonID(user, person.ID, offset)
+  err = posts.FindAllByUserAndPersonID(user, person.ID, helpers.PageOffset(page))
   if err != nil {
     p.Log.Error("Cannot find posts", "error", err)
     return p.RenderError(err)

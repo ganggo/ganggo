@@ -49,10 +49,7 @@ func (person *Person) AfterFind(db *gorm.DB) error {
     return nil
   }
 
-  err := db.Model(person).Related(&person.Pod).Error
-  if err != nil && person.UserID <= 0 {
-    return err
-  }
+  db.Model(person).Related(&person.Pod)
 
   return db.Model(person).Related(&person.Profile).Error
 }
