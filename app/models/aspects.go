@@ -124,6 +124,16 @@ func (aspect *Aspect) FindByID(id uint) (err error) { BACKEND_ONLY()
   return db.Find(aspect, id).Error
 }
 
+func (aspects *Aspects) FindByUserID(userID uint) (err error) {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("user_id = ?", userID).Find(aspects).Error
+}
+
 func (aspects *Aspects) FindByUserPersonID(userID, personID uint) (err error) {
   db, err := OpenDatabase()
   if err != nil {

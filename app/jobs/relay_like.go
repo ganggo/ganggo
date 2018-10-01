@@ -25,69 +25,54 @@ import (
   "git.feneas.org/ganggo/federation/helpers"
 )
 
-func (dispatcher *Dispatcher) Like(like models.Like) {
+func (dispatcher *Dispatcher) RelayLike(entity federation.MessageLike) {
+  var like models.Like
+  err := like.FindByGuid(entity.Guid())
+  if err != nil {
+    revel.AppLog.Error("Dispatcher RelayLike", err.Error(), err)
+    return
+  }
+
   parentPost, parentUser, _ := like.ParentPostUser()
   persons, err := dispatcher.findRecipients(parentPost, parentUser)
   if err != nil {
-    revel.AppLog.Error("Dispatcher Like", err.Error(), err)
+    revel.AppLog.Error("Dispatcher RelayLike", err.Error(), err)
     return
   }
 
   priv, err := helpers.ParseRSAPrivateKey(
-    []byte(dispatcher.User.SerializedPrivateKey))
+    []byte(parentUser.SerializedPrivateKey))
   if err != nil {
-    revel.AppLog.Error("Dispatcher Like", err.Error(), err)
+    revel.AppLog.Error("Dispatcher RelayLike", err.Error(), err)
     return
   }
 
   for _, person := range persons {
-    var pub *rsa.PublicKey = nil
-    endpoint := person.Inbox
+    if entity.Type().Proto != person.Pod.Protocol {
+      revel.AppLog.Debug("Dispatcher RelayLike skipping cross protocol")
+      continue
+    }
 
+    endpoint := person.Inbox
+    var pub *rsa.PublicKey = nil
     if !parentPost.Public {
       pub, err = helpers.ParseRSAPublicKey(
-        []byte(parentPost.Person.SerializedPublicKey))
+        []byte(person.SerializedPublicKey))
       if err != nil {
-        revel.AppLog.Error("Dispatcher Like", err.Error(), err)
-        return
+        revel.AppLog.Error("Dispatcher RelayLike", err.Error(), err)
+        continue
       }
     } else if person.Pod.Inbox != "" {
       // pod inbox if available
       endpoint = person.Pod.Inbox
     }
 
-    var entity federation.MessageBase
-    if dispatcher.Retract {
-      retract, err := federation.NewMessageRetract(person.Pod.Protocol)
-      if err != nil {
-        revel.AppLog.Error("Dispatcher Like", err.Error(), err)
-        continue
-      }
-      retract.SetAuthor(dispatcher.User.Person.Author)
-      retract.SetParentType(federation.Like)
-      retract.SetParentGuid(like.Guid)
-      entity = retract
-    } else {
-      post, err := federation.NewMessageLike(person.Pod.Protocol)
-      if err != nil {
-        revel.AppLog.Error("Dispatcher Like", err.Error(), err)
-        return
-      }
-      post.SetAuthor(dispatcher.User.Person.Author)
-      post.SetGuid(like.Guid)
-      post.SetPositive(like.Positive)
-      post.SetParent(parentPost.Guid)
-      err = post.SetSignature(priv)
-      if err != nil {
-        revel.AppLog.Error("Dispatcher Like", err.Error(), err)
-        continue
-      }
-      entity = post
-    }
+    // required for a valid envelope signature
+    entity.SetAuthor(parentUser.Person.Author)
 
     err = entity.Send(endpoint, priv, pub)
     if err != nil {
-      revel.AppLog.Error("Dispatcher Like", err.Error(), err)
+      revel.AppLog.Error("Dispatcher RelayLike", err.Error(), err)
       continue
     }
   }

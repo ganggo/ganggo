@@ -10,7 +10,7 @@
         <small class="text-muted">
           <span class="float-left">
             <a href="/profiles/{{.post.Person.Guid}}">
-              <i class="fa fa-user-o"></i> {{.post.Person.Profile.Author}}
+              <i class="fa fa-user-o"></i> {{StripHTML .post.Person.Profile.Author}}
             </a>
             {{$rootGuid := PtrToValue .post.RootGuid}}
             {{msg . "post.someone_reshared_a_post" $rootGuid}}
@@ -29,7 +29,7 @@
   <div class="col-2">
     <div class="card text-center">
       <a href="/profiles/{{.post.Person.Guid}}">
-        <img class="card-img-top" src="{{.post.Person.Profile.ImageUrl}}" title="{{.post.Person.Profile.FullName}}">
+        <img class="card-img-top" src="{{.post.Person.Profile.ImageUrl}}" title="{{StripHTML .post.Person.Profile.FullName}}">
       </a>
     </div>
   </div>
@@ -40,7 +40,7 @@
         <small class="text-muted">
           <span class="float-left">
             <a href="/profiles/{{.post.Person.Guid}}">
-              <i class="fa fa-user-o"></i> {{.post.Person.Profile.Author}}
+              <i class="fa fa-user-o"></i> {{StripHTML .post.Person.Profile.Author}}
             </a>
           </span>
           <span class="float-right" title="{{.post.CreatedAt}}">
@@ -61,7 +61,7 @@
               <img src="{{.RemotePath}}" alt="{{.Text}}" class="img-thumbnail w-25">
             </a>
             {{end}}
-            <p data-markdown>{{.post.Text}}</p>
+            <p data-markdown>{{SafeHTML .post.Text}}</p>
           </div>
           <p class="card-text">
             <p class="p-0 m-0 float-left">
@@ -93,7 +93,7 @@
   <div class="col-2">
     <div class="card text-center">
       <a href="/profiles/{{.post.Person.Guid}}">
-        <img class="card-img-top" src="{{.post.Person.Profile.ImageUrl}}" title="{{.post.Person.Profile.FullName}}">
+        <img class="card-img-top" src="{{.post.Person.Profile.ImageUrl}}" title="{{StripHTML .post.Person.Profile.FullName}}">
       </a>
     </div>
   </div>

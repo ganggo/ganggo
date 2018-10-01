@@ -19,112 +19,101 @@ package jobs
 
 import (
   "github.com/revel/revel"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
   "git.feneas.org/ganggo/ganggo/app/models"
   federation "git.feneas.org/ganggo/federation"
 )
 
-func (receiver *Receiver) Reshare(entity federation.EntityReshare) {
-  db, err := models.OpenDatabase()
-  if err != nil {
-    revel.AppLog.Error(err.Error())
-    return
-  }
-  defer db.Close()
-
-  fetch := FetchAuthor{Author: entity.Author}
+func (receiver *Receiver) Reshare(entity federation.MessageReshare) {
+  fetch := FetchAuthor{Author: entity.ParentAuthor()}
   fetch.Run()
   if fetch.Err != nil {
-    revel.AppLog.Error(fetch.Err.Error())
+    revel.AppLog.Error("Receiver Reshare", fetch.Err.Error(), fetch.Err)
     return
   }
 
-  fetchRoot := FetchAuthor{Author: entity.RootAuthor}
-  fetchRoot.Run()
-  if fetchRoot.Err != nil {
-    revel.AppLog.Error(fetchRoot.Err.Error())
-    return
-  }
-
-  createdAt, err := entity.CreatedAt.Time()
+  createdAt, err := entity.CreatedAt().Time()
   if err != nil {
-    revel.AppLog.Error(err.Error())
+    revel.AppLog.Error("Receiver Reshare", err.Error(), err)
     return
   }
 
   var post models.Post
-  err = post.FindByGuid(entity.RootGuid)
+  err = post.FindByGuid(entity.Parent())
   if err != nil {
-    // try to recover entity
-    recovery := Recovery{models.ShareablePost, entity.RootGuid}
-    recovery.Run()
+    // XXX RECOVERY
+    //// try to recover entity
+    //recovery := Recovery{models.ShareablePost, entity.RootGuid}
+    //recovery.Run()
 
-    err = post.FindByGuid(entity.RootGuid)
-    if err != nil {
-      revel.AppLog.Error(err.Error())
+    //err = post.FindByGuid(entity.RootGuid)
+    //if err != nil {
+      revel.AppLog.Error("Receiver Reshare", err.Error(), err)
       return
-    }
+    //}
   }
 
+  rootGuid := entity.Parent()
   reshare := models.Post{
     Type: models.Reshare,
-    Guid: entity.Guid,
+    Guid: entity.Guid(),
     PersonID: fetch.Person.ID,
     CreatedAt: createdAt,
-    RootPersonID: fetchRoot.Person.ID,
-    RootGuid: &entity.RootGuid,
+    RootPersonID: fetch.Person.ID,
+    RootGuid: &rootGuid,
     Public: true,
+    Protocol: receiver.Message.Type().Proto,
   }
-  err = db.Create(&reshare).Error
+  err = reshare.Create()
   if err != nil {
-    revel.AppLog.Error(err.Error())
+    revel.AppLog.Error("Receiver Reshare", err.Error(), err)
     return
   }
 }
 
-func (receiver *Receiver) StatusMessage(entity federation.EntityStatusMessage) {
-  var (
-    post models.Post
-    user models.Person
-    person models.Person
-  )
-
-  db, err := models.OpenDatabase()
+func (receiver *Receiver) StatusMessage(entity federation.MessagePost) {
+  var person models.Person
+  err := person.FindByAuthor(entity.Author())
   if err != nil {
-    revel.AppLog.Error(err.Error())
-    return
-  }
-  defer db.Close()
-
-  fetch := FetchAuthor{Author: entity.Author}
-  fetch.Run()
-  if fetch.Err != nil {
-    revel.AppLog.Error(fetch.Err.Error())
+    revel.AppLog.Error("Receiver StatusMessage", err.Error(), err)
     return
   }
 
-  err = post.Cast(&entity)
+  createdAt, err := entity.CreatedAt().Time()
   if err != nil {
-    revel.AppLog.Error(err.Error())
+    revel.AppLog.Error("Receiver StatusMessage", err.Error(), err)
     return
   }
 
+  post := models.Post{
+    CreatedAt: createdAt,
+    Public: entity.Public(),
+    Guid: entity.Guid(),
+    Type: models.StatusMessage,
+    Text: entity.Text(),
+    ProviderName: entity.Provider(),
+    PersonID: person.ID,
+    Protocol: receiver.Message.Type().Proto,
+  }
   // NOTE ignore if it fails cause
   // if multiple user receive the
   // same private status message you
   // need a shareable item for everyone
   // even if the post already exists
-  db.Create(&post)
+  post.Create()
 
-  if receiver.Guid != "" {
-    err = db.Where("guid = ?", receiver.Guid).First(&person).Error
+  if !entity.Public() && receiver.Guid != "" {
+    var localPerson models.Person
+    err = localPerson.FindByGuid(receiver.Guid)
     if err != nil {
-      revel.AppLog.Error(err.Error(), "guid", receiver.Guid)
+      revel.AppLog.Error("Receiver StatusMessage", err.Error(), err)
       return
     }
 
-    err = db.Find(&user, person.UserID).Error
+    var user models.Person
+    err = user.FindByID(localPerson.UserID)
     if err != nil {
-      revel.AppLog.Error(err.Error())
+      revel.AppLog.Error("Receiver StatusMessage", err.Error(), err)
       return
     }
 
@@ -133,10 +122,33 @@ func (receiver *Receiver) StatusMessage(entity federation.EntityStatusMessage) {
       ShareableType: models.ShareablePost,
       UserID: user.ID,
     }
-    err = db.Create(&shareable).Error
+    shareable.Create()
     if err != nil {
-      revel.AppLog.Error(err.Error())
+      revel.AppLog.Error("Receiver StatusMessage", err.Error(), err)
       return
+    }
+
+    for _, recipient := range entity.Recipients() {
+      if helpers.IsLocalHandle(recipient) {
+        // skip local users
+        continue
+      }
+
+      person, ok := receiver.CheckAuthor(recipient); if !ok {
+        // skip persons unkown to the db
+        continue
+      }
+
+      visibility := models.Visibility{
+        ShareableID: post.ID,
+        PersonID: person.ID,
+        ShareableType: models.ShareablePost,
+      }
+      err = visibility.Create()
+      if err != nil {
+        revel.AppLog.Error("Receiver StatusMessage", err.Error(), err)
+        continue
+      }
     }
   }
 }

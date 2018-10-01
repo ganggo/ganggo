@@ -25,4 +25,8 @@
       location.reload();
     });
   }
+
+  $('#stream-editor-link').click(function() {
+    $('#stream-editor').toggle();
+  });
 })();

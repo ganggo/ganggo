@@ -4,8 +4,8 @@
 [[projects]]
   name = "cloud.google.com/go"
   packages = ["civil"]
-  revision = "aad3f485ee528456e0768f20397b4d9dd941e755"
-  version = "v0.25.0"
+  revision = "c728a003b238b26cef9ab6753a5dc424b331c3ad"
+  version = "v0.27.0"
 
 [[projects]]
   branch = "master"
@@ -15,13 +15,34 @@
     "app/controllers",
     "app/helpers"
   ]
-  revision = "f4932ab8362e8e2a4e63aa88f07d17bed21f7134"
+  revision = "2fb8ead5ef0fe4b57dbbbdf147e848fca6486480"
 
 [[projects]]
   branch = "master"
   name = "git.feneas.org/ganggo/federation"
+  packages = [
+    ".",
+    "helpers"
+  ]
+  revision = "76129a9a4da34965bb2cce23e5e5808a5437c2a6"
+
+[[projects]]
+  name = "git.feneas.org/ganggo/gorm"
+  packages = [
+    ".",
+    "dialects/mssql",
+    "dialects/mysql",
+    "dialects/postgres",
+    "dialects/sqlite"
+  ]
+  revision = "c5bf88f4a1f896b106734023e9e8d68bcf9ca5ba"
+  version = "v1.9.3"
+
+[[projects]]
+  branch = "ecdsa"
+  name = "git.feneas.org/ganggo/httpsignatures"
   packages = ["."]
-  revision = "59eaaf5c998263705f44bc1706686515b5f028f5"
+  revision = "3ee9f28e5cf7db6ee603059334e87eacb08ddee9"
 
 [[projects]]
   name = "github.com/PuerkitoBio/goquery"
@@ -82,8 +103,8 @@
     "service/s3",
     "service/sts"
   ]
-  revision = "9e9afa0895e9daff556cc18f90dc53eb91f41ffd"
-  version = "v1.14.26"
+  revision = "71a2a92b0063297b055b6f5a014d441c142da2ce"
+  version = "v1.15.32"
 
 [[projects]]
   name = "github.com/certifi/gocertifi"
@@ -104,7 +125,7 @@
     ".",
     "internal/cp"
   ]
-  revision = "242fa5aa1b45aeb9fcdfeee88822982e3f548e22"
+  revision = "1eb28afdf9b6e56cf673badd47545f844fe81103"
 
 [[projects]]
   name = "github.com/fatih/structs"
@@ -114,15 +135,63 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/getlantern/byteexec"
+  packages = ["."]
+  revision = "4cfb26ec74f460fda433dc06fddfbad7ddee3072"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/context"
+  packages = ["."]
+  revision = "624d99b1798d7c5375ea1d3ca4c5b04d58f7c775"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/errors"
+  packages = ["."]
+  revision = "e24b7f4ff7c70be59bbefca6b7695d68cda8b399"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/filepersist"
+  packages = ["."]
+  revision = "c5f0cd24e7991579ba6f5f1bd20a1ad2c9f06cd4"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/golog"
+  packages = ["."]
+  revision = "cca714f7feb5df8e455f409b549d384441ac4578"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/hex"
+  packages = ["."]
+  revision = "083fba3033ad473db3dd31c9bb368473d37581a7"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/hidden"
+  packages = ["."]
+  revision = "d52a649ab33af200943bb599898dbdcfdbc94cb7"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/getlantern/ops"
+  packages = ["."]
+  revision = "37353306c90844c8e0591956f56611f46299d202"
+
+[[projects]]
+  branch = "master"
   name = "github.com/getsentry/raven-go"
   packages = ["."]
-  revision = "ed7bcb39ff10f39ab08e317ce16df282845852fa"
+  revision = "084a9de9eb0361fbd5ded14b55c84e5493a5d7f6"
 
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "358ee7663966325963d4e8b2e1fbd570c5195153"
-  version = "v1.38.1"
+  revision = "5cf292cae48347c2490ac1a58fe36735fb78df7e"
+  version = "v1.38.2"
 
 [[projects]]
   name = "github.com/go-sql-driver/mysql"
@@ -131,10 +200,16 @@
   version = "v1.4.0"
 
 [[projects]]
+  name = "github.com/go-stack/stack"
+  packages = ["."]
+  revision = "2fee6af1a9795aafbe0253a0cfbdf668e1fb8a9a"
+  version = "v1.8.0"
+
+[[projects]]
   name = "github.com/inconshreveable/log15"
   packages = ["term"]
-  revision = "0decfc6c20d9ca0ad143b0e89dcaa20f810b4fb3"
-  version = "v2.13"
+  revision = "67afb5ed74ec82fd7ac8f49d27c509ac6f991970"
+  version = "v2.14"
 
 [[projects]]
   branch = "master"
@@ -157,10 +232,22 @@
   revision = "9891188db5a5bdae87416218253ac3a5ed4aed8a"
 
 [[projects]]
+  name = "github.com/jteeuwen/go-bindata"
+  packages = ["."]
+  revision = "bbd0c6e271208dce66d8fda4bc536453cd27fc4a"
+  version = "v3.0.7"
+
+[[projects]]
   branch = "master"
   name = "github.com/kardianos/osext"
   packages = ["."]
   revision = "ae77be60afb1dcacde03767a8c37337fad28ac14"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/kballard/go-shellquote"
+  packages = ["."]
+  revision = "95032a82bc518f77982ea72343cc1ade730072f0"
 
 [[projects]]
   name = "github.com/klauspost/compress"
@@ -179,14 +266,14 @@
   version = "v1.1"
 
 [[projects]]
-  branch = "master"
   name = "github.com/lib/pq"
   packages = [
     ".",
     "hstore",
     "oid"
   ]
-  revision = "90697d60dd844d5ef6ff15135d0203f65d2f53b8"
+  revision = "4ded0e9383f75c197b3a2aaa6d590ac52df6fd79"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -197,8 +284,8 @@
 [[projects]]
   name = "github.com/mattn/go-isatty"
   packages = ["."]
-  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
-  version = "v0.0.3"
+  revision = "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c"
+  version = "v0.0.4"
 
 [[projects]]
   name = "github.com/mattn/go-sqlite3"
@@ -213,6 +300,18 @@
   revision = "9520e82c474b0a04dd04f8a40959027271bab992"
 
 [[projects]]
+  name = "github.com/microcosm-cc/bluemonday"
+  packages = ["."]
+  revision = "82c7118e8ccf7403d4860175d97bb635e8e28239"
+  version = "v1.0.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/oxtoacart/bpool"
+  packages = ["."]
+  revision = "4e1c5567d7c2dd59fa4c7c83d34c2f3528b025d6"
+
+[[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
@@ -224,8 +323,8 @@
     "harness",
     "revel"
   ]
-  revision = "95d6366c0d8d727ca62767848fb0801268b49ea6"
-  version = "v0.14.1"
+  revision = "97ec1422620f1a83cd13738708a109fe092364ca"
+  version = "v0.19.0"
 
 [[projects]]
   name = "github.com/revel/config"
@@ -278,6 +377,8 @@
   name = "github.com/shaoshing/train"
   packages = [
     ".",
+    "cmd",
+    "command",
     "interpreter"
   ]
   revision = "c76b6fe70b70a926afe20cf76df0e237e59f4655"
@@ -296,7 +397,7 @@
     "blowfish",
     "md4"
   ]
-  revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
+  revision = "0e37d006457bf46f9e6692014ba72ef82c33022c"
 
 [[projects]]
   branch = "master"
@@ -306,13 +407,13 @@
     "html/atom",
     "websocket"
   ]
-  revision = "d0887baf81f4598189d4e12a37c6da86f0bba4d0"
+  revision = "161cd47e91fd58ac17490ef4d742dc98bb4cf60e"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "1b2967e3c290b7c545b3db0deeda16e9be4f98a2"
+  revision = "d0be0721c37eeb5299f245a996a483160fc36940"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -327,8 +428,8 @@
     "core",
     "terminal"
   ]
-  revision = "17861e192dc11fd2f5081df1932c94cce262fa1e"
-  version = "v1.6.1"
+  revision = "f30c5d1830c892f533140f29a1de89141dc217f5"
+  version = "v1.6.2"
 
 [[projects]]
   name = "gopkg.in/fsnotify/fsnotify.v1"
@@ -338,13 +439,7 @@
 
 [[projects]]
   name = "gopkg.in/ganggo/gorm.v2"
-  packages = [
-    ".",
-    "dialects/mssql",
-    "dialects/mysql",
-    "dialects/postgres",
-    "dialects/sqlite"
-  ]
+  packages = ["."]
   revision = "4cacfdfb7921a87c774cbf21382714e07ca0b44f"
   version = "v2.0"
 
@@ -363,6 +458,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "04468b6173142c89caa5e22e90c6af57fdf861768634cf0be4a8f5d8815e1b6d"
+  inputs-digest = "84a0b763da99a39b3502dcb0d1a79d9093c73b01ef7997e9319e561bfd56d285"
   solver-name = "gps-cdcl"
   solver-version = 1

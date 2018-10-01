@@ -5,7 +5,7 @@
         <small class="text-muted">
           <span class="float-left">
             <a href="/profiles/{{.comment.Person.Guid}}">
-              <i class="fa fa-user-o"></i> {{.comment.Person.Author}}
+              <i class="fa fa-user-o"></i> {{StripHTML .comment.Person.Author}}
             </a>
           </span>
           <span class="float-right" title="{{.comment.CreatedAt}}">
@@ -21,7 +21,7 @@
       <div class="card-block">
         <div class="card-body">
           <a name="{{.comment.Guid}}"></a>
-          <p class="card-text" data-markdown>{{.comment.Text}}</p>
+          <p class="card-text" data-markdown>{{SafeHTML .comment.Text}}</p>
         </div>
       </div>
     </div>
@@ -29,7 +29,7 @@
   <div class="col-2">
     <div class="card text-center">
       <a href="/profiles/{{.comment.Person.Guid}}">
-        <img class="card-img-top" src="{{.comment.Person.Profile.ImageUrl}}" title="{{.comment.Person.Profile.FullName}}">
+        <img class="card-img-top" src="{{.comment.Person.Profile.ImageUrl}}" title="{{StripHTML .comment.Person.Profile.FullName}}">
       </a>
     </div>
   </div>

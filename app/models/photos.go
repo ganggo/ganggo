@@ -19,7 +19,7 @@ package models
 
 import (
   "time"
-  federation "git.feneas.org/ganggo/federation"
+  //diaspora "git.feneas.org/ganggo/federation/diaspora"
 )
 
 type Photo struct {
@@ -59,24 +59,24 @@ func (p Photos) Create() error {
   return nil
 }
 
-func (p *Photos) Cast(entities federation.EntityPhotos) error {
-  for _, entity := range entities {
-    var person Person
-    err := person.FindByAuthor(entity.Author)
-    if err != nil {
-      return err
-    }
-
-    photo := Photo{
-      Guid: entity.Guid,
-      Public: entity.Public,
-      RemotePath: entity.RemotePhotoPath + entity.RemotePhotoName,
-      Text: entity.Text,
-      PersonID: person.ID,
-      Height: entity.Height,
-      Width: entity.Width,
-    }
-    *p = append(*p, photo)
-  }
-  return nil
-}
+//func (p *Photos) Cast(entities diaspora.EntityPhotos) error {
+//  for _, entity := range entities {
+//    var person Person
+//    err := person.FindByAuthor(entity.Author)
+//    if err != nil {
+//      return err
+//    }
+//
+//    photo := Photo{
+//      Guid: entity.Guid,
+//      Public: entity.Public,
+//      RemotePath: entity.RemotePhotoPath + entity.RemotePhotoName,
+//      Text: entity.Text,
+//      PersonID: person.ID,
+//      Height: entity.Height,
+//      Width: entity.Width,
+//    }
+//    *p = append(*p, photo)
+//  }
+//  return nil
+//}

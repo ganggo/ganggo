@@ -20,6 +20,7 @@ package helpers
 import (
   "fmt"
   "crypto/rand"
+  "crypto/md5"
 )
 
 func Uuid() (string, error) {
@@ -27,7 +28,11 @@ func Uuid() (string, error) {
   if err != nil {
     return "", err
   }
-  return fmt.Sprintf("%x%x%x%x%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:]), nil
+  return fmt.Sprintf("%x", b), nil
+}
+
+func UuidFromSalt(salt string) string {
+  return fmt.Sprintf("%x", md5.Sum([]byte(salt)))
 }
 
 func Token() (string, error) {
@@ -35,7 +40,7 @@ func Token() (string, error) {
   if err != nil {
     return "", err
   }
-  return fmt.Sprintf("%x", b[0:]), nil
+  return fmt.Sprintf("%x", b), nil
 }
 
 func randomBytes(length int) (b []byte, err error) {

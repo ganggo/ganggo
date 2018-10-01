@@ -18,232 +18,120 @@ package jobs
 //
 
 import (
-  "crypto/rsa"
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/models"
-  "git.feneas.org/ganggo/ganggo/app/helpers"
-  federation "git.feneas.org/ganggo/federation"
-  run "github.com/revel/modules/jobs/app/jobs"
-  "bytes"
+  "git.feneas.org/ganggo/federation"
 )
 
 type Dispatcher struct {
   User models.User
-  Model interface{}
   Message interface{}
-  Relay bool
-}
-
-type send struct {
-  Host, Guid string
-  Payload []byte
+  Retract bool
 }
 
 func (dispatcher Dispatcher) Run() {
   switch entity := dispatcher.Message.(type) {
-  case federation.EntityLike:
-    revel.AppLog.Debug("Starting like dispatcher")
-    dispatcher.Like(entity)
-  case federation.EntityComment:
-    revel.AppLog.Debug("Starting comment dispatcher")
-    dispatcher.Comment(entity)
-  case federation.EntityRetraction:
-    revel.AppLog.Debug("Starting retraction dispatcher")
-    dispatcher.Retraction(entity)
-  case federation.EntityContact:
+  case models.AspectMembership:
     revel.AppLog.Debug("Starting contact dispatcher")
     dispatcher.Contact(entity)
-  case federation.EntityStatusMessage:
+  case models.Post:
     revel.AppLog.Debug("Starting post dispatcher")
     dispatcher.StatusMessage(entity)
-  case federation.EntityReshare:
-    revel.AppLog.Debug("Starting reshare dispatcher")
-    dispatcher.Reshare(entity)
+  case models.Comment:
+    revel.AppLog.Debug("Starting comment dispatcher")
+    dispatcher.Comment(entity)
+  case models.Like:
+    revel.AppLog.Debug("Starting like dispatcher")
+    dispatcher.Like(entity)
+  // relaying entities
+  case federation.MessageComment:
+    revel.AppLog.Debug("Starting relay comment dispatcher")
+    dispatcher.RelayComment(entity)
+  case federation.MessageLike:
+    revel.AppLog.Debug("Starting relay like dispatcher")
+    dispatcher.RelayLike(entity)
+  case federation.MessageRetract:
+    revel.AppLog.Debug("Starting relay retraction dispatcher")
+    dispatcher.RelayRetraction(entity)
   default:
     revel.AppLog.Error("Unknown entity type in dispatcher!")
   }
 }
 
-// XXX do not relay the entity to the sender again
-func (dispatcher Dispatcher) Send(parentPost models.Post, parentUser models.User, entityXml []byte, orderID uint) {
-  if parentPost.ID > 0 && parentUser.ID > 0 {
-    revel.AppLog.Debug("Dispatcher we are root host")
-
-    var order models.SignatureOrder
-    err := order.FindByID(orderID)
-    if err == nil {
-      entityXml, err = federation.SortByEntityOrder(order.Order, entityXml)
-      if err != nil {
-        revel.AppLog.Error(err.Error())
-        return
-      }
-    }
-
-    privKey, err := federation.ParseRSAPrivateKey(
-      []byte(parentUser.SerializedPrivateKey))
-    if err != nil {
-      revel.AppLog.Error(err.Error())
-      return
-    }
-
-    // send to public or aspect
+// findRecipients will return a list of users we should relay a post to
+func (dispatcher *Dispatcher) findRecipients(parentPost *models.Post, parentUser *models.User) ([]models.Person, error) {
+  if parentPost != nil && parentUser != nil {
     if parentPost.Public {
-      payload, err := federation.MagicEnvelope(
-        privKey, parentUser.Person.Author, entityXml,
-      )
-      if err != nil {
-        revel.AppLog.Error(err.Error())
-        return
-      }
-      sendPublic(payload)
+      // everyone we are sharing with
+      return dispatcher.findPublicEndpoints()
     } else {
+      // it is local we know all recipients
+      // lets relay the message to all remote servers
       var visibility models.AspectVisibility
-      err := visibility.FindByPost(parentPost)
+      err := visibility.FindByPost(*parentPost)
       if err != nil {
-        revel.AppLog.Error(err.Error())
-        return
+        revel.AppLog.Error("Dispatcher findRecipients", err.Error(), err)
+        return []models.Person{}, err
       }
-      sendToAspect(visibility.AspectID, privKey,
-        parentUser.Person.Author, entityXml)
-    }
-  } else if parentPost.ID > 0 {
-    revel.AppLog.Debug("Dispatcher send to public or person")
 
-    privKey, err := federation.ParseRSAPrivateKey(
-      []byte(dispatcher.User.SerializedPrivateKey))
-    if err != nil {
-      revel.AppLog.Error(err.Error())
-      return
+      var aspect models.Aspect
+      err = aspect.FindByID(visibility.AspectID)
+      if err != nil {
+        revel.AppLog.Error("Dispatcher findRecipients", err.Error(), err)
+        return []models.Person{}, err
+      }
+      var persons []models.Person
+      for _, member := range aspect.Memberships {
+        var person models.Person
+        err = person.FindByID(member.PersonID)
+        if err != nil {
+          revel.AppLog.Error("Dispatcher findRecipients", err.Error(), err)
+          continue
+        }
+        persons = append(persons, person)
+      }
+      return persons, nil
     }
-
-    // send to public or person
+  } else if parentPost != nil {
     if parentPost.Public {
-      payload, err := federation.MagicEnvelope(
-        privKey, dispatcher.User.Person.Author, entityXml,
-      )
-      if err != nil {
-        revel.AppLog.Error(err.Error())
-        return
-      }
-      sendPublic(payload)
+      // everyone we are sharing with
+      return dispatcher.findPublicEndpoints()
     } else {
-      pubKey, err := federation.ParseRSAPublicKey(
-        []byte(parentPost.Person.SerializedPublicKey))
-      if err != nil {
-        revel.AppLog.Error(err.Error())
-        return
+      // it is not local just send it to
+      // the remote server it should handle the rest
+      // in case of AP we will fetch known visibilties as well
+      var persons = []models.Person{parentPost.Person}
+      var visibilities models.Visibilities
+      err := visibilities.FindByPost(*parentPost)
+      if err == nil {
+        for _, visibility := range visibilities {
+          persons = append(persons, visibility.Person)
+        }
+      } else {
+        revel.AppLog.Error("Dispatcher findRecipients", err.Error(), err)
       }
-
-      payload, err := federation.EncryptedMagicEnvelope(
-        privKey, pubKey, dispatcher.User.Person.Author, entityXml,
-      )
-      if err != nil {
-        revel.AppLog.Error(err.Error())
-        return
-      }
-
-      _, host, err := helpers.ParseAuthor(parentPost.Person.Author)
-      if err != nil {
-        revel.AppLog.Error(err.Error())
-        return
-      }
-
-      run.Now(send{
-        Host: host,
-        Guid: parentPost.Person.Guid,
-        Payload: payload,
-      })
+      return persons, nil
     }
   }
+  return []models.Person{}, nil
 }
 
-func sendPublic(payload []byte) {
+// findPublicEndpoints will fetch all remote endpoints known to the server
+// NOTE this can become a pretty heavy job needs some brain-storming
+func (dispatcher *Dispatcher) findPublicEndpoints() (persons []models.Person, err error) {
   var pods models.Pods
-  err := pods.FindAll()
+  err = pods.FindAll()
   if err != nil {
-    revel.ERROR.Println(err)
     return
   }
 
   for _, pod := range pods {
-    run.Now(send{
-      Host: pod.Host,
-      Payload: payload,
-    })
-  }
-}
-
-func sendToAspect(aspectID uint, privKey *rsa.PrivateKey, handle string, xml []byte) {
-  var aspect models.Aspect
-  err := aspect.FindByID(aspectID)
-  if err != nil {
-    revel.AppLog.Error(err.Error())
-    return
-  }
-
-  for _, member := range aspect.Memberships {
     var person models.Person
-    err = person.FindByID(member.PersonID)
+    err = person.FindFirstByPodID(pod.ID)
     if err != nil {
-      revel.AppLog.Error(err.Error())
-      continue
-    }
-
-    pubKey, err := federation.ParseRSAPublicKey(
-      []byte(person.SerializedPublicKey))
-    if err != nil {
-      revel.AppLog.Error(err.Error())
       return
     }
-
-    payload, err := federation.EncryptedMagicEnvelope(
-      privKey, pubKey, handle, xml)
-    if err != nil {
-      revel.AppLog.Error(err.Error())
-      continue
-    }
-
-    _, host, err := helpers.ParseAuthor(person.Author)
-    if err != nil {
-      revel.AppLog.Error(err.Error())
-      continue
-    }
-    revel.AppLog.Debug("Private request", "guid", person.Guid, "host", host)
-
-    run.Now(send{
-      Host: host,
-      Guid: person.Guid,
-      Payload: payload,
-    })
+    persons = append(persons, person)
   }
-}
-
-func (s send) Run() {
-  var err error
-  revel.Config.SetSection("ganggo")
-  localhost, found := revel.Config.String("address")
-  if !found {
-    revel.ERROR.Println("No server address configured")
-    return
-  }
-
-  revel.AppLog.Debug("Sending payload", "guid", s.Guid,
-    "host", s.Host, "payload", string(s.Payload))
-
-  // skip own pod
-  if s.Host == localhost {
-    revel.AppLog.Debug("Skip own pod")
-    return
-  }
-
-  if s.Guid == "" {
-    err = federation.PushToPublic(s.Host,
-      bytes.NewBuffer(s.Payload))
-  } else {
-    err = federation.PushToPrivate(s.Host, s.Guid,
-      bytes.NewBuffer(s.Payload))
-  }
-  if err != nil {
-    revel.AppLog.Error("Something went wrong while pushing", "host", s.Host, "err", err)
-  }
+  return
 }

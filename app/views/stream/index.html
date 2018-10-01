@@ -1,19 +1,24 @@
 {{template "header.html" .}}
 
 <div class="container">
-  {{if .currentUser}}
-    {{template "stream/editor_box.html" .}}
-  {{end}}
+  {{template "stream/editor_box.html" .}}
+  {{template "nav_tabs.html" .}}
   {{$root := .}}
   {{range .posts}}
     {{set $root "post" .}}
     {{set $root "align" "left"}}
     {{template "stream/post.html" $root}}
   {{end}}
-  {{$stream := msg . "stream.title"}}
-  {{$stream := htmlToString $stream}}
-  {{$public := msg . "public.title"}}
-  {{$public := htmlToString $public}}
+  {{$lenPosts := len .posts}}
+  {{if eq $lenPosts 0}}
+  <div class="card pt-5 pb-5">
+    <div class="card-body">
+      <h5 class="card-title text-center">
+        <i class="fa fa-battery-empty"></i> {{msg . "stream.empty"}}
+      </h5>
+    </div>
+  </div>
+  {{end}}
   {{$tags := msg . "tag.title"}}
   {{$tags := htmlToString $tags}}
   <div class="row mt-4">

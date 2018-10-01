@@ -4,7 +4,11 @@
 # for detailed Gopkg.toml documentation.
 #
 
-required = ["github.com/revel/cmd/revel"]
+required = [
+  "github.com/revel/cmd/revel",
+  "github.com/shaoshing/train/cmd",
+  "github.com/kevinburke/go-bindata",
+]
 
 [[override]]
   version = "0.19.0"
@@ -15,7 +19,7 @@ required = ["github.com/revel/cmd/revel"]
   name = "github.com/revel/revel"
 
 [[override]]
-  version = "0.14.1"
+  version = "0.19.0"
   name = "github.com/revel/cmd"
 
 [[override]]
@@ -38,10 +42,14 @@ required = ["github.com/revel/cmd/revel"]
   branch = "master"
   name = "github.com/revel/log15"
 
+[[override]]
+  branch = "ecdsa"
+  name = "git.feneas.org/ganggo/httpsignatures"
+
 [[constraint]]
   name = "gopkg.in/AlecAivazis/survey.v1"
   version = "1.4.1"
 
 [[constraint]]
-  name = "gopkg.in/ganggo/gorm.v2"
-  version = "2.0.0"
+  name = "git.feneas.org/ganggo/gorm"
+  version = "1.9.3"

@@ -18,58 +18,48 @@ package jobs
 //
 
 import (
-  "encoding/xml"
   "github.com/revel/revel"
-  run "github.com/revel/modules/jobs/app/jobs"
   "git.feneas.org/ganggo/ganggo/app/models"
-  "git.feneas.org/ganggo/ganggo/app/helpers"
+  fhelpers "git.feneas.org/ganggo/federation/helpers"
   federation "git.feneas.org/ganggo/federation"
 )
 
-func (dispatcher *Dispatcher) Contact(contact federation.EntityContact) {
-  _, host, err := helpers.ParseAuthor(contact.Recipient)
-  if err != nil {
-    revel.AppLog.Error(err.Error())
-    return
-  }
-
+func (dispatcher *Dispatcher) Contact(contact models.AspectMembership) {
   var person models.Person
-  err = person.FindByAuthor(contact.Recipient)
+  err := person.FindByID(contact.PersonID)
   if err != nil {
     revel.AppLog.Error(err.Error())
     return
   }
 
-  entityXml, err := xml.Marshal(contact)
-  if err != nil {
-    revel.AppLog.Error(err.Error())
-    return
-  }
+  endpoint := person.Inbox
 
-  privKey, err := federation.ParseRSAPrivateKey(
+  priv, err := fhelpers.ParseRSAPrivateKey(
     []byte(dispatcher.User.SerializedPrivateKey))
   if err != nil {
-    revel.AppLog.Error(err.Error())
+    revel.AppLog.Error("Dispatcher Contact", err.Error(), err)
     return
   }
 
-  pubKey, err := federation.ParseRSAPublicKey(
+  pub, err := fhelpers.ParseRSAPublicKey(
     []byte(person.SerializedPublicKey))
   if err != nil {
-    revel.AppLog.Error(err.Error())
+    revel.AppLog.Error("Dispatcher Contact", err.Error(), err)
     return
   }
 
-  payload, err := federation.EncryptedMagicEnvelope(
-    privKey, pubKey, contact.Author, entityXml)
+  entity, err := federation.NewMessageContact(person.Pod.Protocol)
   if err != nil {
-    revel.AppLog.Error(err.Error())
+    revel.AppLog.Error("Dispatcher Contact", err.Error(), err)
     return
   }
+  entity.SetAuthor(dispatcher.User.Person.Author)
+  entity.SetRecipient(person.Author)
+  entity.SetSharing(true)
 
-  run.Now(send{
-    Host: host,
-    Guid: person.Guid,
-    Payload: payload,
-  })
+  err = entity.Send(endpoint, priv, pub)
+  if err != nil {
+    revel.AppLog.Error("Dispatcher Contact", err.Error(), err)
+    return
+  }
 }

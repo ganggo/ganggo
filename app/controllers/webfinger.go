@@ -20,8 +20,10 @@ package controllers
 import (
   "net/http"
   "github.com/revel/revel"
+  api "git.feneas.org/ganggo/api/app"
   "git.feneas.org/ganggo/ganggo/app/models"
   federation "git.feneas.org/ganggo/federation"
+  helpers "git.feneas.org/ganggo/federation/helpers"
   "errors"
 )
 
@@ -56,7 +58,7 @@ func (c Webfinger) Webfinger() revel.Result {
     return c.RenderError(errors.New("No address config found"))
   }
 
-  username, err := federation.ParseWebfingerHandle(resource)
+  username, err := helpers.ParseWebfingerHandle(resource)
   if err != nil {
     c.Response.Status = http.StatusNotFound
     c.Log.Error("Cannot parse webfinger handle", "error", err)
@@ -96,12 +98,19 @@ func (c Webfinger) Webfinger() revel.Result {
       federation.WebfingerDataLink {
         Rel: "http://webfinger.net/rel/profile-page",
         Type: "text/html",
-        Href: proto + address + "/u/" + username,
+        Href: proto + address + "/profiles/" + person.Guid,
       },
       federation.WebfingerDataLink {
+        // see https://github.com/jaywink/socialhome/pull/438/files#diff-b7bef49cd7c1e5382887a4589432296cR30
         Rel: "http://schemas.google.com/g/2010#updates-from",
         Type: "application/atom+xml",
-        Href: proto + address + "/public/" + username + ".atom",
+        Href: proto + address + "/dev/null",
+      },
+      federation.WebfingerDataLink {
+        Rel: "self",
+        Type: "application/activity+json",
+        Href: proto + address + "/api/" + api.API_VERSION +
+          "/ap/user/" + username + "/actor",
       },
       federation.WebfingerDataLink {
         Rel: "salmon",

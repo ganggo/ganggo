@@ -18,44 +18,87 @@ package jobs
 //
 
 import (
-  "encoding/xml"
+  "crypto/rsa"
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/models"
   federation "git.feneas.org/ganggo/federation"
+  "git.feneas.org/ganggo/federation/helpers"
 )
 
-func (dispatcher *Dispatcher) Comment(comment federation.EntityComment) {
-  modelComment, ok := dispatcher.Model.(models.Comment)
-  if !ok {
-    revel.AppLog.Error(
-      "Submitted model is not a type of models.Comment",
-      "model", modelComment,
-    )
-    return
-  }
-
-  if !dispatcher.Relay {
-    privKey, err := federation.ParseRSAPrivateKey(
-      []byte(dispatcher.User.SerializedPrivateKey),
-    )
-    var signature federation.Signature
-    err = signature.New(comment).Sign(privKey,
-      &(comment.AuthorSignature))
-    if err != nil {
-      revel.AppLog.Error(err.Error())
-      return
-    }
-  }
-
-  entityXml, err := xml.Marshal(comment)
+func (dispatcher *Dispatcher) Comment(comment models.Comment) {
+  parentPost, parentUser, _ := comment.ParentPostUser()
+  persons, err := dispatcher.findRecipients(parentPost, parentUser)
   if err != nil {
-    revel.AppLog.Error(err.Error())
+    revel.AppLog.Error("Dispatcher Comment", err.Error(), err)
     return
   }
 
-  parentPost, parentUser, _ := modelComment.ParentPostUser()
-  dispatcher.Send(
-    parentPost, parentUser, entityXml,
-    modelComment.Signature.SignatureOrderID,
-  )
+  priv, err := helpers.ParseRSAPrivateKey(
+    []byte(dispatcher.User.SerializedPrivateKey))
+  if err != nil {
+    revel.AppLog.Error("Dispatcher Comment", err.Error(), err)
+    return
+  }
+
+  recipients := []string{}
+  for _, person := range persons {
+    recipients = append(recipients, person.Author)
+  }
+
+  for _, person := range persons {
+    endpoint := person.Inbox
+    var pub *rsa.PublicKey = nil
+    if !parentPost.Public {
+      pub, err = helpers.ParseRSAPublicKey(
+        []byte(person.SerializedPublicKey))
+      if err != nil {
+        revel.AppLog.Error("Dispatcher Comment", err.Error(), err)
+        continue
+      }
+    } else if person.Pod.Inbox != "" {
+      // pod inbox if available
+      endpoint = person.Pod.Inbox
+    }
+
+    var entity federation.MessageBase
+    if dispatcher.Retract {
+      retract, err := federation.NewMessageRetract(person.Pod.Protocol)
+      if err != nil {
+        revel.AppLog.Debug("Dispatcher Comment", err.Error(), err)
+        continue
+      }
+      retract.SetAuthor(comment.Person.Author)
+      retract.SetParentType(federation.Comment)
+      retract.SetParentGuid(comment.Guid)
+      entity = retract
+    } else {
+      post, err := federation.NewMessageComment(person.Pod.Protocol)
+      if err != nil {
+        revel.AppLog.Debug("Dispatcher Comment", err.Error(), err)
+        continue
+      }
+
+      post.SetAuthor(comment.Person.Author)
+      if !parentPost.Public {
+        post.SetRecipients(recipients)
+      }
+      post.SetText(comment.Text)
+      post.SetGuid(comment.Guid)
+      post.SetParent(parentPost.Guid)
+      post.SetCreatedAt(comment.CreatedAt)
+      err = post.SetSignature(priv)
+      if err != nil {
+        revel.AppLog.Error("Dispatcher Comment", err.Error(), err)
+        continue
+      }
+      entity = post
+    }
+
+    err = entity.Send(endpoint, priv, pub)
+    if err != nil {
+      revel.AppLog.Error("Dispatcher Comment", err.Error(), err)
+      continue
+    }
+
+  }
 }

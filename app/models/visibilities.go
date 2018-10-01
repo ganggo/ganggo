@@ -1,7 +1,7 @@
 package models
 //
 // GangGo Application Server
-// Copyright (C) 2017 Lukas Matt <lukas@zauberstuhl.de>
+// Copyright (C) 2018 Lukas Matt <lukas@zauberstuhl.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,73 +19,50 @@ package models
 
 import (
   "time"
-  federation "git.feneas.org/ganggo/federation"
+  "git.feneas.org/ganggo/gorm"
 )
 
-type Pod struct {
+type Visibility struct {
   ID uint `gorm:"primary_key"`
   CreatedAt time.Time
   UpdatedAt time.Time
 
+  ShareableID uint
+  PersonID uint
   // size should be max 191 with mysql innodb
   // cause asumming we use utf8mb 4*191 = 764 < 767
-  Host string `gorm:"size:191" json:"host"`
-  Inbox string `gorm:"size:191"`
+  ShareableType string `gorm:"size:191"`
 
-  Protocol federation.Protocol
+  Person Person
 }
 
-type Pods []Pod
+type Visibilities []Visibility
 
-func (pod *Pod) Save() error { BACKEND_ONLY()
-  db, err := OpenDatabase()
+func (visibility *Visibility) AfterFind(db *gorm.DB) error {
+  err := db.Model(visibility).Related(&visibility.Person).Error
   if err != nil {
     return err
-  }
-  defer db.Close()
-
-  return db.Save(pod).Error
-}
-
-func (pod *Pod) FindByID(id uint) error {
-  db, err := OpenDatabase()
-  if err != nil {
-    return err
-  }
-  defer db.Close()
-
-  return db.First(pod, id).Error
-}
-
-func (pod *Pod) CreateOrFindHost() error { BACKEND_ONLY()
-  db, err := OpenDatabase()
-  if err != nil {
-    return err
-  }
-  defer db.Close()
-
-  if db.Where("host = ?", pod.Host).Find(pod).RecordNotFound() {
-    return db.Create(pod).Error
   }
   return nil
 }
 
-func (pods *Pods) FindRandom(limit uint) (err error) { BACKEND_ONLY()
+func (visibility *Visibility) Create() (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return err
   }
   defer db.Close()
 
-  return db.Find(pods).Order(randomOrder()).Limit(limit).Error
+  return db.Create(visibility).Error
 }
 
-func (pods *Pods) FindAll() (err error) { BACKEND_ONLY()
+func (visibilities *Visibilities) FindByPost(post Post) (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return err
   }
   defer db.Close()
 
-  return db.Find(pods).Error
+  return db.Where("shareable_id = ? and shareable_type = ?",
+    post.ID, ShareablePost).Find(visibilities).Error
 }

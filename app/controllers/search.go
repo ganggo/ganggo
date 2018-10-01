@@ -36,6 +36,7 @@ func (s Search) Index(text string) revel.Result {
 func (s Search) IndexPagination(text string, page uint) revel.Result {
   var offset uint = ((page - 1) * 10)
   text = strings.Replace(text, "'", "", -1)
+  text = strings.Replace(text, "\"", "", -1)
 
   user, err := models.CurrentUser(s.Controller)
   if err != nil {
@@ -59,17 +60,22 @@ func (s Search) IndexPagination(text string, page uint) revel.Result {
 }
 
 func (s Search) Create(search string) revel.Result {
-  _, _, err := helpers.ParseAuthor(search)
+  _, err := helpers.ParseUsername(search)
   if err != nil {
     s.Log.Debug("Cannot parse handle author", "error", err)
     return s.Redirect("/search/%s", search)
+  }
+
+  user, err := models.CurrentUser(s.Controller)
+  if err == nil {
+    s.ViewArgs["currentUser"] = user
   }
 
   fetchAuthor := jobs.FetchAuthor{Author: search}
   fetchAuthor.Run()
   if fetchAuthor.Err != nil {
     s.Log.Error("Cannot fetch author", "error", fetchAuthor.Err)
-    return s.RenderError(fetchAuthor.Err)
+    return s.NotFound(fetchAuthor.Err.Error())
   }
   guid := fetchAuthor.Person.Guid
 

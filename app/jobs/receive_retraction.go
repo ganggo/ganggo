@@ -18,13 +18,12 @@ package jobs
 //
 
 import (
-  "strings"
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/models"
-  federation "git.feneas.org/ganggo/federation"
+  "git.feneas.org/ganggo/federation"
 )
 
-func (r *Receiver) Retraction(retraction federation.EntityRetraction) {
+func (r *Receiver) Retraction(entity federation.MessageRetract) {
   db, err := models.OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
@@ -32,49 +31,64 @@ func (r *Receiver) Retraction(retraction federation.EntityRetraction) {
   }
   defer db.Close()
 
-  // NOTE relay to other hosts if we own this entity
-  // should be done before we start deleting db records
-  dispatcher := Dispatcher{Message: retraction}
-  dispatcher.Run()
+  // relay retraction before deleting database entries!
+  (&Dispatcher{Message: entity}).Run()
 
-  if strings.EqualFold(retraction.TargetType, models.ShareablePost) {
+  var dbModel interface{}
+  switch entity.ParentType() {
+  case federation.Reshare:
+    fallthrough
+  case federation.StatusMessage:
     var post models.Post
-    err = post.FindByGuid(retraction.TargetGuid)
+    err := post.FindByGuid(entity.ParentGuid())
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
     }
-    err = db.Delete(&post).Error
-    if err != nil {
-      revel.AppLog.Error(err.Error())
-      return
-    }
-  } else if strings.EqualFold(retraction.TargetType, models.ShareableComment) {
+    dbModel = &post
+  case federation.Comment:
     var comment models.Comment
-    err = comment.FindByGuid(retraction.TargetGuid)
+    err = comment.FindByGuid(entity.ParentGuid())
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
     }
-    err = db.Delete(&comment).Error
-    if err != nil {
-      revel.AppLog.Error(err.Error())
-      return
-    }
-  } else if strings.EqualFold(retraction.TargetType, models.ShareableLike) {
+    dbModel = &comment
+  case federation.Like:
     var like models.Like
-    err = like.FindByGuid(retraction.TargetGuid)
+    err = like.FindByGuid(entity.ParentGuid())
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
     }
-    err = db.Delete(&like).Error
+    dbModel = &like
+  case federation.Unknown:
+    // NOTE in case of mastodon we do not know if it was
+    // a post or comment since we only receive a tombstone
+    // activity with the id or guid as reference
+    var (
+      post models.Post
+      comment models.Comment
+    )
+    postErr := post.FindByGuid(entity.ParentGuid())
+    commentErr := comment.FindByGuid(entity.ParentGuid())
+    if postErr == nil {
+      dbModel = &post
+    } else if commentErr == nil {
+      dbModel = &comment
+    }
+  default:
+    revel.AppLog.Error(
+      "Unkown TargetType in Dispatcher", "retraction", entity)
+  }
+
+  if dbModel != nil {
+    err = db.Delete(dbModel).Error
     if err != nil {
       revel.AppLog.Error(err.Error())
       return
     }
   } else {
-    revel.AppLog.Error("Unkown TargetType in Dispatcher", "retraction", retraction)
-    return
+    revel.AppLog.Error("DB model is nil!", "retraction", entity)
   }
 }

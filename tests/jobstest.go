@@ -20,7 +20,7 @@ package tests
 import (
   "git.feneas.org/ganggo/ganggo/app/jobs"
   "git.feneas.org/ganggo/ganggo/app/models"
-  "gopkg.in/ganggo/gorm.v2"
+  "git.feneas.org/ganggo/gorm"
   "time"
 )
 

@@ -20,7 +20,8 @@ package controllers
 import (
   "net/http"
   "github.com/revel/revel"
-  federation "git.feneas.org/ganggo/federation"
+  helpers "git.feneas.org/ganggo/federation/helpers"
+  "git.feneas.org/ganggo/federation"
   run "github.com/revel/modules/jobs/app/jobs"
   "git.feneas.org/ganggo/ganggo/app/models"
   "git.feneas.org/ganggo/ganggo/app/jobs"
@@ -51,26 +52,18 @@ func (r Receiver) Public() revel.Result {
   // in case it succeeds reply with status 202
   r.Response.Status = http.StatusAccepted
 
-  msg, entity, err := federation.ParseDecryptedRequest(content)
+  msg, err := federation.DiasporaParse(content)
   if err != nil {
-    r.Log.Error("Cannot parse decrypted request", "error", err)
-    // NOTE Send accept code even tho the entity is not
-    // known otherwise the sender pod will throw an error
-    //r.Response.Status = http.StatusNotAcceptable
-    return r.Render()
+    r.Log.Error("Cannot parse content", err.Error(), err)
+  } else {
+    run.Now(jobs.Receiver{Message: msg})
   }
-
-  run.Now(jobs.Receiver{
-    Message: msg,
-    Entity: entity,
-  })
   return r.Render()
 }
 
 func (r Receiver) Private() revel.Result {
   var (
     guid string
-    wrapper federation.AesWrapper
     person models.Person
     user models.User
   )
@@ -82,11 +75,10 @@ func (r Receiver) Private() revel.Result {
   }
   defer db.Close()
 
-  r.Params.BindJSON(&wrapper)
   r.Params.Bind(&guid, "guid")
   r.Response.Status = http.StatusAccepted
 
-  r.Log.Debug("AES request", "message", wrapper)
+  r.Log.Debug("received privately", "message", string(r.Params.JSON))
 
   err = db.Where("guid like ?", guid).First(&person).Error
   if err != nil {
@@ -102,7 +94,7 @@ func (r Receiver) Private() revel.Result {
     return r.Render()
   }
 
-  privKey, err := federation.ParseRSAPrivateKey(
+  privKey, err := helpers.ParseRSAPrivateKey(
     []byte(user.SerializedPrivateKey))
   if err != nil {
     r.Log.Error(err.Error())
@@ -110,19 +102,11 @@ func (r Receiver) Private() revel.Result {
     return r.Render()
   }
 
-  msg, entity, err := federation.ParseEncryptedRequest(wrapper, privKey)
+  msg, err := federation.DiasporaParseEncrypted(r.Params.JSON, privKey)
   if err != nil {
-    r.Log.Error("Cannot parse encrypted request", "error", err)
-    // NOTE Send accept code even tho the entity is not
-    // known otherwise the sender pod will throw an error
-    //r.Response.Status = http.StatusNotAcceptable
-    return r.Render()
+    r.Log.Error("Cannot parse content", err.Error(), err)
+  } else {
+    run.Now(jobs.Receiver{Message: msg, Guid: guid})
   }
-
-  run.Now(jobs.Receiver{
-    Message: msg,
-    Entity: entity,
-    Guid: guid,
-  })
   return r.Render()
 }

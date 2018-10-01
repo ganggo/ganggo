@@ -19,10 +19,11 @@ navigation.register=Register
 navigation.stream=Stream
 navigation.stream.public=Public
 navigation.stream.private=Private
-navigation.write_a_post=Write a post..
+navigation.write_a_post=Write a post
 navigation.user.customize=Customize
 navigation.user.settings=Settings
 navigation.user.streams=Streams
+navigation.searchbar=e.g. hq@ggg.social
 
 comment.placeholder=Write a comment..
 comment.button=Publish
@@ -41,6 +42,7 @@ public.title=Public
 
 # see https://revel.github.io/manual/i18n-messages.html
 stream.title=%(navigation.stream)s
+stream.empty=No post was found!
 
 javascript.retweet_confirm=Do you want to reshare this Post?
 javascript.delete_confirm=Do you want to delete this Message?
@@ -95,9 +97,7 @@ editor.default_group=Public
 editor.button=Publish
 editor.placeholder=I like cats !!
 
-footer.links.report_issue=Report an issue
-footer.links.pod_statistics=Pod statistics
-footer.links.android=Android Application
+footer.links.report_issue=Report an issue via <a href="%s">GitLab</a> or <a href="%s">Mail</a>
 
 # timeago plugin
 ago=ago
@@ -125,7 +125,7 @@ errors.controller.post_not_found=No post available
 
 # flash messages
 flash.errors.captcha=Captcha was not correct!
-flash.errors.username=Username already exists!
+flash.errors.username=Username already exists or was wrong! Please use alphabet, numeric and dash characters only.
 flash.errors.password_empty=Password was empty or didn't match!
 flash.errors.password_length=Password length should be greater then four!
 flash.errors.login=Please log in first

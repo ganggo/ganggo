@@ -18,62 +18,85 @@ package jobs
 //
 
 import (
+  "time"
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/models"
   federation "git.feneas.org/ganggo/federation"
   run "github.com/revel/modules/jobs/app/jobs"
 )
 
-func (receiver *Receiver) Comment(entity federation.EntityComment) {
-  var comment models.Comment
-  db, err := models.OpenDatabase()
-  if err != nil {
-    revel.AppLog.Error(err.Error())
-    return
-  }
-  defer db.Close()
+func (receiver *Receiver) Comment(entity federation.MessageComment) {
+  var (
+    post models.Post
+    person models.Person
+  )
 
-  revel.AppLog.Debug("Found a comment entity", "entity", entity)
-
-  err = comment.Cast(&entity)
-  if err != nil {
-    // try to recover entity
-    recovery := Recovery{models.ShareablePost, entity.ParentGuid}
-    recovery.Run()
-
-    err = comment.Cast(&entity)
+  var postID uint
+  err := post.FindByGuid(entity.Parent())
+  if err == nil {
+    postID = post.ID
+  } else {
+    // this can happen with e.g. mastodon which always replies to
+    // the previous comment entity not the original post
+    var prevComment models.Comment
+    err = prevComment.FindByGuid(entity.Parent())
     if err != nil {
-      revel.AppLog.Error(err.Error())
+      revel.AppLog.Error("Receiver Comment", err.Error(), err)
       return
     }
+    postID = prevComment.ShareableID
+  }
+
+  err = person.FindByAuthor(entity.Author())
+  if err != nil {
+    revel.AppLog.Error("Receiver Comment", err.Error(), err)
+    return
+  }
+
+  createdAt, err := entity.CreatedAt().Time()
+  if err != nil {
+    createdAt = time.Now()
+  }
+
+  comment := models.Comment{
+    CreatedAt: createdAt,
+    Text: entity.Text(),
+    ShareableID: postID,
+    PersonID: person.ID,
+    Guid: entity.Guid(),
+    ShareableType: models.ShareablePost,
+    Protocol: entity.Type().Proto,
   }
 
   _, _, local := comment.ParentPostUser()
   // if parent post is local we have
   // to relay the comment to all recipiens
   if local {
-    order := models.SignatureOrder{
-      Order: receiver.Entity.SignatureOrder,
-    }
+    order := models.SignatureOrder{Order: entity.SignatureOrder()}
     err = order.CreateOrFind()
     if err != nil {
-      revel.AppLog.Error(err.Error())
+      revel.AppLog.Error("Receiver Comment", err.Error(), err)
       return
     }
     comment.Signature.SignatureOrderID = order.ID
   }
+  comment.Signature.AuthorSignature = entity.Signature()
 
-  err = db.Create(&comment).Error
+  err = comment.Create()
   if err != nil {
-    revel.ERROR.Println(err)
-    return
+    // XXX RECOVERY
+    //// try to recover entity
+    //recovery := Recovery{models.ShareablePost, entity.ParentGuid}
+    //recovery.Run()
+
+    //err = comment.Cast(&entity)
+    //if err != nil {
+      revel.AppLog.Error("Receiver Comment", err.Error(), err)
+      return
+    //}
   }
 
   if local {
-    run.Now(Dispatcher{
-      Model: comment,
-      Message: entity,
-      Relay: true,
-    })
+    run.Now(Dispatcher{Message: entity})
   }
 }
