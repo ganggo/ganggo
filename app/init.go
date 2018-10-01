@@ -129,6 +129,7 @@ func init() {
     sentryDSN, found := revel.Config.String("sentry.DSN")
     if found {
       raven.SetDSN(sentryDSN)
+      raven.SetRelease(AppVersion)
       revel.RootLog.SetHandler(helpers.SentryLogHandler{})
     }
   })
