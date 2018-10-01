@@ -2,7 +2,6 @@
 # need the ability to create arrays
 SHELL=/bin/bash
 
-version := $(shell echo -n $(VERSION) |cut -d- -f1)
 package := git.feneas.org/ganggo/ganggo
 srcdir := $(GOPATH)/src/$(package)
 
@@ -72,7 +71,7 @@ endif
 		done
 
 compile:
-ifndef version
+ifndef VERSION
 	$(error $(version_info))
 endif
 ifndef revel
@@ -80,7 +79,7 @@ ifndef revel
 endif
 	cp $(srcdir)/conf/app.conf.example $(srcdir)/conf/app.conf
 	cd $(srcdir) && \
-		APP_VERSION=$(version) revel package $(package)
+		APP_VERSION=$(VERSION) revel package $(package)
 
 test:
 ifndef revel
@@ -97,7 +96,7 @@ endif
 	}
 
 u2d-wrapper:
-ifndef version
+ifndef VERSION
 	$(error $(version_info))
 endif
 ifndef gobin
@@ -111,5 +110,5 @@ endif
 			src/$(package)/{app,conf,messages,public}/... ;\
 	}
 	cd $(srcdir)/updater && go build \
-		-ldflags "-X main.version=$(version)" \
+		-ldflags "-X main.version=$(VERSION)" \
 		-o ../updater.$$GOOS-$$GOARCH$$GOARM.bin updater.go bin*.go
