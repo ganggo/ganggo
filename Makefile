@@ -22,15 +22,20 @@ define version_info
 endef
 
 define install-tools
-	# go dependencies
+	# go dependency tool
 	go get -u github.com/golang/dep/cmd/dep
+	# download all dependencies
+	cd $(srcdir) && dep ensure
 	# web framework
-	go get -u github.com/revel/cmd/revel
+	cd $(srcdir)/vendor/github.com/revel/cmd/revel && \
+		go build -o $$GOPATH/bin/revel
 	# asset compilation
-	go get -u github.com/shaoshing/train/cmd
-	go build -o $$GOPATH/bin/train github.com/shaoshing/train/cmd
+	cd $(srcdir)/vendor/github.com/shaoshing/train/cmd && \
+		go build -o $$GOPATH/bin/train
 	# embedding binary data e.g. assets
-	go get -u github.com/jteeuwen/go-bindata/...
+	cd $(srcdir)/vendor/github.com/kevinburke/go-bindata/go-bindata && \
+		go build -o $$GOPATH/bin/go-bindata
+	rm -r $(srcdir)/vendor/github.com/kevinburke/go-bindata/testdata
 endef
 
 install: clean install-deps
@@ -46,8 +51,6 @@ ifndef godep
 endif
 	# Install CSS and Javascript dependencies
 	cd $(srcdir) && npm install --prefix .
-	# ganggo dependencies
-	cd $(srcdir) && dep ensure
 
 clean:
 	rm -r tmp vendor node_modules \

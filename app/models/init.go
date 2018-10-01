@@ -22,11 +22,11 @@ import (
   "errors"
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/helpers"
-  "gopkg.in/ganggo/gorm.v2"
-  _ "gopkg.in/ganggo/gorm.v2/dialects/postgres"
-  _ "gopkg.in/ganggo/gorm.v2/dialects/mssql"
-  _ "gopkg.in/ganggo/gorm.v2/dialects/mysql"
-  _ "gopkg.in/ganggo/gorm.v2/dialects/sqlite"
+  "git.feneas.org/ganggo/gorm"
+  _ "git.feneas.org/ganggo/gorm/dialects/postgres"
+  _ "git.feneas.org/ganggo/gorm/dialects/mssql"
+  _ "git.feneas.org/ganggo/gorm/dialects/mysql"
+  _ "git.feneas.org/ganggo/gorm/dialects/sqlite"
   "fmt"
   "regexp"
   "runtime"
@@ -169,7 +169,7 @@ func searchAndCreateTags(model Model, db *gorm.DB) error {
     })
   }
   // batch insert doesn't work for gorm, yet
-  // see https://gopkg.in/ganggo/gorm.v2/issues/255
+  // see https://git.feneas.org/ganggo/gorm/issues/255
   for _, tag := range tags {
     var cnt int
     db.Where("name = ?", tag.Name).Find(&tag).Count(&cnt)
@@ -217,7 +217,7 @@ func checkForMentionsInText(model Model) error {
 }
 
 // This is required since gorm.ModifyColumn only supports postgres engine
-// see https://gopkg.in/ganggo/gorm.v2/blob/0a51f6cdc55d1650d9ed3b4c13026cfa9133b01e/scope.go#L1142
+// see https://git.feneas.org/ganggo/gorm/blob/0a51f6cdc55d1650d9ed3b4c13026cfa9133b01e/scope.go#L1142
 func advancedColumnModify(s *gorm.DB, column, dataType string) {
   var format string
   var scope = s.NewScope(s.Value)
@@ -247,13 +247,13 @@ func advancedColumnModify(s *gorm.DB, column, dataType string) {
 func advancedColumnSearch(column, expr string) *gorm.ExprResult {
   switch DB.Driver {
   case "postgres":
-    return gorm.Expr("? ~ ?", column, expr)
+    return gorm.Expr(fmt.Sprintf("%s ~ ?", column), expr)
   case "mysql":
     fallthrough
   case "sqlite":
-    return gorm.Expr("? regexp ?", column, expr)
+    return gorm.Expr(fmt.Sprintf("%s regexp ?", column), expr)
   default:
-    return gorm.Expr("? like ?", column, expr)
+    return gorm.Expr(fmt.Sprintf("%s like ?", column), expr)
   }
 }
 

@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 {{- $stream := msg . "stream.title"}}
 {{- $stream := htmlToString $stream}}
-{{- $public := msg . "public.title"}}
-{{- $public := htmlToString $public}}
 <html lang="en">
   <head>
     <title>{{.title}}</title>
@@ -50,6 +48,13 @@
         <div class="collapse navbar-collapse" id="navbarsExampleDefault">
           <ul class="navbar-nav mr-auto">
             {{if .currentUser}}
+            {{if eq .title $stream}}
+            <li class="nav-item">
+              <a id="stream-editor-link" class="nav-link" href="#">
+                <i class="fa fa-edit"></i> {{msg . "navigation.write_a_post"}}
+              </a>
+            </li>
+            {{end}}
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 {{msg . "navigation.user.customize"}}
@@ -80,7 +85,7 @@
             </li>
           </ul>
           <form class="form-inline my-2 my-lg-0" action="/search" method="post">
-            <input type="text" name="search" class="form-control mr-sm-2" placeholder="e.g. lukas@sechat.org">
+            <input type="text" name="search" class="form-control mr-sm-2" placeholder="{{msg . "navigation.searchbar"}}">
             <input type="submit" style="display:none"/>
           </form>
           {{end}}
@@ -89,25 +94,4 @@
     </nav>
     <main role="main">
     {{template "flash.html" .}}
-    {{if .currentUser}}
-    <div class="container pb-2">
-      <i class="user-stream-arrow left fa fa-arrow-left" style="display:none"></i>
-      <ul class="nav nav-tabs">
-        <li class="nav-item">
-          <a class="nav-link{{if and (eq .title $stream) (eq .view "private")}} active{{end}}" href="{{url "Stream.Index"}}?view=private">{{msg . "navigation.stream.private"}}</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link{{if and (eq .title $stream) (eq .view "public")}} active{{end}}" href="{{url "Stream.Index"}}?view=public">{{msg . "navigation.stream.public"}}</a>
-        </li>
-        {{$root := .}}
-        {{$userStreams := FetchUserStreams .currentUser}}
-        {{$userStreamsLen := len $userStreams}}
-        {{range $i, $userStream := $userStreams}}
-        <li class="nav-item">
-          <a class="nav-link{{if and (eq $root.title $stream) (eq $root.view $userStream.Name)}} active{{end}}" href="/stream?view={{$userStream.Name}}">{{$userStream.Name}}</a>
-        </li>
-        {{end}}
-      </ul>
-      <i class="user-stream-arrow right fa fa-arrow-right" style="display:none"></i>
-    </div>
-    {{end}}
+

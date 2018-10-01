@@ -20,8 +20,8 @@ package models
 import (
   "time"
   "github.com/revel/revel"
-  federation "git.feneas.org/ganggo/federation"
-  "gopkg.in/ganggo/gorm.v2"
+  "git.feneas.org/ganggo/gorm"
+  "git.feneas.org/ganggo/federation"
 )
 
 type Comment struct {
@@ -35,8 +35,8 @@ type Comment struct {
   // size should be max 191 with mysql innodb
   // cause asumming we use utf8mb 4*191 = 764 < 767
   Guid string `gorm:"size:191"`
-  LikesCount int `gorm:"size:4"`
   ShareableType string `gorm:"size:60"`
+  Protocol federation.Protocol `gorm:"size:4"`
 
   Signature CommentSignature
   Person Person
@@ -76,18 +76,25 @@ func (Comment) HasPublic() bool { return true }
 func (Comment) IsPublic() bool { return false }
 // Model Interface Type
 
-func (comment *Comment) AfterFind() error {
+func (comment *Comment) AfterFind(db *gorm.DB) error {
   if structLoaded(comment.Person.CreatedAt) {
     return nil
   }
 
-  db, err := OpenDatabase()
-  if err != nil {
-    return err
-  }
-  defer db.Close()
-
   return db.Model(comment).Related(&comment.Person).Error
+}
+
+// NOTE required for relaying comments to others
+func (comment *Comment) AfterCreate(db *gorm.DB) error {
+  err := db.Model(comment).Related(&comment.Signature).Error
+  if err != nil {
+    revel.AppLog.Debug("Comment AfterCreate", err.Error(), err)
+  }
+  return nil
+}
+
+func (signature *CommentSignature) AfterFind(db *gorm.DB) error {
+  return db.Model(signature).Related(&signature.SignatureOrder).Error
 }
 
 func (c *Comment) Count() (count int) {
@@ -105,7 +112,12 @@ func (c *Comment) Count() (count int) {
 }
 
 func (c *Comment) AfterSave(db *gorm.DB) error {
-  err := searchAndCreateTags(*c, db)
+  err := db.Model(c).Related(&c.Person).Error
+  if err != nil {
+    return err
+  }
+
+  err = searchAndCreateTags(*c, db)
   if err != nil {
     return err
   }
@@ -115,20 +127,6 @@ func (c *Comment) AfterSave(db *gorm.DB) error {
   } else {
     return checkForMentionsInText(*c)
   }
-}
-
-func (c *Comment) Create(entity *federation.EntityComment) (err error) {
-  db, err := OpenDatabase()
-  if err != nil {
-    return
-  }
-  defer db.Close()
-
-  err = c.Cast(entity)
-  if err != nil {
-    return
-  }
-  return db.Create(c).Error
 }
 
 func (c *Comment) Delete() (err error) {
@@ -178,36 +176,14 @@ func (c *Comment) AfterDelete(db *gorm.DB) (err error) {
   return db.Where("like_id = ?", c.ID).Delete(LikeSignature{}).Error
 }
 
-func (c *Comment) Cast(entity *federation.EntityComment) (err error) {
+func (c *Comment) Create() error {
   db, err := OpenDatabase()
   if err != nil {
-    return
+    return err
   }
   defer db.Close()
 
-  var post Post
-  err = db.Where("guid = ?", entity.ParentGuid).First(&post).Error
-  if err != nil {
-    return
-  }
-  var person Person
-  err = db.Where("author = ?", entity.Author).First(&person).Error
-  if err != nil {
-    return
-  }
-
-  createdAt, err := entity.CreatedAt.Time()
-  if err != nil {
-    createdAt = time.Now()
-  }
-  (*c).CreatedAt = createdAt
-  (*c).Text = entity.Text
-  (*c).ShareableID = post.ID
-  (*c).PersonID = person.ID
-  (*c).Guid = entity.Guid
-  (*c).ShareableType = ShareablePost
-  (*c).Signature.AuthorSignature = entity.AuthorSignature
-  return nil
+  return db.Create(c).Error
 }
 
 func (c *Comment) FindByID(id uint) error { BACKEND_ONLY()
@@ -230,36 +206,36 @@ func (c *Comment) FindByGuid(guid string) error { BACKEND_ONLY()
   return db.Where("guid = ?", guid).First(c).Error
 }
 
-func (c *Comment) ParentPostUser() (Post, User, bool) {
+func (c *Comment) ParentPostUser() (*Post, *User, bool) {
   post, ok := c.ParentPost(); if !ok {
-    return post, User{}, ok
+    return nil, nil, false
   }
   if post.Person.UserID <= 0 {
-    return post, User{}, false
+    return post, nil, false
   }
 
   db, err := OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
-    return post, User{}, false
+    return post, nil, false
   }
   defer db.Close()
 
-  var user User
+  user := &User{}
   err = user.FindByID(post.Person.UserID)
   return post, user, err == nil
 }
 
-func (c *Comment) ParentPost() (Post, bool) {
+func (c *Comment) ParentPost() (*Post, bool) {
   db, err := OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
-    return Post{}, false
+    return nil, false
   }
   defer db.Close()
 
-  var post Post
-  err = db.First(&post, c.ShareableID).Error
+  post := &Post{}
+  err = db.First(post, c.ShareableID).Error
   return post, err == nil
 }
 

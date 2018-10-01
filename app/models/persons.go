@@ -19,7 +19,7 @@ package models
 
 import (
   "time"
-  "gopkg.in/ganggo/gorm.v2"
+  "git.feneas.org/ganggo/gorm"
 )
 
 type Person struct {
@@ -34,11 +34,13 @@ type Person struct {
   SerializedPublicKey string `gorm:"type:text"`
   UserID uint `gorm:"size:4"`
   ClosedAccount int
-  FetchStatus int `gorm:"size:4"`
   PodID uint `gorm:"size:4"`
+
+  Inbox string `gorm:"size:191"`
 
   Profile Profile `json:",omitempty"`
   Contacts Contacts `json:",omitempty"`
+  Pod Pod `json:",omitempty"`
 }
 
 // load relations on default
@@ -46,6 +48,12 @@ func (person *Person) AfterFind(db *gorm.DB) error {
   if structLoaded(person.Profile.CreatedAt) {
     return nil
   }
+
+  err := db.Model(person).Related(&person.Pod).Error
+  if err != nil && person.UserID <= 0 {
+    return err
+  }
+
   return db.Model(person).Related(&person.Profile).Error
 }
 
@@ -77,4 +85,24 @@ func (person *Person) FindByAuthor(author string) (err error) {
   defer db.Close()
 
   return db.Where("author = ?", author).First(person).Error
+}
+
+func (person *Person) Create() error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Create(person).Error
+}
+
+func (person *Person) FindFirstByPodID(id uint) error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("pod_id = ?", id).First(person).Error
 }

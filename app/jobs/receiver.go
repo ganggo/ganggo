@@ -21,67 +21,61 @@ import (
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/models"
   federation "git.feneas.org/ganggo/federation"
+  "git.feneas.org/ganggo/federation/helpers"
 )
 
 type Receiver struct {
   Message federation.Message
-  Entity federation.Entity
   Guid string
 }
 
 func (receiver Receiver) Run() {
-  // search for sender and check his signature
-  person, ok := receiver.CheckAuthor(receiver.Message.Sig.KeyId)
-  if !ok || !valid(person, receiver.Message, "") {
+  base := receiver.Message.Entity()
+  if base == nil {
+    revel.AppLog.Warn("Entity is nil!", "message", receiver.Message)
     return
   }
 
-  switch entity := receiver.Entity.Data.(type) {
-  case federation.EntityRetraction:
-    if _, ok := receiver.CheckAuthor(entity.Author); ok {
-      revel.AppLog.Debug("Starting retraction receiver")
-      receiver.Retraction(entity)
-    }
-  case federation.EntityProfile:
-    if _, ok := receiver.CheckAuthor(entity.Author); ok {
-      revel.AppLog.Debug("Starting profile receiver")
-      receiver.Profile(entity)
-    }
-  case federation.EntityReshare:
-    if _, ok := receiver.CheckAuthor(entity.Author); ok {
-      revel.AppLog.Debug("Starting reshare receiver")
-      receiver.Reshare(entity)
-    }
-  case federation.EntityStatusMessage:
-    if _, ok := receiver.CheckAuthor(entity.Author); ok {
-      revel.AppLog.Debug("Starting status message receiver")
-      receiver.StatusMessage(entity)
-    }
-  case federation.EntityComment:
-    if person, ok := receiver.CheckAuthor(entity.Author); ok {
-      revel.AppLog.Debug("Starting comment receiver")
-      // validate author_signature
-      if valid(person, entity, receiver.Entity.SignatureOrder) {
-        receiver.Comment(entity)
-      } else {
-        revel.AppLog.Error("invalid sig", "entity", entity)
-      }
-    }
-  case federation.EntityLike:
-    if person, ok := receiver.CheckAuthor(entity.Author); ok {
-      revel.AppLog.Debug("Starting like receiver")
-      // validate author_signature
-      if valid(person, entity, receiver.Entity.SignatureOrder) {
-        receiver.Like(entity)
-      }
-    }
-  case federation.EntityContact:
-    if _, ok := receiver.CheckAuthor(entity.Author); ok {
-      revel.AppLog.Debug("Starting contact receiver")
-      receiver.Contact(entity)
-    }
+  // Check and search for author in the database
+  // if it doesn't exists lookup the network
+  person, ok := receiver.CheckAuthor(base.Author()); if !ok { return }
+
+  pub, err := helpers.ParseRSAPublicKey(
+    []byte(person.SerializedPublicKey))
+  if err != nil {
+    revel.AppLog.Error("Dispatcher", err.Error(), err)
+    return
+  }
+  // Check signature and abort if it fails
+  if !receiver.Message.ValidSignature(pub) {
+    revel.AppLog.Debug("Invalid signature", "entity", base)
+    return
+  }
+
+  switch entity := base.(type) {
+  case federation.MessageContact:
+    revel.AppLog.Debug("Starting contact receiver")
+    receiver.Contact(entity)
+  case federation.MessageRetract:
+    revel.AppLog.Debug("Starting retraction receiver")
+    receiver.Retraction(entity)
+  case federation.MessagePost:
+    revel.AppLog.Debug("Starting status message receiver")
+    receiver.StatusMessage(entity)
+  case federation.MessageReshare:
+    revel.AppLog.Debug("Starting reshare receiver")
+    receiver.Reshare(entity)
+  case federation.MessageComment:
+    revel.AppLog.Debug("Starting comment receiver")
+    receiver.Comment(entity)
+  case federation.MessageLike:
+    revel.AppLog.Debug("Starting like receiver")
+    receiver.Like(entity)
+  case federation.MessageProfile:
+    revel.AppLog.Debug("Starting profile receiver")
+    receiver.Profile(entity)
   default:
-    revel.AppLog.Error("No matching entity found", "entity", receiver.Entity)
+    revel.AppLog.Error("No matching entity found", "msg", receiver.Message)
   }
 }
 
@@ -93,22 +87,4 @@ func (receiver *Receiver) CheckAuthor(author string) (models.Person, bool) {
     revel.AppLog.Error("Cannot fetch author", "error", fetch.Err)
   }
   return fetch.Person, fetch.Err == nil
-}
-
-func valid(person models.Person, entity federation.SignatureInterface, order string) bool {
-  pubKey, err := federation.ParseRSAPublicKey(
-    []byte(person.SerializedPublicKey))
-  if err != nil {
-    revel.AppLog.Error(err.Error())
-    return false
-  }
-
-  // verify sender signature
-  var signature federation.Signature
-  if !signature.New(entity).Verify(order, pubKey) {
-    revel.AppLog.Warn("Signature verification failed", "err", signature.Err)
-    return false
-  }
-  revel.AppLog.Debug("Valid signature", "guid", person.Guid)
-  return true
 }

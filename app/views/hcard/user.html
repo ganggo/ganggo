@@ -7,7 +7,7 @@
   </head>
   <body>
     <div id="content">
-      <h1>{{.profile.FullName}}</h1>
+      <h1>{{StripHTML .profile.FullName}}</h1>
       <div id="content_inner" class="entity_profile vcard author">
         <h2>User profile</h2>
         <dl class="entity_uid">
@@ -19,13 +19,13 @@
         <dl class="entity_nickname">
           <dt>Nickname</dt>
           <dd>
-            <span class="nickname">{{.profile.Nickname}}</span>
+            <span class="nickname">{{StripHTML .profile.Nickname}}</span>
           </dd>
         </dl>
         <dl class="entity_full_name">
           <dt>Full_name</dt>
           <dd>
-            <span class="fn">{{.profile.FullName}}</span>
+            <span class="fn">{{StripHTML .profile.FullName}}</span>
           </dd>
         </dl>
         <dl class="entity_searchable">
@@ -43,13 +43,13 @@
         <dl class="entity_first_name">
           <dt>First_name</dt>
           <dd>
-            <span class="given_name">{{.profile.FirstName}}</span>
+            <span class="given_name">{{StripHTML .profile.FirstName}}</span>
           </dd>
         </dl>
         <dl class="entity_family_name">
           <dt>Family_name</dt>
           <dd>
-            <span class="family_name">{{.profile.LastName}}</span>
+            <span class="family_name">{{StripHTML .profile.LastName}}</span>
           </dd>
         </dl>
         <dl class="entity_url">
@@ -66,18 +66,16 @@
             <img class="photo avatar" width="300" height="300" src="{{$imageUrl}}" />
           </dd>
         </dl>
-        {{- $imageUrlMedium := (print $url .profile.ImageUrlMedium)}}
         <dl class="entity_photo_medium">
           <dt>Photo_medium</dt>
           <dd>
-            <img class="photo avatar" width="100" height="100" src="{{if ne $imageUrlMedium $url}}{{$imageUrlMedium}}{{else}}{{$imageUrl}}{{end}}" />
+            <img class="photo avatar" width="100" height="100" src="{{$imageUrl}}" />
           </dd>
         </dl>
-        {{- $imageUrlSmall := (print $url .profile.ImageUrlSmall)}}
         <dl class="entity_photo_small">
           <dt>Photo_small</dt>
           <dd>
-            <img class="photo avatar" width="50" height="50" src="{{if ne $imageUrlSmall $url}}{{$imageUrlSmall}}{{else}}{{$imageUrl}}{{end}}" />
+            <img class="photo avatar" width="50" height="50" src="{{$imageUrl}}" />
           </dd>
         </dl>
       </div>

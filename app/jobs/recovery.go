@@ -17,55 +17,58 @@ package jobs
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-import (
-  "github.com/revel/revel"
-  "git.feneas.org/ganggo/ganggo/app/models"
-  federation "git.feneas.org/ganggo/federation"
-  "strings"
-  "fmt"
-)
+// XXX enable after AP implementation
 
-type Recovery struct {
-  Shareable string
-  Guid string
-}
-
-func (recovery Recovery) Run() {
-  revel.AppLog.Debug("Running recovery",
-    "shareable", recovery.Shareable, "guid", recovery.Guid)
-
-  var pods models.Pods
-  err := pods.FindRandom(10)
-  if err != nil {
-    revel.AppLog.Error(err.Error())
-    return
-  }
-  for _, pod := range pods {
-    var message federation.Message
-    err = federation.FetchXml(
-      "GET", fmt.Sprintf("%s/fetch/%s/%s", pod.Host,
-        strings.ToLower(recovery.Shareable), recovery.Guid,
-      ), nil, &message)
-    if err != nil {
-      revel.AppLog.Error("Fetching from host failed",
-        "host", pod.Host, "err", err)
-      continue
-    }
-    entity, err := message.Parse()
-    if err != nil {
-      revel.AppLog.Error("Parsing message from host failed",
-        "host", pod.Host, "err", err)
-      continue
-    }
-    receiver := Receiver{Message: message, Entity: entity}
-    receiver.Run()
-    break
-  }
-}
+//import (
+//  "github.com/revel/revel"
+//  "git.feneas.org/ganggo/ganggo/app/models"
+//  federation "git.feneas.org/ganggo/federation"
+//  diaspora "git.feneas.org/ganggo/federation/diaspora"
+//  "strings"
+//  "fmt"
+//)
+//
+//type Recovery struct {
+//  Shareable string
+//  Guid string
+//}
+//
+//func (recovery Recovery) Run() {
+//  revel.AppLog.Debug("Running recovery",
+//    "shareable", recovery.Shareable, "guid", recovery.Guid)
+//
+//  var pods models.Pods
+//  err := pods.FindRandom(10)
+//  if err != nil {
+//    revel.AppLog.Error(err.Error())
+//    return
+//  }
+//  for _, pod := range pods {
+//    var message diaspora.Message
+//    err = federation.FetchXml(
+//      "GET", fmt.Sprintf("%s/fetch/%s/%s", pod.Host,
+//        strings.ToLower(recovery.Shareable), recovery.Guid,
+//      ), nil, &message)
+//    if err != nil {
+//      revel.AppLog.Error("Fetching from host failed",
+//        "host", pod.Host, "err", err)
+//      continue
+//    }
+//    err := message.Parse()
+//    if err != nil {
+//      revel.AppLog.Error("Parsing message from host failed",
+//        "host", pod.Host, "err", err)
+//      continue
+//    }
+//    receiver := Receiver{Message: message}
+//    receiver.Run()
+//    break
+//  }
+//}
 
 // XXX This could be the way of restoring all entities rather than one
 // unfortunately diaspora only supports fetching post entities
-// (see https://github.com/diaspora/diaspora_federation/issues/31#issue-142060252)
+// (see https://github.com/diaspora/diaspora_diaspora/issues/31#issue-142060252)
 //
 // Interactions will try to fetch all available
 // child entities for a parent one
@@ -76,7 +79,7 @@ func (recovery Recovery) Run() {
 //  switch recovery.Shareable {
 //  case models.ShareablePost:
 //    var inta Interactions
-//    err := federation.FetchJson("GET", fmt.Sprintf(
+//    err := diaspora.FetchJson("GET", fmt.Sprintf(
 //        "%s/posts/%s.json", host, recovery.Guid,
 //      ), nil, &inta)
 //    if err != nil {

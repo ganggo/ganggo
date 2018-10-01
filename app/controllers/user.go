@@ -18,6 +18,7 @@ package controllers
 //
 
 import (
+  "regexp"
   "github.com/revel/revel"
   "github.com/dchest/captcha"
   "git.feneas.org/ganggo/ganggo/app/models"
@@ -61,6 +62,13 @@ func (u User) Create() revel.Result {
   if _, exists := helpers.UserBlacklist[username]; exists {
     u.Flash.Error(u.Message("flash.errors.username"))
     u.Response.Status = http.StatusResetContent
+    return u.Redirect(User.Index)
+  }
+
+  // only allow alphabet, numeric and dash characters
+  validUsername := regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
+  if !validUsername.MatchString(username) {
+    u.Flash.Error(u.Message("flash.errors.username"))
     return u.Redirect(User.Index)
   }
 

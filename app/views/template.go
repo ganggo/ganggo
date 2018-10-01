@@ -24,15 +24,28 @@ import (
   "github.com/shaoshing/train"
   "github.com/revel/revel"
   "github.com/revel/config"
+  "git.feneas.org/ganggo/ganggo/app"
   "git.feneas.org/ganggo/ganggo/app/models"
   "git.feneas.org/ganggo/ganggo/app/helpers"
+  api "git.feneas.org/ganggo/api/app"
   "html/template"
   "github.com/dchest/captcha"
+  "github.com/microcosm-cc/bluemonday"
 )
 
 type I18nMessages map[string]map[string]string
 
 var TemplateFuncs = map[string]interface{}{
+  "Version": func() string { return app.AppVersion },
+  "SafeHTML": func(text string) template.HTML {
+    p := bluemonday.UGCPolicy()
+    return template.HTML(p.Sanitize(text))
+  },
+  "StripHTML": func(text string) template.HTML {
+    p := bluemonday.StrictPolicy()
+    return template.HTML(p.Sanitize(text))
+  },
+  "ApiVersion": func() string { return api.API_VERSION },
   // database types
   "IsReshare": func(a string) bool {
     return (a == models.Reshare)
@@ -96,7 +109,7 @@ var TemplateFuncs = map[string]interface{}{
   },
   // string parse helper
   "HostFromHandle": func(handle string) (host string) {
-    _, host, err := helpers.ParseAuthor(handle)
+    host, err := helpers.ParseHost(handle)
     if err != nil {
       revel.ERROR.Println(err)
       return
@@ -109,6 +122,8 @@ var TemplateFuncs = map[string]interface{}{
       revel.AppLog.Error(err.Error())
       return
     }
+    defer db.Close()
+
     err = db.Where("user_id = ?", user.ID).Find(&streams).Error
     if err != nil {
       revel.AppLog.Error(err.Error())
@@ -229,6 +244,15 @@ var TemplateFuncs = map[string]interface{}{
   "nilValue": func(a interface {}) bool {
     return a == nil
   },
+}
+
+func init() {
+  revel.OnAppStart(func() {
+    // append custom template functions to revel
+    for key, val := range TemplateFuncs {
+      revel.TemplateFuncs[key] = val
+    }
+  })
 }
 
 func loadAndFetchManifestEntry(path string) (src string) {

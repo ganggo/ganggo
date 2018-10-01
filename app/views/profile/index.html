@@ -6,6 +6,7 @@
 {{template "header.html" .}}
 
 <div class="container">
+  {{template "nav_tabs.html" .}}
   <div class="row">
     <div class="col-12">
       <div class="card">
@@ -13,11 +14,11 @@
           <div class="row">
             <div class="col-2">
               <div class="card">
-                <img class="card-img-top" src="{{$profile.ImageUrl}}" title="{{$profile.Author}}">
+                <img class="card-img-top" src="{{$profile.ImageUrl}}" title="{{StripHTML $profile.Author}}">
               </div>
             </div>
             <div class="col-10">
-              <h2>{{$profile.Author}}</h2>
+              <h2>{{StripHTML $profile.Author}}</h2>
               {{if .currentUser}}
               {{if ne .currentUser.Person.ID $profile.PersonID}}
               <h3>{{msg . "profile.groups"}}</h3>
@@ -29,9 +30,9 @@
               </form>
               {{end}}
               {{end}}
-              <h3>{{$profile.FullName}}</h3>
+              <h3>{{StripHTML $profile.FullName}}</h3>
               {{if ne $profile.Bio ""}}
-              <p data-markdown>{{$profile.Bio}}</p>
+              <p data-markdown>{{SafeHTML $profile.Bio}}</p>
               <hr/>
               {{end}}
               {{$formatedDate := $profile.Birthday.Format "2006-01-02"}}
@@ -39,10 +40,10 @@
               <h4>{{msg . "profile.birthday"}}: </h4> {{$formatedDate}}
               {{end}}
               {{if ne $profile.Gender ""}}
-              <h4>{{msg . "profile.gender"}}</h4> {{$profile.Gender}}
+              <h4>{{msg . "profile.gender"}}</h4> {{StripHTML $profile.Gender}}
               {{end}}
               {{if ne $profile.Location ""}}
-              <h4>{{msg . "profile.location"}}</h4> {{$profile.Location}}
+              <h4>{{msg . "profile.location"}}</h4> {{StripHTML $profile.Location}}
               {{end}}
             </div>
           </div>

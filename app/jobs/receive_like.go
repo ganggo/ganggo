@@ -20,61 +20,66 @@ package jobs
 import (
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/models"
-  federation "git.feneas.org/ganggo/federation"
+  "git.feneas.org/ganggo/federation"
   run "github.com/revel/modules/jobs/app/jobs"
 )
 
-func (receiver *Receiver) Like(entity federation.EntityLike) {
-  var like models.Like
-  db, err := models.OpenDatabase()
+func (receiver *Receiver) Like(entity federation.MessageLike) {
+  var (
+    post models.Post
+    person models.Person
+  )
+
+  err := post.FindByGuid(entity.Parent())
   if err != nil {
-    revel.AppLog.Error(err.Error())
+    revel.AppLog.Error("Receiver Like", err.Error(), err)
     return
   }
-  defer db.Close()
 
-  revel.AppLog.Debug("Found a like entity", "entity", entity)
-
-  err = like.Cast(&entity)
+  err = person.FindByAuthor(entity.Author())
   if err != nil {
-    // try to recover entity
-    recovery := Recovery{models.ShareablePost, entity.ParentGuid}
-    recovery.Run()
-
-    err = like.Cast(&entity)
-    if err != nil {
-      revel.AppLog.Error(err.Error())
-      return
-    }
+    revel.AppLog.Error("Receiver Like", err.Error(), err)
+    return
   }
 
+  like := models.Like{
+    Positive: entity.Positive(),
+    ShareableID: post.ID,
+    PersonID: person.ID,
+    Guid: entity.Guid(),
+    ShareableType: models.ShareablePost,
+    Protocol: entity.Type().Proto,
+  }
   _, _, local := like.ParentPostUser()
   // if parent post is local we have
   // to relay the entity to all recipiens
   if local {
     // store order for later use
-    order := models.SignatureOrder{
-      Order: receiver.Entity.SignatureOrder,
-    }
+    order := models.SignatureOrder{Order: entity.SignatureOrder()}
     err = order.CreateOrFind()
     if err != nil {
-      revel.AppLog.Error(err.Error())
+      revel.AppLog.Error("Receiver Like", err.Error(), err)
       return
     }
     like.Signature.SignatureOrderID = order.ID
   }
+  like.Signature.AuthorSignature = entity.Signature()
 
-  err = db.Create(&like).Error
+  err = like.Create()
   if err != nil {
-    revel.AppLog.Error(err.Error())
-    return
+    // try to recover entity
+    // XXX recovery
+    //recovery := Recovery{models.ShareablePost, entity.ParentGuid}
+    //recovery.Run()
+
+    //err = like.Cast(&entity)
+    //if err != nil {
+      revel.AppLog.Error("Receiver Like", err.Error(), err)
+      return
+    //}
   }
 
   if local {
-    run.Now(Dispatcher{
-      Model: like,
-      Message: entity,
-      Relay: true,
-    })
+    run.Now(Dispatcher{Message: entity})
   }
 }

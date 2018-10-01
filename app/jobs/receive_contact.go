@@ -18,46 +18,110 @@ package jobs
 //
 
 import (
+  "fmt"
+  "net/http"
   "github.com/revel/revel"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
   "git.feneas.org/ganggo/ganggo/app/models"
   federation "git.feneas.org/ganggo/federation"
+  fhelpers "git.feneas.org/ganggo/federation/helpers"
+  api "git.feneas.org/ganggo/api/app"
+  "bytes"
 )
 
-func (receiver *Receiver) Contact(entity federation.EntityContact) {
-  db, err := models.OpenDatabase()
-  if err != nil {
-    revel.AppLog.Warn(err.Error())
-    return
-  }
-  defer db.Close()
+func (receiver *Receiver) Contact(entity federation.MessageContact) {
+  var (
+    user models.User
+    person models.Person
+  )
 
-  revel.AppLog.Debug("Found a contact entity", "entity", entity)
-
-  var contact models.Contact
-  err = contact.Cast(&entity)
+  username, err := helpers.ParseUsername(entity.Recipient())
   if err != nil {
-    revel.AppLog.Warn(err.Error())
+    revel.AppLog.Error("Receiver Contact", err.Error(), err)
     return
   }
 
-  var oldContact models.Contact
-  err = db.Where("user_id = ? AND person_id = ?",
-    contact.UserID, contact.PersonID,
-  ).First(&oldContact).Error
-  if err == nil {
-    if err = db.Model(&oldContact).Updates(
-      map[string]interface{}{
-        "sharing": contact.Sharing,
-        "receiving": contact.Receiving,
-      },
-    ).Error; err != nil {
-      revel.AppLog.Warn(err.Error())
+  err = user.FindByUsername(username)
+  if err != nil {
+    revel.AppLog.Error("Receiver Contact", err.Error(), err)
+    return
+  }
+
+  err = person.FindByAuthor(entity.Author())
+  if err != nil {
+    revel.AppLog.Error("Receiver Contact", err.Error(), err)
+    return
+  }
+
+  contact := models.Contact{
+    UserID: user.ID,
+    PersonID: person.ID,
+    Sharing: entity.Sharing(),
+  }
+
+  err = contact.Create()
+  if err != nil {
+    err = contact.Update()
+    if err != nil {
+      revel.AppLog.Error("Receiver Contact", err.Error(), err)
       return
     }
-  } else {
-    err = db.Create(&contact).Error
-    if err != nil {
-      revel.AppLog.Warn(err.Error())
+  }
+
+  // NOTE ActivityPub needs an accept response
+  // XXX how can we integrate this in the federation lib?
+  if entity.Type().Proto == federation.ActivityPubProtocol {
+    if follow, ok := entity.(*federation.ActivityPubFollow); ok {
+      var user models.User
+      var person models.Person
+      err = user.FindByID(contact.UserID)
+      if err != nil {
+        revel.AppLog.Error(err.Error())
+        return
+      }
+
+      err = person.FindByID(contact.PersonID)
+      if err != nil {
+        revel.AppLog.Error(err.Error())
+        return
+      }
+
+      actor := fmt.Sprintf("%s%s/api/%s/ap/user/%s/actor",
+        api.PROTO, api.ADDRESS, api.API_VERSION, user.Username)
+      accept := &federation.ActivityPubAccept{
+        ActivityPubContext: federation.ActivityPubContext{
+          ActivityPubBase: federation.ActivityPubBase{
+            Id: actor, Type: federation.ActivityTypeAccept,
+          },
+        },
+        Actor: actor,
+        Object: *follow,
+      }
+      entityXml, err := accept.Marshal(nil, nil)
+      if err != nil {
+        revel.AppLog.Error(err.Error())
+        return
+      }
+
+      header := http.Header{
+        "Content-Type": []string{federation.CONTENT_TYPE_JSON},
+      }
+
+      privKey, err := fhelpers.ParseRSAPrivateKey(
+        []byte(user.SerializedPrivateKey))
+      if err != nil {
+        revel.AppLog.Error(err.Error())
+        return
+      }
+
+      client := (&federation.HttpClient{}).New(actor, privKey)
+      err = client.Push(person.Inbox, header, bytes.NewBuffer(entityXml))
+      if err != nil {
+        revel.AppLog.Error(err.Error())
+        return
+      }
+    } else {
+      revel.AppLog.Error("Cannot cast to EntityFollow!")
       return
     }
   }

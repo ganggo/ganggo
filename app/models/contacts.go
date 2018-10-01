@@ -19,9 +19,7 @@ package models
 
 import (
   "time"
-  "git.feneas.org/ganggo/ganggo/app/helpers"
-  federation "git.feneas.org/ganggo/federation"
-  "gopkg.in/ganggo/gorm.v2"
+  "git.feneas.org/ganggo/gorm"
 )
 
 type Contact struct {
@@ -32,7 +30,6 @@ type Contact struct {
   UserID uint `gorm:"size:4"`
   PersonID uint `gorm:"size:4"`
   Sharing bool
-  Receiving bool
 }
 
 type Contacts []Contact
@@ -62,7 +59,7 @@ func (Contact) IsPublic() bool { return false }
 // Model Interface Type
 
 func (c *Contact) AfterSave(db *gorm.DB) error {
-  if c.Sharing && c.Receiving {
+  if c.Sharing {
     var user User
     err := user.FindByID(c.UserID)
     if err != nil {
@@ -73,34 +70,41 @@ func (c *Contact) AfterSave(db *gorm.DB) error {
   return nil
 }
 
-func (c *Contact) Cast(entity *federation.EntityContact) (err error) {
-  var recipient User
-  var sender Person
-
+func (c *Contact) Create() error {
   db, err := OpenDatabase()
   if err != nil {
     return err
   }
   defer db.Close()
 
-  username, _, err := helpers.ParseAuthor(entity.Recipient)
+  return db.Create(c).Error
+}
+
+func (c *Contact) Update() error {
+  db, err := OpenDatabase()
   if err != nil {
     return err
   }
+  defer db.Close()
 
-  err = db.Where("username = ?", username).First(&recipient).Error
-  if err != nil {
-    return
+  var dbContact Contact
+  if c.ID <= 0 {
+    err = db.Where("user_id = ? AND person_id = ?",
+      c.UserID, c.PersonID).First(&dbContact).Error
+    if err != nil {
+      return err
+    }
   }
 
-  err = db.Where("author = ?", entity.Author).First(&sender).Error
-  if err != nil {
-    return
-  }
+  return db.Model(&dbContact).Update("sharing", c.Sharing).Error
+}
 
-  (*c).UserID = recipient.ID
-  (*c).PersonID = sender.ID
-  (*c).Receiving = entity.Following
-  (*c).Sharing = entity.Sharing
-  return
+func (c *Contacts) FindByUserID(id uint) error {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  return db.Where("user_id = ?", id).Find(c).Error
 }

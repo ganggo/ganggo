@@ -19,11 +19,11 @@ package controllers
 
 import (
   "net/http"
-  "encoding/xml"
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/models"
   "git.feneas.org/ganggo/ganggo/app/helpers"
-  federation "git.feneas.org/ganggo/federation"
+  fhelpers "git.feneas.org/ganggo/federation/helpers"
+  "git.feneas.org/ganggo/federation"
   "strings"
 )
 
@@ -58,37 +58,32 @@ func (f Fetch) Index(shareable, guid string) revel.Result {
     }
 
     if user, ok := post.IsLocal(); ok {
-      privKey, err := federation.ParseRSAPrivateKey(
+      privKey, err := fhelpers.ParseRSAPrivateKey(
         []byte(user.SerializedPrivateKey))
       if err != nil {
         f.Log.Error("Fetch parse key error", "err", err)
         return f.NotFound("record not found")
       }
 
-      entity := federation.EntityStatusMessage{
-        Text: post.Text,
-        Author: post.Person.Author,
-        Guid: post.Guid,
-        ProviderName: post.ProviderName,
-        Public: post.Public,
-      }
-      entity.CreatedAt.New(post.CreatedAt)
-
-      entityXml, err := xml.Marshal(entity)
+      entity, err := federation.NewMessagePost(federation.DiasporaProtocol)
       if err != nil {
-        f.Log.Error("Fetch marshal error", "err", err)
-        return f.RenderError(err)
+        f.Log.Error("Fetch message error", "err", err)
+        return f.NotFound("record not found")
       }
+      entity.SetText(post.Text)
+      entity.SetAuthor(post.Person.Author)
+      entity.SetGuid(post.Guid)
+      entity.SetProvider(post.ProviderName)
+      entity.SetPublic(post.Public)
+      entity.SetCreatedAt(post.CreatedAt)
 
-      payload, err = federation.MagicEnvelope(
-        privKey, user.Person.Author, entityXml,
-      )
+      payload, err = entity.Marshal(privKey, nil)
       if err != nil {
         f.Log.Error("Fetch magic envelope error", "err", err)
         return f.RenderError(err)
       }
     } else {
-      _, host, err := helpers.ParseAuthor(post.Person.Author)
+      host, err := helpers.ParseHost(post.Person.Author)
       if err != nil {
         f.Log.Error("Fetch parse author error", "err", err)
         return f.RenderError(err)

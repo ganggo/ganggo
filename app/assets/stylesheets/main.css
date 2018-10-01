@@ -30,7 +30,9 @@ body {
 }
 
 .nav.nav-tabs {
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
 }
 
 .card img {
@@ -50,7 +52,7 @@ body {
 }
 
 footer {
-  height: 2.5rem;
+  height: auto;
   position: absolute;
   bottom: 0;
   width: 100%;

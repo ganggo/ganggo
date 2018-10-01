@@ -29,7 +29,7 @@
             <select name="id">
               <option selected>{{msg . "user.stream.delete.select"}}</option>
               {{range $i, $stream := .userStreams}}
-              <option value="{{$stream.ID}}">{{$stream.Name}}</option>
+              <option value="{{$stream.ID}}">{{StripHTML $stream.Name}}</option>
               {{end}}
             </select>
           </div>

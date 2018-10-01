@@ -39,12 +39,29 @@ func ParseTags(text string) [][]string {
   return r.FindAllStringSubmatch(text, -1)
 }
 
-func ParseAuthor(handle string) (string, string, error) {
-  parts, err := parseStringHelper(handle, `^(.+?)@(.+?)$`, 2)
+func ParseHost(handle string) (string, error) {
+  parts, err := parseStringHelper(handle, `^.+?@(.+?)$`, 1)
   if err != nil {
-    return "", "", err
+    // fallback to links
+    parts, err = parseStringHelper(handle, `^https{0,1}://([^/]+).*$`, 1)
+    if err != nil {
+      return "", err
+    }
   }
-  return parts[1], parts[2], nil
+  return parts[1], nil
+}
+
+func ParseUsername(handle string) (string, error) {
+  parts, err := parseStringHelper(handle, `^(.+?)@.+?$`, 1)
+  if err != nil {
+    // fallback to links
+    parts, err = parseStringHelper(handle,
+      `^https{0,1}://[^/]+/.*?([^/]+)/actor$`, 1)
+    if err != nil {
+      return "", err
+    }
+  }
+  return parts[1], nil
 }
 
 func ParseWebfingerHandle(handle string) (string, error) {

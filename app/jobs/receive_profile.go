@@ -19,48 +19,40 @@ package jobs
 
 import (
   "github.com/revel/revel"
-  "git.feneas.org/ganggo/ganggo/app/helpers"
   "git.feneas.org/ganggo/ganggo/app/models"
-  federation "git.feneas.org/ganggo/federation"
-  "strings"
+  "git.feneas.org/ganggo/federation"
+  "time"
 )
 
-func (receiver *Receiver) Profile(profile federation.EntityProfile) {
-  var profileModel models.Profile
-  err := profileModel.FindByAuthor(profile.Author)
+func (receiver *Receiver) Profile(entity federation.MessageProfile) {
+  var person models.Person
+  err := person.FindByAuthor(entity.Author())
   if err != nil {
-    revel.AppLog.Error(err.Error())
+    revel.AppLog.Error("Receiver Profile", err.Error(), err)
     return
   }
 
-  err = profileModel.Cast(&profile)
-  if err != nil {
-    revel.AppLog.Error(err.Error())
-    return
+  birthday, timeErr := time.Parse("2006-02-01", entity.Birthday())
+  profile := models.Profile{
+    Author: entity.Author(),
+    FirstName: entity.FirstName(),
+    LastName: entity.LastName(),
+    ImageUrl: entity.ImageUrl(),
+    Gender: entity.Gender(),
+    Bio: entity.Bio(),
+    PersonID: person.ID,
+    Searchable: entity.Public(),
+    Location: entity.Location(),
+    FullName: entity.FirstName() + " " + entity.LastName(),
+    Nsfw: entity.Nsfw(),
+  }
+  if timeErr == nil {
+    profile.Birthday = birthday
   }
 
-  if !strings.HasPrefix(profileModel.ImageUrl, "http") {
-    _, host, err := helpers.ParseAuthor(profileModel.Author)
-    if err != nil {
-      revel.AppLog.Error(err.Error())
-      return
-    }
-    url := "https://" + host
-    profileModel.ImageUrl = url + profileModel.ImageUrl
-    profileModel.ImageUrlMedium = url + profileModel.ImageUrlMedium
-    profileModel.ImageUrlSmall = url + profileModel.ImageUrlSmall
-  }
-
-  db, err := models.OpenDatabase()
+  err = profile.CreateOrUpdate()
   if err != nil {
-    revel.AppLog.Error(err.Error())
-    return
-  }
-  defer db.Close()
-
-  err = db.Save(&profileModel).Error
-  if err != nil {
-    revel.AppLog.Error(err.Error())
+    revel.AppLog.Error("Receiver Profile", err.Error(), err)
     return
   }
 }

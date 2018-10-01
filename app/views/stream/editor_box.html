@@ -1,6 +1,7 @@
-<div class="row">
+{{if .currentUser}}
+<div id="stream-editor" class="row" style="display:none">
   <div class="col-md-12">
-    <form id="post-editor-form" action="/api/v0/posts" method="post">
+    <form id="post-editor-form" action="/api/{{ApiVersion}}/posts" method="post">
       <div class="form-group">
         <textarea class="form-control" name="post" placeholder="{{msg . "editor.placeholder"}}" rows="4"></textarea>
       </div>
@@ -17,7 +18,8 @@
         </div>
       </div>
     </form>
+    <hr />
   </div>
 </div>
-
 {{javascript_include_tag "editor_box"}}
+{{end}}

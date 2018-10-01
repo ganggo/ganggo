@@ -20,8 +20,8 @@ package models
 import (
   "time"
   "github.com/revel/revel"
-  federation "git.feneas.org/ganggo/federation"
-  "gopkg.in/ganggo/gorm.v2"
+  "git.feneas.org/ganggo/gorm"
+  "git.feneas.org/ganggo/federation"
 )
 
 type Like struct {
@@ -36,6 +36,7 @@ type Like struct {
   // cause asumming we use utf8mb 4*191 = 764 < 767
   Guid string `gorm:"size:191"`
   ShareableType string `gorm:"size:60"`
+  Protocol federation.Protocol `gorm:"size:4"`
 
   Signature LikeSignature
 }
@@ -74,24 +75,17 @@ func (Like) HasPublic() bool { return false }
 func (Like) IsPublic() bool { return false }
 // Model Interface Type
 
-func (l *Like) Create(entity *federation.EntityLike) (err error) {
-  db, err := OpenDatabase()
-  if err != nil {
-    return
-  }
-  defer db.Close()
-
-  err = l.Cast(entity)
-  if err != nil {
-    return
-  }
-  return db.Create(l).Error
-}
-
 func (l *Like) AfterSave(db *gorm.DB) (err error) {
+  db.Model(l).Related(&l.Signature)
+
   if _, user, ok := l.ParentPostUser(); ok {
     return user.Notify(*l)
   }
+  return nil
+}
+
+func (signature *LikeSignature) AfterFind(db *gorm.DB) error {
+  db.Model(signature).Related(&signature.SignatureOrder)
   return nil
 }
 
@@ -142,68 +136,46 @@ func (l *Like) AfterDelete(db *gorm.DB) (err error) {
   return db.Where("like_id = ?", l.ID).Delete(LikeSignature{}).Error
 }
 
-func (l *Like) Cast(entity *federation.EntityLike) (err error) {
+func (l *Like) Create() error {
   db, err := OpenDatabase()
   if err != nil {
-    return
+    return err
   }
   defer db.Close()
 
-  var (
-    post Post
-    person Person
-  )
-
-  err = db.Where("guid = ?", entity.ParentGuid).First(&post).Error
-  if err != nil {
-    return
-  }
-
-  err = db.Where("author = ?", entity.Author).First(&person).Error
-  if err != nil {
-    return
-  }
-
-  (*l).Positive = entity.Positive
-  (*l).ShareableID = post.ID
-  (*l).PersonID = person.ID
-  (*l).Guid = entity.Guid
-  (*l).Signature.AuthorSignature = entity.AuthorSignature
-  (*l).ShareableType = entity.ParentType
-
-  return
+  return db.Create(l).Error
 }
 
-func (l *Like) ParentPostUser() (Post, User, bool) {
+func (l *Like) ParentPostUser() (*Post, *User, bool) {
   post, ok := l.ParentPost(); if !ok {
-    return post, User{}, ok
+    return nil, nil, ok
   }
   if post.Person.UserID <= 0 {
-    return post, User{}, false
+    return post, nil, false
   }
 
   db, err := OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
-    return post, User{}, false
+    return post, nil, false
   }
   defer db.Close()
 
-  var user User
+  user := &User{}
   err = user.FindByID(post.Person.UserID)
   return post, user, err == nil
 }
 
-func (l *Like) ParentPost() (Post, bool) {
+func (l *Like) ParentPost() (*Post, bool) {
   db, err := OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
-    return Post{}, false
+    return &Post{}, false
   }
   defer db.Close()
 
-  var post Post
-  err = db.First(&post, l.ShareableID).Error
+  post := &Post{}
+  err = db.First(post, l.ShareableID).Error
   return post, err == nil
 }
 

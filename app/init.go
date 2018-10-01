@@ -23,7 +23,6 @@ import (
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/helpers"
   "git.feneas.org/ganggo/ganggo/app/models"
-  "git.feneas.org/ganggo/ganggo/app/views"
   "git.feneas.org/ganggo/ganggo/app/jobs"
   run "github.com/revel/modules/jobs/app/jobs"
   federation "git.feneas.org/ganggo/federation"
@@ -107,14 +106,26 @@ func init() {
   revel.OnAppStart(InitDB)
   revel.OnAppStart(InitSocialRelay)
 
-  // set custom logger options
   revel.OnAppStart(func() {
+    revel.Config.SetSection("ganggo")
+
+    // configure the federation library
+    host := revel.Config.StringDefault("proto", "http://") +
+      revel.Config.StringDefault("address", "localhost:9000")
+    apiVersion := revel.Config.StringDefault("api.version", "v0")
+    federation.SetConfig(federation.Config{
+      Host: host, ApiVersion: apiVersion,
+      GuidURLFormat: host + "/posts/%s",
+      ApURLFormat: host + "/api/" + apiVersion + "/ap/%s",
+    })
+
+    // set custom logger options
     federation.SetLogger(helpers.AppLogWrapper{
       Name: "federation",
     })
+
     // if sentry credentials exists
     // send reports to upstream
-    revel.Config.SetSection("ganggo")
     sentryDSN, found := revel.Config.String("sentry.DSN")
     if found {
       raven.SetDSN(sentryDSN)
@@ -126,11 +137,6 @@ func init() {
   revel.OnAppStart(func() {
     run.Every(24*time.Hour, jobs.Session{})
   })
-
-  // append custom template functions to revel
-  for key, val := range views.TemplateFuncs {
-    revel.TemplateFuncs[key] = val
-  }
 }
 
 // TODO turn this into revel.HeaderFilter

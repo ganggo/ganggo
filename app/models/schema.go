@@ -19,7 +19,8 @@ package models
 
 import (
   "github.com/revel/revel"
-  "gopkg.in/ganggo/gorm.v2"
+  "git.feneas.org/ganggo/gorm"
+  "git.feneas.org/ganggo/federation"
 )
 
 type SchemaMigration struct {
@@ -45,21 +46,43 @@ func migrateSchema(db *gorm.DB) error {
 
   //// Migrations Start ////
 
+  // related to https://git.feneas.org/ganggo/ganggo/merge_requests/55
+  commit = "https://git.feneas.org/ganggo/ganggo/merge_requests/55"
+  if _, ok := migrations[commit]; !ok {
+    // set all existing posts to diaspora protocol
+    protocol := map[string]interface{}{"protocol": federation.DiasporaProtocol}
+    db.Model(Post{}).Updates(protocol)
+    db.Model(Comment{}).Updates(protocol)
+    db.Model(Like{}).Updates(protocol)
+    db.Model(Pod{}).Updates(protocol)
+    // delete unnecessary columns
+    db.Model(Person{}).DropColumn("fetch_status")
+    db.Model(Contact{}).DropColumn("receiving")
+    db.Model(Pod{}).DropColumn("helo")
+    db.Model(Post{}).DropColumn("likes_count")
+    db.Model(Post{}).DropColumn("comments_count")
+    db.Model(Post{}).DropColumn("reshares_count")
+    db.Model(Post{}).DropColumn("interacted_at")
+    db.Model(Profile{}).DropColumn("image_url_small")
+    db.Model(Profile{}).DropColumn("image_url_medium")
+    structMigrations = append(structMigrations, SchemaMigration{Commit: commit})
+  }
+
   // related to ganggo/ganggo@d14d3e2e32730355a67b6cd418c94176914e27c0
   // see app/models/sessions.go for details
   commit = "d14d3e2e32730355a67b6cd418c94176914e27c0"
   if _, ok := migrations[commit]; !ok {
-    db.Model(&Session{}).DropColumn("id")
-    db.Model(&Session{}).DropColumn("updated_at")
+    db.Model(Session{}).DropColumn("id")
+    db.Model(Session{}).DropColumn("updated_at")
     structMigrations = append(structMigrations, SchemaMigration{Commit: commit})
   }
 
   // related to ganggo/ganggo@0f94958c6b7f727c43031d756ae01d62d1467b74
   commit = "0f94958c6b7f727c43031d756ae01d62d1467b74"
   if _, ok := migrations[commit]; !ok {
-    db.Model(&Post{}).Where("root_guid = ?", "").Update("root_guid", gorm.Expr("NULL"))
-    db.Model(&Post{}).DropColumn("root_handle")
-    advancedColumnModify(db.Model(&Post{}), "root_guid", "varchar(187)")
+    db.Model(Post{}).Where("root_guid = ?", "").Update("root_guid", gorm.Expr("NULL"))
+    db.Model(Post{}).DropColumn("root_handle")
+    advancedColumnModify(db.Model(Post{}), "root_guid", "varchar(187)")
     structMigrations = append(structMigrations, SchemaMigration{Commit: commit})
   }
 
@@ -167,6 +190,12 @@ func loadSchema(db *gorm.DB) {
   db.Model(shareable).AddIndex("index_share_visibilities_on_user_id", "user_id")
   db.Model(shareable).AddIndex("shareable_and_hidden_and_user_id", "shareable_id", "shareable_type", "hidden", "user_id")
   db.AutoMigrate(shareable)
+
+  visibility := &Visibility{}
+  db.Model(visibility).AddUniqueIndex("visibilitys_and_person_id", "shareable_id", "shareable_type", "person_id")
+  db.Model(visibility).AddIndex("index_visibilitys_on_person_id", "person_id")
+  db.Model(visibility).AddIndex("index_visibilitys_on_shareable_id_and_shareable_type", "shareable_id", "shareable_type")
+  db.AutoMigrate(visibility)
 
   aspect := &Aspect{}
   //db.Model(aspect).AddIndex("index_aspects_on_user_id_and_contacts_visible", "user_id", "contacts_visible")

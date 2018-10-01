@@ -2,10 +2,9 @@
     <footer class="py-2 bg-inverse">
       <div class="container">
         <p class="m-0 float-left">GangG<i class="fa fa-heart-o"></i></p>
+        <p class="m-0 pl-2 float-left">{{Version}}</p>
         <p class="m-0 float-right">
-        <a href="https://play.google.com/apps/testing/io.github.ganggo">{{msg . "footer.links.android"}}</a> |
-        <a href="https://git.feneas.org/ganggo/ganggo/issues/new">{{msg . "footer.links.report_issue"}}</a> |
-        <a href="https://the-federation.info/ganggo">{{msg . "footer.links.pod_statistics"}}</a>
+          {{msg . "footer.links.report_issue" "https://git.feneas.org/ganggo/ganggo/issues/new" "mailto:incoming+ganggo/ganggo@git.feneas.org"}}
         </p>
       </div>
     </footer>

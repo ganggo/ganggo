@@ -19,7 +19,7 @@ package models
 
 import (
   "time"
-  "gopkg.in/ganggo/gorm.v2"
+  "git.feneas.org/ganggo/gorm"
   "github.com/revel/revel"
 )
 

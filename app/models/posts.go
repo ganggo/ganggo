@@ -19,9 +19,9 @@ package models
 
 import (
   "time"
-  "gopkg.in/ganggo/gorm.v2"
-  federation "git.feneas.org/ganggo/federation"
+  "git.feneas.org/ganggo/gorm"
   "github.com/revel/revel"
+  "git.feneas.org/ganggo/federation"
 )
 
 type Post struct {
@@ -39,10 +39,7 @@ type Post struct {
   ProviderName string `gorm:"size:191"`
   RootGuid *string `gorm:"size:187"`
   RootPersonID uint
-  LikesCount int `gorm:"size:4"`
-  CommentsCount int `gorm:"size:4"`
-  ResharesCount int `gorm:"size:4"`
-  InteractedAt string `gorm:"size:191"`
+  Protocol federation.Protocol `gorm:"size:4"`
 
   Person Person `gorm:"ForeignKey:PersonID" json:",omitempty"`
   Comments Comments `gorm:"ForeignKey:ShareableID" json:",omitempty"`
@@ -93,7 +90,12 @@ func (post *Post) AfterFind(db *gorm.DB) error {
 }
 
 func (p *Post) AfterSave(db *gorm.DB) error {
-  err := searchAndCreateTags(*p, db)
+  err := p.AfterFind(db)
+  if err != nil {
+    return err
+  }
+
+  err = searchAndCreateTags(*p, db)
   if err != nil {
     return err
   }
@@ -111,6 +113,13 @@ func (p *Post) AfterDelete(db *gorm.DB) (err error) {
   // comments
   err = db.Where("shareable_id = ? and shareable_type = ?",
     p.ID, ShareablePost).Delete(Comment{}).Error
+  if err != nil {
+    revel.AppLog.Error(err.Error())
+    return
+  }
+  // visibilities
+  err = db.Where("shareable_id = ? and shareable_type = ?",
+    p.ID, ShareablePost).Delete(Visibility{}).Error
   if err != nil {
     revel.AppLog.Error(err.Error())
     return
@@ -166,17 +175,12 @@ func (p *Post) Count() (count int) {
   return
 }
 
-func (p *Post) Create(entity interface{}) (err error) {
+func (p *Post) Create() (err error) {
   db, err := OpenDatabase()
   if err != nil {
     return
   }
   defer db.Close()
-
-  err = p.Cast(entity)
-  if err != nil {
-    return
-  }
 
   return db.Create(p).Error
 }
@@ -193,70 +197,6 @@ func (p *Post) Delete() (err error) {
     panic("Setting ID to zero will delete all post records")
   }
   return db.Delete(p).Error
-}
-
-func (p *Post) Cast(entity interface{}) (err error) {
-  db, err := OpenDatabase()
-  if err != nil {
-    return
-  }
-  defer db.Close()
-
-  var person Person
-  if statusMessage, ok := entity.(*federation.EntityStatusMessage); ok {
-    err = person.FindByAuthor(statusMessage.Author)
-    if err != nil {
-      return
-    }
-
-    var photos Photos
-    if statusMessage.Photos != nil {
-      err = photos.Cast(*statusMessage.Photos)
-      if err != nil {
-        return
-      }
-    }
-
-    createdAt, err := statusMessage.CreatedAt.Time()
-    if err != nil {
-      return err
-    }
-
-    (*p).CreatedAt = createdAt
-    (*p).Photos = photos
-    (*p).Public = statusMessage.Public
-    (*p).Guid = statusMessage.Guid
-    (*p).Type = StatusMessage
-    (*p).Text = statusMessage.Text
-    (*p).ProviderName = statusMessage.ProviderName
-  } else if reshare, ok := entity.(*federation.EntityReshare); ok {
-    err = person.FindByAuthor(reshare.Author)
-    if err != nil {
-      return
-    }
-
-    var rootPerson Person
-    err = rootPerson.FindByAuthor(reshare.RootAuthor)
-    if err != nil {
-      return
-    }
-
-    createdAt, err := statusMessage.CreatedAt.Time()
-    if err != nil {
-      return err
-    }
-
-    (*p).CreatedAt = createdAt
-    (*p).Public = true
-    (*p).Guid = reshare.Guid
-    (*p).Type = Reshare
-    (*p).RootPersonID = rootPerson.ID
-    (*p).RootGuid = &reshare.RootGuid
-  } else {
-    panic("Post.Cast requires type EntityStatusMessage or EntityReshare!")
-  }
-  (*p).PersonID = person.ID
-  return nil
 }
 
 func (p *Post) IsLocal() (user User, ok bool) {
@@ -286,6 +226,19 @@ func (posts *Posts) FindAllPublic(offset uint) (err error) {
 
   query := db.Offset(offset).Limit(10).
     Where(`public = ?`, true).Order(`created_at desc`)
+
+  return query.Find(posts).Error
+}
+
+func (posts *Posts) FindAllPublicByPerson(person Person, offset uint) (err error) {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  query := db.Offset(offset).Limit(10).
+    Where(`person_id = ? and public = ?`, person.ID, true).Order(`created_at desc`)
 
   return query.Find(posts).Error
 }

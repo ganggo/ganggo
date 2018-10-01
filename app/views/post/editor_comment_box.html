@@ -1,6 +1,6 @@
 <div class="row pt-4">
   <div class="col-12">
-    <form id="comment-editor-form" action="/api/v0/posts/{{.post.ID}}/comments" method="post">
+    <form id="comment-editor-form" action="/api/{{ApiVersion}}/posts/{{.post.ID}}/comments" method="post">
       <div class="form-group">
         <textarea class="form-control" rows="2" name="comment" placeholder="{{msg . "comment.placeholder"}}"></textarea>
         <button class="btn btn-success btn-block" type="submit">

@@ -19,7 +19,7 @@ package models
 
 import (
   "strings"
-  "gopkg.in/ganggo/gorm.v2"
+  "git.feneas.org/ganggo/gorm"
   "sort"
   "errors"
   "time"
@@ -201,7 +201,11 @@ func (user *User) Notify(model Model) error {
     PersonID: model.FetchPersonID(),
     Unread: true,
   }
-  return notify.Create()
+  err := notify.Create()
+  if err != nil {
+    return notify.Update()
+  }
+  return err
 }
 
 func (stream *UserStream) Create() error {
@@ -209,6 +213,8 @@ func (stream *UserStream) Create() error {
   if err != nil {
     return err
   }
+  defer db.Close()
+
   return db.Create(stream).Error
 }
 
@@ -217,6 +223,8 @@ func (stream *UserStream) FindByName(name string) error { BACKEND_ONLY()
   if err != nil {
     return err
   }
+  defer db.Close()
+
   return db.Where("name = ?", name).Find(stream).Error
 }
 
@@ -306,5 +314,7 @@ func (user *User) UpdateLastSeen() error {
   if err != nil {
     return err
   }
+  defer db.Close()
+
   return db.Model(user).Update("last_seen", time.Now()).Error
 }

@@ -18,51 +18,100 @@ package jobs
 //
 
 import (
-  "encoding/xml"
+  "crypto/rsa"
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/models"
-  federation "git.feneas.org/ganggo/federation"
+  "git.feneas.org/ganggo/federation"
+  fhelpers "git.feneas.org/ganggo/federation/helpers"
 )
 
-func (dispatcher *Dispatcher) Reshare(reshare federation.EntityReshare) {
-  entityXml, err := xml.Marshal(reshare)
+func (dispatcher *Dispatcher) StatusMessage(post models.Post) {
+  persons, err := dispatcher.findRecipients(&post, &dispatcher.User)
   if err != nil {
-    revel.ERROR.Println(err)
+    revel.AppLog.Error("Dispatcher StatusMessage", err.Error(), err)
     return
   }
-  post(dispatcher, entityXml)
-}
 
-func (dispatcher *Dispatcher) StatusMessage(message federation.EntityStatusMessage) {
-  entityXml, err := xml.Marshal(message)
+  priv, err := fhelpers.ParseRSAPrivateKey(
+    []byte(dispatcher.User.SerializedPrivateKey))
   if err != nil {
-    revel.ERROR.Println(err)
-    return
-  }
-  post(dispatcher, entityXml)
-}
-
-func post(dispatcher *Dispatcher, entityXml []byte) {
-  modelPost, ok := dispatcher.Model.(models.Post)
-  if !ok {
-    revel.AppLog.Error(
-      "Submitted model is not a type of models.Post",
-      "model", modelPost,
-    )
+    revel.AppLog.Error("Dispatcher StatusMessage", err.Error(), err)
     return
   }
 
-  if modelPost.Exists(modelPost.ID) {
-    if user, ok := modelPost.IsLocal(); ok {
-      dispatcher.Send(modelPost, user, entityXml, 0)
-    } else {
-      // check if it is a reshare
-      if modelPost.RootPersonID > 0 {
-        dispatcher.Send(modelPost, models.User{}, entityXml, 0)
-      } else {
-        revel.AppLog.Error("Cannot relay remote posts", "post", modelPost)
-        return;
+  recipients := []string{}
+  for _, person := range persons {
+    recipients = append(recipients, person.Author)
+  }
+
+  for _, person := range persons {
+    var pub *rsa.PublicKey = nil
+    endpoint := person.Inbox
+    if !post.Public {
+      pub, err = fhelpers.ParseRSAPublicKey(
+        []byte(person.SerializedPublicKey))
+      if err != nil {
+        revel.AppLog.Error("Dispatcher StatusMessage", err.Error(), err)
+        continue
       }
+    } else if person.Pod.Inbox != "" {
+      // pod inbox if available
+      endpoint = person.Pod.Inbox
+    }
+
+    var entity federation.MessageBase
+    if dispatcher.Retract {
+      msg, err := federation.NewMessageRetract(person.Pod.Protocol)
+      if err != nil {
+        revel.AppLog.Error("Dispatcher StatusMessage", err.Error(), err)
+        return
+      }
+      msg.SetAuthor(post.Person.Author)
+      msg.SetParentType(federation.StatusMessage)
+      msg.SetParentGuid(post.Guid)
+      entity = msg
+    } else if post.Type == models.StatusMessage {
+      msg, err := federation.NewMessagePost(person.Pod.Protocol)
+      if err != nil {
+        revel.AppLog.Error("Dispatcher StatusMessage", err.Error(), err)
+        continue
+      }
+      msg.SetAuthor(post.Person.Author)
+      if !post.Public {
+        msg.SetRecipients(recipients)
+      }
+      msg.SetText(post.Text)
+      msg.SetGuid(post.Guid)
+      msg.SetPublic(post.Public)
+      msg.SetCreatedAt(post.CreatedAt)
+      entity = msg
+    } else if post.Type == models.Reshare {
+      var parent models.Person
+      err = parent.FindByID(post.RootPersonID)
+      if err != nil {
+        revel.AppLog.Error("Dispatcher Reshare", err.Error(), err)
+        continue
+      }
+
+      msg, err := federation.NewMessageReshare(person.Pod.Protocol)
+      if err != nil {
+        revel.AppLog.Error("Dispatcher StatusMessage", err.Error(), err)
+        continue
+      }
+      msg.SetAuthor(post.Person.Author)
+      msg.SetGuid(post.Guid)
+      msg.SetParentAuthor(parent.Author)
+      msg.SetParent(*post.RootGuid)
+      msg.SetCreatedAt(post.CreatedAt)
+      entity = msg
+    } else {
+      panic("Something went wrong!")
+    }
+
+    err = entity.Send(endpoint, priv, pub)
+    if err != nil {
+      revel.AppLog.Error("Dispatcher Reshare", err.Error(), err)
+      continue
     }
   }
 }
