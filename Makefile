@@ -107,6 +107,7 @@ endif
 		[ -f "ganggo.exe" ] && mv ganggo.exe ganggo ;\
 		go-bindata -o ../updater/bindata.go ganggo \
 			src/github.com/revel/... \
+			src/$(package)/../api/... \
 			src/$(package)/{app,conf,messages,public}/... ;\
 	}
 	cd $(srcdir)/updater && go build \
