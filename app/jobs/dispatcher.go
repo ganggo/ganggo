@@ -129,7 +129,7 @@ func (dispatcher *Dispatcher) findPublicEndpoints() (persons []models.Person, er
     var person models.Person
     err = person.FindFirstByPodID(pod.ID)
     if err != nil {
-      return
+      continue
     }
     persons = append(persons, person)
   }
