@@ -22,6 +22,8 @@ import (
   "git.feneas.org/ganggo/gorm"
   "github.com/revel/revel"
   "git.feneas.org/ganggo/federation"
+  "github.com/patrickmn/go-cache"
+  "fmt"
 )
 
 type Post struct {
@@ -161,7 +163,21 @@ func (p *Post) AfterDelete(db *gorm.DB) (err error) {
   return
 }
 
-func (p *Post) Count() (count int) {
+func (p *Posts) CountLocal() (count int) {
+  return p.count(true, 0)
+}
+
+func (p *Posts) CountNonLocal() (count int) {
+  return p.count(false, 0)
+}
+
+func (p *Posts) CountByUserID(id uint) (count int) {
+  // NOTE false is not intuitive here but
+  // we need the equal-operator
+  return p.count(false, id)
+}
+
+func (p *Posts) count(local bool, id uint) (count int) {
   db, err := OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
@@ -169,9 +185,24 @@ func (p *Post) Count() (count int) {
   }
   defer db.Close()
 
+  operator := "="
+  if local {
+    operator = ">"
+  }
+
+  key := fmt.Sprintf("post.count.%s.%d", operator, id)
+  countInt, found := databaseCache.Get(key)
+  if found {
+    // return cached value
+    return countInt.(int)
+  }
+
   db.Table("posts").Joins(
     `left join people on posts.person_id = people.id`,
-  ).Where("people.user_id > 0").Count(&count)
+  ).Where(fmt.Sprintf("people.user_id %s %d", operator, id)).Count(&count)
+
+  // set caching
+  databaseCache.Set(key, count, cache.DefaultExpiration)
   return
 }
 
@@ -226,6 +257,20 @@ func (posts *Posts) FindAllPublic(offset uint) (err error) {
 
   query := db.Offset(offset).Limit(10).
     Where(`public = ?`, true).Order(`created_at desc`)
+
+  return query.Find(posts).Error
+}
+
+func (posts *Posts) FindAllNonLocalPublic(offset uint) (err error) {
+  db, err := OpenDatabase()
+  if err != nil {
+    return err
+  }
+  defer db.Close()
+
+  query := db.Offset(offset).Limit(10).
+    Joins(`left join people on posts.person_id = people.id`).
+    Where(`people.user_id = ? and public = ?`, 0, true).Order(`created_at desc`)
 
   return query.Find(posts).Error
 }

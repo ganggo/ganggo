@@ -30,6 +30,7 @@ import (
   "encoding/pem"
   "golang.org/x/crypto/bcrypt"
   "git.feneas.org/ganggo/ganggo/app/helpers"
+  "github.com/patrickmn/go-cache"
 )
 
 type User struct {
@@ -49,6 +50,8 @@ type User struct {
 
   Aspects []Aspect `gorm:"AssociationForeignKey:UserID"`
 }
+
+type Users []User
 
 type UserStream struct {
   ID uint `gorm:"primary_key"`
@@ -151,7 +154,7 @@ func (user *User) FindByUsername(name string) (err error) {
   return db.Where("username = ?", name).Find(user).Error
 }
 
-func (user *User) Count() (count int) {
+func (users *Users) Count() (count int) {
   db, err := OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
@@ -159,23 +162,34 @@ func (user *User) Count() (count int) {
   }
   defer db.Close()
 
+  if countInt, found := databaseCache.Get("users.count.all"); found {
+    return countInt.(int)
+  }
+
   db.Table("users").Count(&count)
+  databaseCache.Set("users.count.all", count, cache.DefaultExpiration)
   return
 }
-func (user *User) ActiveHalfyear() (count int) {
+
+func (users *Users) ActiveHalfyear() (count int) {
   db, err := OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
     return
   }
   defer db.Close()
+
+  if countInt, found := databaseCache.Get("users.count.halfyear"); found {
+    return countInt.(int)
+  }
 
   halfYear := time.Now().AddDate(0, -6, 0)
   db.Table("users").Where("last_seen >= ?", halfYear).Count(&count)
+  databaseCache.Set("users.count.halfyear", count, cache.DefaultExpiration)
   return
 }
 
-func (user *User) ActiveMonth() (count int) {
+func (users *Users) ActiveMonth() (count int) {
   db, err := OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
@@ -183,8 +197,13 @@ func (user *User) ActiveMonth() (count int) {
   }
   defer db.Close()
 
+  if countInt, found := databaseCache.Get("users.count.month"); found {
+    return countInt.(int)
+  }
+
   month := time.Now().AddDate(0, -1, 0)
   db.Table("users").Where("last_seen >= ?", month).Count(&count)
+  databaseCache.Set("users.count.month", count, cache.DefaultExpiration)
   return
 }
 

@@ -22,6 +22,7 @@ import (
   "errors"
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/helpers"
+  "github.com/patrickmn/go-cache"
   "git.feneas.org/ganggo/gorm"
   _ "git.feneas.org/ganggo/gorm/dialects/postgres"
   _ "git.feneas.org/ganggo/gorm/dialects/mssql"
@@ -61,6 +62,8 @@ const (
 )
 
 var DB Database
+
+var databaseCache = cache.New(5*time.Minute, 10*time.Minute)
 
 func OpenDatabase() (*gorm.DB, error) {
   db, err := gorm.Open(DB.Driver, DB.Url)
