@@ -93,14 +93,11 @@ func (dispatcher *Dispatcher) findRecipients(parentPost *models.Post, parentUser
       return persons, nil
     }
   } else if parentPost != nil {
-    if parentPost.Public {
-      // everyone we are sharing with
-      return dispatcher.findPublicEndpoints()
-    } else {
-      // it is not local just send it to
-      // the remote server it should handle the rest
+    // it is not local just send it to
+    // the remote server it should handle the rest
+    var persons = []models.Person{parentPost.Person}
+    if !parentPost.Public {
       // in case of AP we will fetch known visibilties as well
-      var persons = []models.Person{parentPost.Person}
       var visibilities models.Visibilities
       err := visibilities.FindByPost(*parentPost)
       if err == nil {
@@ -110,8 +107,8 @@ func (dispatcher *Dispatcher) findRecipients(parentPost *models.Post, parentUser
       } else {
         revel.AppLog.Error("Dispatcher findRecipients", err.Error(), err)
       }
-      return persons, nil
     }
+    return persons, nil
   }
   return []models.Person{}, nil
 }
