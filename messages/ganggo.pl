@@ -4,11 +4,11 @@
 # Marcin Mikołajczak <me@m4sk.in>, 2018
 
 notification.unread=%d powiadomienia
-notification.mentioned_in_post=wspomniał o Tobie we <a href="/posts/%s">wpisie</a>!
-notification.mentioned_in_comment=wspomniał o Tobie w <a href="/posts/%s">komentarzu</a>!
+notification.mentioned_in_post=wspomniał(a) o Tobie we <a href="/posts/%s">wpisie</a>!
+notification.mentioned_in_comment=wspomniał(a) o Tobie w <a href="/posts/%s">komentarzu</a>!
 notification.no_notification=Brak nowych powiadomień!
-notification.started_sharing=zaczął Ci udostępniać!
-notification.liked_post=polubił Twój <a href="/posts/%s">wpis</a>!
+notification.started_sharing=zaczął(-ęłą) Ci udostępniać!
+notification.liked_post=polubił(a) Twój <a href="/posts/%s">wpis</a>!
 
 navigation.toggle=Przełącz sposób nawigacji
 navigation.login=Zaloguj się
@@ -17,10 +17,11 @@ navigation.register=Zarejestruj się
 navigation.stream=Strumień
 navigation.stream.public=Publiczny
 navigation.stream.private=Prywatny
-navigation.write_a_post=Utwórz wpis…
+navigation.write_a_post=Utwórz wpis
 navigation.user.customize=Dostosuj
 navigation.user.settings=Ustawienia
 navigation.user.streams=Strumienie
+navigation.searchbar=np. hq@ggg.social
 
 comment.placeholder=Napisz komentarz…
 comment.button=Umieść
@@ -39,6 +40,7 @@ public.title=Publiczny
 
 # see https://revel.github.io/manual/i18n-messages.html
 stream.title=%(navigation.stream)s
+stream.empty=Nie odnaleziono żadnych wpisów!
 
 javascript.retweet_confirm=Czy chcesz udostępnić ten wpis?
 javascript.delete_confirm=Czy chcesz usunąć ten wpis?
@@ -93,9 +95,7 @@ editor.default_group=Publiczny
 editor.button=Wyślij
 editor.placeholder=Wolę schabowe niż mielone!
 
-footer.links.report_issue=Zgłoś błąd
-footer.links.pod_statistics=Statystyki poda
-footer.links.android=Aplikacja na Androida
+footer.links.report_issue=Zgłoś błąd z użyciem <a href="%s">GitLaba</a> lub <a href="%s">maila</a>
 
 # timeago plugin
 ago=temu
@@ -123,7 +123,7 @@ errors.controller.post_not_found=Brak dostępnych wpisów
 
 # flash messages
 flash.errors.captcha=Nieprawidłowa captcha!
-flash.errors.username=Nazwa użytkownika jest zajęta!
+flash.errors.username=Nazwa użytkownika jest zajęta lub nieprawidłowa! Możesz używać tylko liter, cyfr i myślników.
 flash.errors.password_empty=Hasło jest puste lub nie pasuje do siebie!
 flash.errors.password_length=Hasło musi mieć więcej niż 4 znaki!
 flash.errors.login=Najpierw musisz się zalogować
