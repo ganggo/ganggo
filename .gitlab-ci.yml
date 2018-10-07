@@ -31,6 +31,8 @@ linux:test:
   script:
   - make install
   - make test
+  except:
+  - master
 linux:amd64:
   artifacts:
     expire_in: "1 hour"
