@@ -8,11 +8,6 @@ variables:
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: ""
   UPDATE_CHANNEL: alpha
-cache:
-  key: "ganggo"
-  paths:
-  - vendor
-  - node_modules
 stages:
 - test
 - build
@@ -20,17 +15,27 @@ stages:
 before_script:
 - export VERSION=$(git tag -l --sort=-v:refname |head -n1)
 - export PROJECT_PATH=$GOPATH/src/git.feneas.org/ganggo
-- mkdir -p $PROJECT_PATH
+- mkdir -p $PROJECT_PATH bin
+- rm -r $GOPATH/bin
 - ln -s $(pwd) $PROJECT_PATH/ganggo
+- ln -sf $(pwd)/bin $GOPATH/bin
 - cd $PROJECT_PATH/ganggo
-- make install
-run unit tests:
+linux:test:
+  artifacts:
+    expire_in: "1 hour"
+    paths:
+    - vendor/
+    - node_modules/
+    - bin/
   stage: test
   script:
+  - make install
   - make test
+  except:
+  - master
 linux:amd64:
   artifacts:
-    expire_in: "1 day"
+    expire_in: "1 hour"
     paths:
     - updater.*.bin
   stage: build
@@ -38,9 +43,11 @@ linux:amd64:
   - export GOARCH=amd64
   - export GOOS=linux
   - make release
+  dependencies:
+  - linux:test
 windows:amd64:
   artifacts:
-    expire_in: "1 day"
+    expire_in: "1 hour"
     paths:
     - updater.*.bin
   stage: build
@@ -51,11 +58,13 @@ windows:amd64:
   - export GOARCH=amd64
   - export GOOS=windows
   - make release
+  dependencies:
+  - linux:test
   only:
   - /^v[\d\.]+-\w.*$/
 windows:386:
   artifacts:
-    expire_in: "1 day"
+    expire_in: "1 hour"
     paths:
     - updater.*.bin
   stage: build
@@ -66,11 +75,13 @@ windows:386:
   - export GOARCH=386
   - export GOOS=windows
   - make release
+  dependencies:
+  - linux:test
   only:
   - /^v[\d\.]+-\w.*$/
 linux:arm:7:
   artifacts:
-    expire_in: "1 day"
+    expire_in: "1 hour"
     paths:
     - updater.*.bin
   stage: build
@@ -81,6 +92,8 @@ linux:arm:7:
   - export GOOS=linux
   - export GOARM=7
   - make release
+  dependencies:
+  - linux:test
   only:
   - /^v[\d\.]+-\w.*$/
 deploy artifacts to bintray:
@@ -89,10 +102,10 @@ deploy artifacts to bintray:
   stage: deploy
   script:
   - bash ci/scripts/bintray.sh
-  only:
-  - /^v[\d\.]+-\w.*$/
   dependencies:
   - linux:amd64
   - windows:amd64
   - windows:386
   - linux:arm:7
+  only:
+  - /^v[\d\.]+-\w.*$/

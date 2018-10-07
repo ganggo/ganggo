@@ -118,9 +118,9 @@ func generateSchema(version string) SchemaJson {
   }
 
   var (
-    user models.User
-    comment models.Comment
-    post models.Post
+    users models.Users
+    comments models.Comments
+    posts models.Posts
   )
 
   return SchemaJson{
@@ -137,12 +137,12 @@ func generateSchema(version string) SchemaJson {
     OpenRegistrations: true,
     Usage: SchemaUsageJson{
       Users: SchemaUsersJson{
-        Total: user.Count(),
-        ActiveHalfyear: user.ActiveHalfyear(),
-        ActiveMonth: user.ActiveMonth(),
+        Total: users.Count(),
+        ActiveHalfyear: users.ActiveHalfyear(),
+        ActiveMonth: users.ActiveMonth(),
       },
-      LocalPosts: post.Count(),
-      LocalComments: comment.Count(),
+      LocalPosts: posts.CountLocal(),
+      LocalComments: comments.CountLocal(),
     },
     MetaData: SchemaMetaDataJson{
       NodeName: appName,

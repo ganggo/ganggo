@@ -31,9 +31,6 @@ func (r *Receiver) Retraction(entity federation.MessageRetract) {
   }
   defer db.Close()
 
-  // relay retraction before deleting database entries!
-  (&Dispatcher{Message: entity}).Run()
-
   var dbModel interface{}
   switch entity.ParentType() {
   case federation.Reshare:
@@ -83,6 +80,9 @@ func (r *Receiver) Retraction(entity federation.MessageRetract) {
   }
 
   if dbModel != nil {
+    // relay retraction before deleting database entries!
+    (&Dispatcher{Message: entity}).Run()
+
     err = db.Delete(dbModel).Error
     if err != nil {
       revel.AppLog.Error(err.Error())

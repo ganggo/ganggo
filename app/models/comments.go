@@ -22,6 +22,8 @@ import (
   "github.com/revel/revel"
   "git.feneas.org/ganggo/gorm"
   "git.feneas.org/ganggo/federation"
+  "github.com/patrickmn/go-cache"
+  "fmt"
 )
 
 type Comment struct {
@@ -97,7 +99,15 @@ func (signature *CommentSignature) AfterFind(db *gorm.DB) error {
   return db.Model(signature).Related(&signature.SignatureOrder).Error
 }
 
-func (c *Comment) Count() (count int) {
+func (c *Comments) CountLocal() (count int) {
+  return c.count(true)
+}
+
+func (c *Comments) CountNonLocal() (count int) {
+  return c.count(false)
+}
+
+func (c *Comments) count(local bool) (count int) {
   db, err := OpenDatabase()
   if err != nil {
     revel.AppLog.Error(err.Error())
@@ -105,9 +115,25 @@ func (c *Comment) Count() (count int) {
   }
   defer db.Close()
 
+  operator := "="
+  if local {
+    operator = ">"
+  }
+
+  countInt, found := databaseCache.Get(
+    fmt.Sprintf("comment.count.%s", operator))
+  if found {
+    // return cached value
+    return countInt.(int)
+  }
+
   db.Table("comments").Joins(
     `left join people on comments.person_id = people.id`,
-  ).Where("people.user_id > 0").Count(&count)
+  ).Where(fmt.Sprintf("people.user_id %s 0", operator)).Count(&count)
+
+  // set caching
+  databaseCache.Set(fmt.Sprintf("comment.count.%s", operator), count,
+    cache.DefaultExpiration)
   return
 }
 
