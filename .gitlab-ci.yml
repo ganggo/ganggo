@@ -45,6 +45,8 @@ linux:amd64:
   - make release
   dependencies:
   - linux:test
+  except:
+  - master
 windows:amd64:
   artifacts:
     expire_in: "1 hour"
