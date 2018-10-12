@@ -54,7 +54,7 @@ func (r Receiver) Public() revel.Result {
 
   msg, err := federation.DiasporaParse(content)
   if err != nil {
-    r.Log.Error("Cannot parse content", err.Error(), err)
+    r.Log.Debug("Cannot parse content", err.Error(), err)
   } else {
     run.Now(jobs.Receiver{Message: msg})
   }
@@ -104,7 +104,7 @@ func (r Receiver) Private() revel.Result {
 
   msg, err := federation.DiasporaParseEncrypted(r.Params.JSON, privKey)
   if err != nil {
-    r.Log.Error("Cannot parse content", err.Error(), err)
+    r.Log.Debug("Cannot parse content", err.Error(), err)
   } else {
     run.Now(jobs.Receiver{Message: msg, Guid: guid})
   }
