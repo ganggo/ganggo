@@ -252,6 +252,9 @@ func main() {
       }
       // wait for overseer to restart or terminate
       <-state.GracefulShutdown
+      if err := cmd.Process.Kill(); err != nil {
+        fmt.Println("Cannot kill process please restart manual!", err)
+      }
       fmt.Printf("app#%s %s exiting...\n", version, state.ID)
     },
     Fetcher: &Bintray{
