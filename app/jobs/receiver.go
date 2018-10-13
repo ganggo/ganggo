@@ -84,7 +84,7 @@ func (receiver *Receiver) CheckAuthor(author string) (models.Person, bool) {
   // if he doesn't exist locally
   fetch := FetchAuthor{Author: author}; fetch.Run()
   if fetch.Err != nil {
-    revel.AppLog.Error("Cannot fetch author", "error", fetch.Err)
+    revel.AppLog.Debug("Cannot fetch author", "error", fetch.Err)
   }
   return fetch.Person, fetch.Err == nil
 }

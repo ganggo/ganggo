@@ -23,6 +23,7 @@ import (
   federation "git.feneas.org/ganggo/federation"
   "github.com/revel/log15"
   "github.com/getsentry/raven-go"
+  "errors"
 )
 
 type AppLogWrapper struct {
@@ -34,15 +35,29 @@ type AppLogWrapper struct {
 type SentryLogHandler struct {}
 
 func (handler SentryLogHandler) Log(record *log15.Record) error {
-  // if log level is info or debug return and do nothing
-  if record.Lvl == log15.LvlInfo || record.Lvl == log15.LvlDebug {
-    return revel.GetRootLogHandler().Log(record)
-  }
+  if record.Lvl == log15.LvlError || record.Lvl == log15.LvlCrit {
+    var errs []error
+    // search for errors in the logger context
+    for _, ctx := range record.Ctx {
+      if err, ok := ctx.(error); ok {
+        errs = append(errs, err)
+      }
+    }
 
-  // search for errors and send them
-  // asynchronously to the sentry endpoint
-  for _, ctx := range record.Ctx {
-    if err, ok := ctx.(error); ok {
+    if len(errs) == 0 {
+      // there was an error/crit event but no error type
+      // was found lets create one and send it to sentry
+      var errMsg string
+      for _, ctx := range record.Ctx {
+        if msg, ok := ctx.(string); ok {
+          errMsg = errMsg + " " + msg
+        }
+      }
+      errs = append(errs, errors.New(errMsg))
+    }
+
+    // send asynchronously to the sentry endpoint
+    for _, err := range errs {
       raven.CaptureError(err, nil)
     }
   }

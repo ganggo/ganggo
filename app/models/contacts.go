@@ -87,16 +87,16 @@ func (c *Contact) Update() error {
   }
   defer db.Close()
 
-  var dbContact Contact
+  sharing := c.Sharing
   if c.ID <= 0 {
     err = db.Where("user_id = ? AND person_id = ?",
-      c.UserID, c.PersonID).First(&dbContact).Error
+      c.UserID, c.PersonID).First(c).Error
     if err != nil {
       return err
     }
   }
 
-  return db.Model(&dbContact).Update("sharing", c.Sharing).Error
+  return db.Model(c).Update("sharing", sharing).Error
 }
 
 func (c *Contacts) FindByUserID(id uint) error {
