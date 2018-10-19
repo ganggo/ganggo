@@ -21,6 +21,7 @@ import (
   "github.com/revel/revel"
   "git.feneas.org/ganggo/gorm"
   "git.feneas.org/ganggo/federation"
+  "git.feneas.org/ganggo/ganggo/app/helpers"
 )
 
 type SchemaMigration struct {
@@ -45,6 +46,32 @@ func migrateSchema(db *gorm.DB) error {
   structMigrations = SchemaMigrations{}
 
   //// Migrations Start ////
+
+  // related to https://git.feneas.org/ganggo/ganggo/merge_requests/76
+  commit = "https://git.feneas.org/ganggo/ganggo/merge_requests/76"
+  if _, ok := migrations[commit]; !ok {
+    var users Users
+    err := db.Find(&users).Error
+    if err != nil {
+      return err
+    }
+    for _, user := range users {
+      token, err := helpers.Token()
+      if err != nil {
+        return err
+      }
+      setting := UserSetting{
+        UserID: user.ID,
+        Key: UserSettingTelegramVerified,
+        Value: token,
+      }
+      err = setting.Update()
+      if err != nil {
+        return err
+      }
+    }
+    structMigrations = append(structMigrations, SchemaMigration{Commit: commit})
+  }
 
   // related to https://git.feneas.org/ganggo/ganggo/merge_requests/55
   commit = "https://git.feneas.org/ganggo/ganggo/merge_requests/55"
@@ -248,6 +275,11 @@ func loadSchema(db *gorm.DB) {
   db.Model(oAuthToken).AddIndex("index_o_auth_token_on_user_id", "user_id")
   db.Model(oAuthToken).AddIndex("index_o_auth_token_on_token", "token")
   db.AutoMigrate(oAuthToken)
+
+  userSetting := &UserSetting{}
+  db.Model(userSetting).AddUniqueIndex("index_user_setting_on_user_id_and_key", "user_id", "key")
+  db.Model(userSetting).AddIndex("index_user_setting_on_key", "key")
+  db.AutoMigrate(userSetting)
 }
 
 func InitDB() {

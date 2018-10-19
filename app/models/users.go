@@ -30,6 +30,8 @@ import (
   "encoding/pem"
   "golang.org/x/crypto/bcrypt"
   "git.feneas.org/ganggo/ganggo/app/helpers"
+  "git.feneas.org/ganggo/ganggo/app/jobs/notifier"
+  run "github.com/revel/modules/jobs/app/jobs"
   "github.com/patrickmn/go-cache"
 )
 
@@ -48,6 +50,7 @@ type User struct {
   PersonID uint
   Person Person `gorm:"ForeignKey:PersonID"`
 
+  Settings UserSettings `gorm:"AssociationForeignKey:UserID"`
   Aspects []Aspect `gorm:"AssociationForeignKey:UserID"`
 }
 
@@ -91,7 +94,7 @@ func (user *User) BeforeCreate() error {
   pubBlock := pem.Block{Type: "PUBLIC KEY", Bytes: pub}
   pubEncoded := pem.EncodeToMemory(&pubBlock)
 
-  guid, err := helpers.Uuid();if err != nil {
+  guid, err := helpers.Uuid(); if err != nil {
     return err
   }
 
@@ -118,6 +121,20 @@ func (user *User) BeforeCreate() error {
 }
 
 func (user *User) AfterCreate(tx *gorm.DB) error {
+  token, err := helpers.Token(); if err != nil {
+    return err
+  }
+
+  // set initial telegram token
+  setting := UserSetting{
+    UserID: user.ID,
+    Key: UserSettingTelegramVerified,
+    Value: token,
+  }
+  if err = setting.Update(); err != nil {
+    return err
+  }
+
   return tx.Model(&user.Person).Update("user_id", user.ID).Error
 }
 
@@ -130,6 +147,10 @@ func (user *User) AfterFind(db *gorm.DB) error {
   if err != nil {
     return err
   }
+
+  // ignore errors its possible that it
+  // doesn't exist on newly created users
+  db.Model(user).Related(&user.Settings)
 
   return db.Model(user).Related(&user.Aspects).Error
 }
@@ -224,6 +245,20 @@ func (user *User) Notify(model Model) error {
   if err != nil {
     return notify.Update()
   }
+
+  // send notification via mail/telegram/webhook
+  run.Now(notifier.Notifier{Message: []interface{}{
+    notifier.Telegram{
+      ID: user.Settings.GetValue(UserSettingTelegramID),
+      Text: model.FetchText(),
+    },
+    notifier.Mail{
+      To: user.Settings.GetValue(UserSettingMailAddress),
+      Subject: "Reply:", // XXX
+      Body: model.FetchText(),
+      Lang: user.Settings.GetValue(UserSettingLanguage),
+    },
+  }})
   return err
 }
 

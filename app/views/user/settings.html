@@ -13,36 +13,83 @@
             <h1 class="pb-4">
               <i class="fa fa-user-circle fa-lg" aria-hidden="true"></i> {{msg . "settings.title.user"}}
             </h1>
-            <h2 class="pt-4 pb-4">
-              <i class="fa fa-laptop fa-lg" aria-hidden="true"></i> {{msg . "settings.title.oauth"}}
-            </h2>
-            <ul id="tokens" class="list-group">
-              {{range .tokens}}
-              <li value="{{.ID}}" class="list-group-item">
-                <code>{{.ClientID}}</code>
-                <i class="fa fa-times fa-lg" aria-hidden="true"></i>
-              </li>
-              {{end}}
-              {{$lenTokens := len .tokens}}
-              {{if eq $lenTokens 0}}
-              <li class="list-group-item">
-                <code>{{msg $root "settings.clients.non_found"}}</code>
-              </li>
-              {{end}}
-            </ul>
-            <h2 class="pt-4 pb-4">
-              <i class="fa fa-globe fa-lg" aria-hidden="true"></i> {{msg . "settings.title.language"}}
-            </h2>
-            <div class="dropdown">
-              <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                {{msg . "settings.language.choose_language"}}
-              </button>
-              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                {{range FindAvailableLocales}}
-                <a data-value="{{.}}" class="language dropdown-item">{{.}}</a>
-                {{end}}
+            <form action="{{url "Setting.Update"}}" method="POST">
+              <h2 class="pt-4 pb-4">
+                <i class="fa fa-envelope fa-lg" aria-hidden="true"></i> {{msg . "settings.title.notification"}}
+              </h2>
+              <h3 class="pt-4 pb-4">{{msg . "settings.mail.title"}}</h3>
+              {{if ConfigBool "mail.enabled"}}
+              <div class="row">
+                <div class="col">
+                  <label for="email">{{msg . "settings.mail.label"}}</label>
+                </div>
+                <div class="col">
+                  <input class="form-control" type="email" id="email" name="email" value="{{UserSettings .currentUser "email"}}" placeholder="{{msg . "settings.mail.placeholder"}}" />
+                </div>
               </div>
-            </div>
+              {{if ne (UserSettings .currentUser "email.verified") "true"}}
+              <div class="row">
+                <div class="col-6"></div>
+                <div class="col">
+                  <div class="alert alert-danger" role="alert">
+                    <i class="fa fa-times fa-lg" aria-hidden="true"></i>
+                    {{msg . "settings.unverified" (msg . "settings.mail.title")}}
+                    <input class="form-control" type="password" name="emailtoken" />
+                  </div>
+                </div>
+              </div>
+              {{end}}
+              {{else}}
+              <p>{{msg . "settings.disabled" (msg . "settings.mail.title")}}</p>
+              {{end}}
+              <h3 class="pt-4 pb-4">{{msg . "settings.telegram.title"}}</h3>
+              {{if ConfigBool "telegram.enabled"}}
+              <div class="row">
+                <div class="col">
+                  {{$token := UserSettings .currentUser "telegram.verified"}}
+                  {{if eq $token "true"}}
+                  <div class="alert alert-success" role="alert">
+                    <i class="fa fa-check fa-lg" aria-hidden="true"></i>
+                    {{msg . "settings.telegram.verified"}}
+                  </div>
+                  {{else}}
+                  <p>{{msg . "settings.telegram.token" $token (ConfigString "telegram.botid")}}</p>
+                  {{end}}
+                </div>
+              </div>
+              {{else}}
+              <p>{{msg . "settings.disabled" (msg . "settings.telegram.title")}}</p>
+              {{end}}
+              <h2 class="pt-4 pb-4">
+                <i class="fa fa-laptop fa-lg" aria-hidden="true"></i> {{msg . "settings.title.oauth"}}
+              </h2>
+              <ul id="tokens" class="list-group">
+                {{range .tokens}}
+                <li value="{{.ID}}" class="list-group-item">
+                  <code>{{.ClientID}}</code>
+                  <i class="fa fa-times fa-lg" aria-hidden="true"></i>
+                </li>
+                {{end}}
+                {{$lenTokens := len .tokens}}
+                {{if eq $lenTokens 0}}
+                <li class="list-group-item">
+                  <code>{{msg $root "settings.clients.non_found"}}</code>
+                </li>
+                {{end}}
+              </ul>
+              <h2 class="pt-4 pb-4">
+                <i class="fa fa-globe fa-lg" aria-hidden="true"></i> {{msg . "settings.title.language"}}
+              </h2>
+              {{$lang := UserSettings .currentUser "lang"}}
+              <select name="lang" class="form-control form-control-lg">
+                <option value="" selected>{{msg . "settings.language.choose_language"}}</option>
+                {{range $key, $val := FindAvailableLocales}}
+                <option value="{{$key}}" {{if eq $key $lang}}selected{{end}}>{{$val}}</option>
+                {{end}}
+              </select>
+              <hr>
+              <input type="submit" class="btn btn-primary" value="{{msg . "settings.submit"}}">
+            </form>
           </div>
         </div>
       </div>
