@@ -279,6 +279,7 @@ func loadSchema(db *gorm.DB) {
   userSetting := &UserSetting{}
   db.Model(userSetting).AddUniqueIndex("index_user_setting_on_user_id_and_key", "user_id", "key")
   db.Model(userSetting).AddIndex("index_user_setting_on_key", "key")
+  db.Model(userSetting).AddIndex("index_user_setting_on_key_and_value", "key", "value")
   db.AutoMigrate(userSetting)
 }
 
