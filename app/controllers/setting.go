@@ -90,7 +90,7 @@ func (s Setting) Update() revel.Result {
     }...)
 
     if email != "" {
-      run.Now(notifier.Notifier{Message: []interface{}{
+      run.Now(notifier.Notifier{Messages: []interface{}{
         notifier.Mail{
           To: email,
           Subject: "Reply:", // XXX

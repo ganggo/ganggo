@@ -247,7 +247,7 @@ func (user *User) Notify(model Model) error {
   }
 
   // send notification via mail/telegram/webhook
-  run.Now(notifier.Notifier{Message: []interface{}{
+  run.Now(notifier.Notifier{Messages: []interface{}{
     notifier.Telegram{
       ID: user.Settings.GetValue(UserSettingTelegramID),
       Text: model.FetchText(),
