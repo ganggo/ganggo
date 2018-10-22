@@ -33,6 +33,7 @@ import (
   "git.feneas.org/ganggo/ganggo/app/jobs/notifier"
   run "github.com/revel/modules/jobs/app/jobs"
   "github.com/patrickmn/go-cache"
+  "fmt"
 )
 
 type User struct {
@@ -243,19 +244,48 @@ func (user *User) Notify(model Model) error {
   }
   err := notify.Create()
   if err != nil {
-    return notify.Update()
+    err = notify.Update()
+    if err != nil {
+      return err
+    }
+  }
+
+  lang := user.Settings.GetValue(UserSettingLanguage)
+  if lang == "" {
+    lang = "en"
+  }
+
+  subject := revel.Message(lang, "notification.mail.subject")
+  if model.FetchType() == ShareableContact {
+    subject = revel.Message(lang, "notification.mail.sharing.subject")
+  }
+
+  revel.Config.SetSection("ganggo")
+  host := revel.Config.StringDefault("proto", "http://") +
+    revel.Config.StringDefault("address", "localhost:9000")
+
+  var link = host
+  switch model.FetchType() {
+  case ShareableContact:
+    link = fmt.Sprintf("%s/profiles/%s", link, model.FetchGuid())
+  case ShareableLike:
+    link = fmt.Sprintf("%s/posts/%d", link, model.(Like).ShareableID)
+  case ShareableComment:
+    link = fmt.Sprintf("%s/posts/%d", link, model.(Comment).ShareableID)
+  case ShareablePost:
+    link = fmt.Sprintf("%s/posts/%d", link, model.FetchGuid())
   }
 
   // send notification via mail/telegram/webhook
   run.Now(notifier.Notifier{Messages: []interface{}{
     notifier.Telegram{
       ID: user.Settings.GetValue(UserSettingTelegramID),
-      Text: model.FetchText(),
+      Text: revel.Message(lang, "notification.telegram.body", link, link, host),
     },
     notifier.Mail{
       To: user.Settings.GetValue(UserSettingMailAddress),
-      Subject: "Reply:", // XXX
-      Body: model.FetchText(),
+      Subject: subject,
+      Body: revel.Message(lang, "notification.mail.body", link, link, host),
       Lang: user.Settings.GetValue(UserSettingLanguage),
     },
   }})

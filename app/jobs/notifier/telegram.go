@@ -46,6 +46,7 @@ func (telegram Telegram) Send() {
   data := url.Values{}
   data.Set("chat_id", telegram.ID)
   data.Set("text", telegram.Text)
+  data.Set("parse_mode", "html")
 
   resp, err := http.PostForm(endpoint, data)
   if err != nil {

@@ -11,6 +11,14 @@ notification.mentioned_in_comment=has mentioned you in a <a href="/posts/%s">com
 notification.no_notification=No new notification available!
 notification.started_sharing=started sharing with you!
 notification.liked_post=has liked your <a href="/posts/%s">post</a>!
+# service notifications
+notification.telegram.body=There is something going on here: <a href="%s">%s</a>. Please <a href="%s">sign into your account</a> to view your messages.
+notification.mail.body=There is something going on here:<br><br><a href="%s">%s</a><br><br>Please <a href="%s">sign into your account</a> to view your messages.
+notification.mail.subject=There are new notifications for you!
+notification.mail.verify.subject=Please verify your email address
+notification.mail.verify.body=Please <a href="%s">sign into your account</a> and use this token <code>%s</code> to complete your verification process.
+notification.mail.sharing.subject=Someone started sharing with you!
+notification.mail.hint=This email was sent by %s. If you'd like to stop getting emails, <a href="%s">login</a> and change your notification settings.
 
 navigation.toggle=Toggle navigation
 navigation.login=Login

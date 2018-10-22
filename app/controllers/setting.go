@@ -90,11 +90,15 @@ func (s Setting) Update() revel.Result {
     }...)
 
     if email != "" {
+      revel.Config.SetSection("ganggo")
+      host := revel.Config.StringDefault("proto", "http://") +
+        revel.Config.StringDefault("address", "localhost:9000")
+
       run.Now(notifier.Notifier{Messages: []interface{}{
         notifier.Mail{
           To: email,
-          Subject: "Reply:", // XXX
-          Body: token,
+          Subject: s.Message("notification.mail.verify.subject"),
+          Body: s.Message("notification.mail.verify.body", host, token),
           Lang: user.Settings.GetValue(models.UserSettingLanguage),
         },
       }})

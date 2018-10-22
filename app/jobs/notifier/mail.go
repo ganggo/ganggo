@@ -61,7 +61,9 @@ func (mail Mail) Send() {
   }
 
   var buf bytes.Buffer
-  err = tmpl.Render(&buf, struct{Text string}{mail.Body})
+  err = tmpl.Render(&buf, map[string]interface{}{
+    revel.CurrentLocaleViewArg: mail.Lang,
+    "Text": mail.Body})
   if err != nil {
     revel.AppLog.Error("Mail", err.Error(), err)
     return

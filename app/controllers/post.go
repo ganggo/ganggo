@@ -20,6 +20,7 @@ package controllers
 import (
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/models"
+  "strconv"
 )
 
 type Post struct {
@@ -34,7 +35,12 @@ func (p Post) Index(guid string) revel.Result {
     p.ViewArgs["currentUser"] = user
   }
 
-  err = post.FindByGuidAndUser(guid, user)
+  postID, err := strconv.ParseUint(guid, 10, 32);
+  if err == nil {
+    err = post.FindByIDAndUser(uint(postID), user)
+  } else {
+    err = post.FindByGuidAndUser(guid, user)
+  }
   if err != nil {
     return p.NotFound(p.Message("errors.controller.post_not_found"))
   }
