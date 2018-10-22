@@ -32,13 +32,10 @@ mail.password = ""
 mail.from = "ganggo@localhost"
 
 # Send notifications via Telegram
-# see https://core.telegram.org/bots#botfather
-# for creating a Telegram token
+# see https://core.telegram.org/bots#botfather for creating a Telegram token/id
 telegram.enabled = false
+telegram.botid = "gggsocialbot"
 telegram.token = ""
-
-# Allow users to receive notifications via a webhook
-webhook.enabled = true
 
 # The relay is disabled on default
 # in respect of privacy matters
