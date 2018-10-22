@@ -273,7 +273,7 @@ func (user *User) Notify(model Model) error {
   case ShareableComment:
     link = fmt.Sprintf("%s/posts/%d", link, model.(Comment).ShareableID)
   case ShareablePost:
-    link = fmt.Sprintf("%s/posts/%d", link, model.FetchGuid())
+    link = fmt.Sprintf("%s/posts/%s", link, model.FetchGuid())
   }
 
   // send notification via mail/telegram/webhook
