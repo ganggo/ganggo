@@ -137,6 +137,14 @@ func init() {
   // register jobs running on an interval
   revel.OnAppStart(func() {
     run.Every(24*time.Hour, jobs.Session{})
+
+    revel.Config.SetSection("ganggo")
+    if revel.Config.BoolDefault("telegram.enabled", false) {
+      host := revel.Config.StringDefault("proto", "http://") +
+        revel.Config.StringDefault("address", "localhost:9000")
+      token := revel.Config.StringDefault("telegram.token", "")
+      run.Now(jobs.TelegramWebhook{Token: token, Url: host})
+    }
   })
 }
 

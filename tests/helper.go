@@ -63,11 +63,12 @@ func (t *GnggTestSuite) ClearDB() {
     models.Session{},
     models.Shareable{},
     models.SignatureOrder{},
-    models.Tag{},
     models.ShareableTagging{},
+    models.Tag{},
     models.UserTagging{},
     models.User{},
     models.UserStream{},
+    models.UserSetting{},
   }
 
   for i, table := range tables {

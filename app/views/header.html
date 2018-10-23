@@ -25,13 +25,22 @@
       This will add all available i18n messages to JS
       Usage:
         msg("comment.button");
+
+      and set the REVEL_LANG cookie for the user
     -->
     <script>
+      {{if .currentUser}}
+      var currentLocale = "{{UserLocale .currentUser}}";
+      {{else}}
+      var currentLocale = "{{DefaultLocale}}";
+      {{end}}
+      document.cookie = "REVEL_LANG=" + currentLocale + ";path=/";
+
       function msg(key) {
-        var currentLocale = "{{.currentLocale}}";
         var locales = {{ParseLocalesToJson}};
         if (locales[currentLocale] === undefined) {
-          currentLocale = 'en';
+          // try to fallback if it doesn't exist
+          currentLocale = '{{DefaultLocale}}';
         }
         return locales[currentLocale][key];
       }

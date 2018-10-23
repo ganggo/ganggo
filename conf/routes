@@ -36,6 +36,7 @@ GET     /.well-known/x-social-relay             SocialRelay.Index
 GET     /users/sign_up                          User.Index
 POST    /users/sign_up                          User.Create
 GET     /users/settings                         Setting.Index
+POST    /users/settings                         Setting.Update
 GET     /users/streams                          Stream.IndexStreams
 
 GET     /captcha/:name                          Captcha.Index
@@ -45,8 +46,8 @@ GET     /captcha/:name                          Captcha.Index
 *       /.well-known/webfinger                  Webfinger.Webfinger
 # NOTE legacy webfinger
 *       /webfinger                              Webfinger.Webfinger
-# XXX move to api repo
 *       /hcard/users/:guid                      Hcard.User
+*       /receive/telegram/:token                Receiver.Telegram
 *       /receive/public                         Receiver.Public
 *       /receive/users/:guid                    Receiver.Private
 *       /fetch/:shareable/:guid                 Fetch.Index

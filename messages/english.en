@@ -11,6 +11,14 @@ notification.mentioned_in_comment=has mentioned you in a <a href="/posts/%s">com
 notification.no_notification=No new notification available!
 notification.started_sharing=started sharing with you!
 notification.liked_post=has liked your <a href="/posts/%s">post</a>!
+# service notifications
+notification.telegram.body=There is something going on here: <a href="%s">%s</a>. Please <a href="%s">sign into your account</a> to view your messages.
+notification.mail.body=There is something going on here:<br><br><a href="%s">%s</a><br><br>Please <a href="%s">sign into your account</a> to view your messages.
+notification.mail.subject=There are new notifications for you!
+notification.mail.verify.subject=Please verify your email address
+notification.mail.verify.body=Please <a href="%s">sign into your account</a> and use this token <code>%s</code> to complete your verification process.
+notification.mail.sharing.subject=Someone started sharing with you!
+notification.mail.hint=This email was sent by %s. If you'd like to stop getting emails, <a href="%s">login</a> and change your notification settings.
 
 navigation.toggle=Toggle navigation
 navigation.login=Login
@@ -75,11 +83,24 @@ user.stream.delete.button=Delete
 user.stream.delete.select=Select a stream
 
 settings.title=Settings
+settings.title.notification=Notifications
 settings.title.user=User Settings
 settings.title.oauth=Applications
 settings.title.language=Language
 settings.clients.non_found=No clients authenticated!
 settings.language.choose_language=Choose your language
+settings.mail.title=Mail
+settings.mail.label=Your email address:
+settings.mail.placeholder=me@example.org
+settings.telegram.title=Telegram
+settings.telegram.token=Send following token <code>%s</code> to the <a href="https://t.me/%s">Telegram Bot</a>.
+settings.telegram.verified=You will receive messages via Telegram now! If you want to stop being notified via Telegram then just send <code>/stop</code> to the bot.
+settings.webhook.title=Webhook
+settings.webhook.label=HTTP Endpoint:
+settings.webhook.placeholder=https://example.org/webhook
+settings.unverified=This setting is not verified yet! You should have received a one-time token via %s
+settings.disabled=%s is disabled! Please contact your Administrator.
+settings.submit=Update settings
 
 profile.title=Profile
 profile.groups=Aspects
@@ -131,6 +152,8 @@ flash.errors.password_length=Password length should be greater then four!
 flash.errors.login=Please log in first
 flash.errors.username_not_found=Username '%s' not found!
 flash.errors.login_failed=Login failed
+flash.errors.settings=Cannot update user settings!
 
 flash.success.registration=The user was successfully created! Please login
 flash.success.login=Login successful
+flash.success.settings=Updated user settings successfully!
