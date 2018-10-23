@@ -47,6 +47,13 @@ func migrateSchema(db *gorm.DB) error {
 
   //// Migrations Start ////
 
+  // related to https://git.feneas.org/ganggo/ganggo/merge_requests/77
+  commit = "https://git.feneas.org/ganggo/ganggo/merge_requests/77"
+  if _, ok := migrations[commit]; !ok {
+    advancedColumnRename(db.Model(UserSetting{}), "key", "setting_key", "int(11)")
+    structMigrations = append(structMigrations, SchemaMigration{Commit: commit})
+  }
+
   // related to https://git.feneas.org/ganggo/ganggo/merge_requests/76
   commit = "https://git.feneas.org/ganggo/ganggo/merge_requests/76"
   if _, ok := migrations[commit]; !ok {
@@ -290,11 +297,19 @@ func InitDB() {
   }
   defer db.Close()
 
-  loadSchema(db) // initial schema
-  if err = migrateSchema(db); err != nil {
-    revel.AppLog.Error("Something went wrong while migrating", "error", err.Error())
+  migrationErr := db.Find(&SchemaMigrations{}).Error
+  // if no migrations are found its very
+  // likely that no schema is loaded at all
+  if migrationErr != nil {
+    loadSchema(db)
+  } else {
+    // migrate and print errors to log without aborting
+    if err = migrateSchema(db); err != nil {
+      revel.AppLog.Error("Something went wrong while migrating", "error", err.Error())
+    }
+    // incase we had no previous issues we never ran loadSchema
+    // but this is still important cause its possible we added
+    // a new table or index to it
+    loadSchema(db)
   }
-  // re-run loadSchema in case something
-  // broke cause of missing migrations
-  loadSchema(db)
 }

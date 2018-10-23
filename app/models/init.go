@@ -240,9 +240,26 @@ func advancedColumnModify(s *gorm.DB, column, dataType string) {
   }
   // modify column in scope
   scope.Raw(fmt.Sprintf(
-    format, scope.QuotedTableName(),
-    scope.Quote(column), dataType,
+    format, scope.QuotedTableName(), scope.Quote(column), dataType,
   )).Exec()
+}
+
+// advancedColumnRename can rename a database column name for mysql,
+// postgresql and most common databases. It requires old, new name and
+// the data type (mysql only)
+func advancedColumnRename(s *gorm.DB, oldName, newName, dataType string) {
+  var scope = s.NewScope(s.Value)
+  switch DB.Driver {
+  case "mysql":
+    scope.Raw(fmt.Sprintf("ALTER TABLE %v CHANGE %v %v %v",
+      scope.QuotedTableName(), scope.Quote(oldName),
+      scope.Quote(newName), dataType,
+    )).Exec()
+  default:
+    scope.Raw(fmt.Sprintf("ALTER TABLE %v RENAME COLUMN %v TO %v",
+      scope.QuotedTableName(), scope.Quote(oldName), scope.Quote(newName),
+    )).Exec()
+  }
 }
 
 // returns different methods of searching
