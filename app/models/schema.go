@@ -284,9 +284,9 @@ func loadSchema(db *gorm.DB) {
   db.AutoMigrate(oAuthToken)
 
   userSetting := &UserSetting{}
-  db.Model(userSetting).AddUniqueIndex("index_user_setting_on_user_id_and_key", "user_id", "key")
-  db.Model(userSetting).AddIndex("index_user_setting_on_key", "key")
-  db.Model(userSetting).AddIndex("index_user_setting_on_key_and_value", "key", "value")
+  db.Model(userSetting).AddUniqueIndex("index_user_setting_on_user_id_and_setting_key", "user_id", "setting_key")
+  db.Model(userSetting).AddIndex("index_user_setting_on_setting_key", "setting_key")
+  db.Model(userSetting).AddIndex("index_user_setting_on_setting_key_and_value", "setting_key", "value")
   db.AutoMigrate(userSetting)
 }
 
