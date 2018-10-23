@@ -32,6 +32,8 @@ install:
   stage: install
   script:
   - make install
+  except:
+  - master
 linux:test:psql:
   stage: test
   script:
