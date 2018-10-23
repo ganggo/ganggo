@@ -22,6 +22,21 @@ db.database = "ganggo"
 # postgres
 db.dsn = "postgres://%s:%s@%s/%s?sslmode=disable"
 
+# Configure a smtp server for mail notifications
+mail.enabled = false
+mail.host = "localhost"
+mail.port = 25
+mail.insecure = false
+mail.username = "ganggo@localhost"
+mail.password = ""
+mail.from = "ganggo@localhost"
+
+# Send notifications via Telegram
+# see https://core.telegram.org/bots#botfather for creating a Telegram token/id
+telegram.enabled = false
+telegram.botid = "gggsocialbot"
+telegram.token = ""
+
 # The relay is disabled on default
 # in respect of privacy matters
 #

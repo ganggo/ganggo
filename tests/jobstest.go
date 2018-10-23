@@ -18,6 +18,7 @@ package tests
 //
 
 import (
+  "fmt"
   "git.feneas.org/ganggo/ganggo/app/jobs"
   "git.feneas.org/ganggo/ganggo/app/models"
   "git.feneas.org/ganggo/gorm"
@@ -28,7 +29,25 @@ type JobsTest struct {
   GnggTestSuite
 }
 
-var tests = []struct {
+var tgReceiverTests = []struct{
+  Text string
+  Expected string
+}{
+  {
+    Text: "hi",
+    Expected: "",
+  },
+  {
+    Text: "/start",
+    Expected: "",
+  },
+  {
+    Text: "/stop",
+    Expected: "",
+  },
+}
+
+var sessionTests = []struct {
   Token string
   CreatedAt time.Time
   ExpectedErr error
@@ -61,7 +80,7 @@ func (t *JobsTest) TestSession() {
   defer db.Close()
 
   token := t.AccessToken()
-  for i, test := range tests {
+  for i, test := range sessionTests {
     err = db.Create(&models.Session{
       CreatedAt: test.CreatedAt,
       Token: test.Token,
@@ -73,9 +92,48 @@ func (t *JobsTest) TestSession() {
   sessionJob := jobs.Session{}
   sessionJob.Run()
 
-  for i, test := range tests {
+  for i, test := range sessionTests {
     err = db.Where("token = ?", test.Token).First(&models.Session{}).Error
     t.Assertf(err == test.ExpectedErr,
       "#%d: expected '%+v', got '%+v'", i, test.ExpectedErr, err)
   }
+}
+
+func (t *JobsTest) TestTelegramReceiver() {
+  var tmpl = `{"message":{"from":{"id":1234},"chat":{"id":4321},"text":"%s"}}`
+
+  db, err := models.OpenDatabase()
+  t.Assertf(err == nil, "Expected nil, got '%+v'", err)
+  defer db.Close()
+
+  var setting models.UserSetting
+  id := t.UserID(t.AccessToken())
+  err = db.Where("user_id = ? and key = ?", id,
+    models.UserSettingTelegramVerified).First(&setting).Error
+  t.Assertf(err == nil, "Expected nil, got '%+v'", err)
+
+  tgReceiverTests = append(tgReceiverTests, struct{Text, Expected string}{
+    Text: setting.Value,
+    Expected: "4321",
+  })
+
+  for i, test := range tgReceiverTests {
+    (jobs.TelegramReceiver{
+      Body: []byte(fmt.Sprintf(tmpl, test.Text))}).Run()
+
+    var setting models.UserSetting
+    db.Where("key = ? and value = ?",
+      models.UserSettingTelegramID, "4321").Find(&setting)
+
+    if test.Expected == "" {
+      t.Assertf(setting.UserID == 0,
+        "#%d: expected no record, got '%+v'", i, setting)
+    } else {
+      t.Assertf(setting.UserID != 0,
+        "#%d: expected '%s', got no record %+v", i, test.Expected, test)
+    }
+  }
+
+  t.Assertf(len(tgReceiverTests) == 4,
+    "Expected four entries, got %d", len(tgReceiverTests))
 }

@@ -110,3 +110,13 @@ func (r Receiver) Private() revel.Result {
   }
   return r.Render()
 }
+
+func (r Receiver) Telegram(token string) revel.Result {
+  revel.Config.SetSection("ganggo")
+  confToken, ok := revel.Config.String("telegram.token")
+  if ok && confToken == token {
+    run.Now(jobs.TelegramReceiver{Body: r.Params.JSON})
+    return r.Render()
+  }
+  return r.NotFound("not found")
+}

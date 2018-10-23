@@ -53,3 +53,7 @@ required = [
 [[constraint]]
   name = "git.feneas.org/ganggo/gorm"
   version = "1.9.3"
+
+[[constraint]]
+  name = "github.com/go-gomail/gomail"
+  branch = "v2"

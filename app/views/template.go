@@ -21,6 +21,7 @@ import (
   "regexp"
   "path/filepath"
   "os"
+  "strings"
   "github.com/shaoshing/train"
   "github.com/revel/revel"
   "github.com/revel/config"
@@ -36,6 +37,14 @@ import (
 type I18nMessages map[string]map[string]string
 
 var TemplateFuncs = map[string]interface{}{
+  "ConfigBool": func(key string) bool {
+    revel.Config.SetSection("ganggo")
+    return revel.Config.BoolDefault(key, false)
+  },
+  "ConfigString": func(key string) string {
+    revel.Config.SetSection("ganggo")
+    return revel.Config.StringDefault(key, "")
+  },
   "Version": func() string { return app.AppVersion },
   "SafeHTML": func(text string) template.HTML {
     p := bluemonday.UGCPolicy()
@@ -132,10 +141,40 @@ var TemplateFuncs = map[string]interface{}{
   },
   // captcha generator
   "CaptchaNew": func() string { return captcha.New() },
+  // user settings
+  "UserSettings": func(user models.User, key string) string {
+    skey := models.UserSettingKey(-1)
+    switch key {
+    case "email":
+      skey = models.UserSettingMailAddress
+    case "email.verified":
+      skey = models.UserSettingMailVerified
+    case "telegram.id":
+      skey = models.UserSettingTelegramID
+    case "telegram.verified":
+      skey = models.UserSettingTelegramVerified
+    case "lang":
+      skey = models.UserSettingLanguage
+    }
+    return user.Settings.GetValue(skey)
+  },
+  // locales
+  "DefaultLocale": func() string {
+    revel.Config.SetSection("DEFAULT")
+    return revel.Config.StringDefault("i18n.default_language", "en")
+  },
+  "UserLocale": func(user models.User) string {
+    locale := user.Settings.GetValue(models.UserSettingLanguage)
+    if locale == "" {
+      revel.Config.SetSection("DEFAULT")
+      return revel.Config.StringDefault("i18n.default_language", "en")
+    }
+    return locale
+  },
   "ParseLocalesToJson": func() (i18n I18nMessages) {
     i18n = make(I18nMessages)
     directory := filepath.Join(revel.BasePath, "messages")
-    re := regexp.MustCompile(`ganggo\.([\w-_]{1,})$`)
+    re := regexp.MustCompile(`\w\.([\w-_]{1,})$`)
     if err := filepath.Walk(directory, func(path string, f os.FileInfo, err error) error {
       result := re.FindAllStringSubmatch(path, 1)
       if len(result) > 0 && len(result[0]) > 0 {
@@ -162,18 +201,19 @@ var TemplateFuncs = map[string]interface{}{
     }
     return i18n
   },
-  "FindAvailableLocales": func() (list []string) {
+  "FindAvailableLocales": func() (list map[string]string) {
+    list = make(map[string]string)
     directory := filepath.Join(revel.BasePath, "messages")
-    re := regexp.MustCompile(`ganggo\.([\w-_]{1,})$`)
+    re := regexp.MustCompile(`(\w+)\.([\w-_]{1,})$`)
     err := filepath.Walk(directory, func(path string, f os.FileInfo, err error) error {
       result := re.FindAllStringSubmatch(path, 1)
-      if len(result) > 0 && len(result[0]) > 0 {
-        list = append(list, result[0][1])
+      if len(result) > 0 && len(result[0]) > 2 {
+        list[result[0][2]] = strings.Title(result[0][1])
       }
       return nil
     })
     if err != nil {
-      revel.ERROR.Println(err)
+      revel.AppLog.Error("FindAvailableLocales", err.Error(), err)
       return
     }
     return

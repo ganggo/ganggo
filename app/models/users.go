@@ -30,7 +30,10 @@ import (
   "encoding/pem"
   "golang.org/x/crypto/bcrypt"
   "git.feneas.org/ganggo/ganggo/app/helpers"
+  "git.feneas.org/ganggo/ganggo/app/jobs/notifier"
+  run "github.com/revel/modules/jobs/app/jobs"
   "github.com/patrickmn/go-cache"
+  "fmt"
 )
 
 type User struct {
@@ -48,6 +51,7 @@ type User struct {
   PersonID uint
   Person Person `gorm:"ForeignKey:PersonID"`
 
+  Settings UserSettings `gorm:"AssociationForeignKey:UserID"`
   Aspects []Aspect `gorm:"AssociationForeignKey:UserID"`
 }
 
@@ -91,7 +95,7 @@ func (user *User) BeforeCreate() error {
   pubBlock := pem.Block{Type: "PUBLIC KEY", Bytes: pub}
   pubEncoded := pem.EncodeToMemory(&pubBlock)
 
-  guid, err := helpers.Uuid();if err != nil {
+  guid, err := helpers.Uuid(); if err != nil {
     return err
   }
 
@@ -118,6 +122,20 @@ func (user *User) BeforeCreate() error {
 }
 
 func (user *User) AfterCreate(tx *gorm.DB) error {
+  token, err := helpers.Token(); if err != nil {
+    return err
+  }
+
+  // set initial telegram token
+  setting := UserSetting{
+    UserID: user.ID,
+    Key: UserSettingTelegramVerified,
+    Value: token,
+  }
+  if err = setting.Update(); err != nil {
+    return err
+  }
+
   return tx.Model(&user.Person).Update("user_id", user.ID).Error
 }
 
@@ -130,6 +148,10 @@ func (user *User) AfterFind(db *gorm.DB) error {
   if err != nil {
     return err
   }
+
+  // ignore errors its possible that it
+  // doesn't exist on newly created users
+  db.Model(user).Related(&user.Settings)
 
   return db.Model(user).Related(&user.Aspects).Error
 }
@@ -222,8 +244,51 @@ func (user *User) Notify(model Model) error {
   }
   err := notify.Create()
   if err != nil {
-    return notify.Update()
+    err = notify.Update()
+    if err != nil {
+      return err
+    }
   }
+
+  lang := user.Settings.GetValue(UserSettingLanguage)
+  if lang == "" {
+    lang = "en"
+  }
+
+  subject := revel.Message(lang, "notification.mail.subject")
+  if model.FetchType() == ShareableContact {
+    subject = revel.Message(lang, "notification.mail.sharing.subject")
+  }
+
+  revel.Config.SetSection("ganggo")
+  host := revel.Config.StringDefault("proto", "http://") +
+    revel.Config.StringDefault("address", "localhost:9000")
+
+  var link = host
+  switch model.FetchType() {
+  case ShareableContact:
+    link = fmt.Sprintf("%s/profiles/%s", link, model.FetchGuid())
+  case ShareableLike:
+    link = fmt.Sprintf("%s/posts/%d", link, model.(Like).ShareableID)
+  case ShareableComment:
+    link = fmt.Sprintf("%s/posts/%d", link, model.(Comment).ShareableID)
+  case ShareablePost:
+    link = fmt.Sprintf("%s/posts/%s", link, model.FetchGuid())
+  }
+
+  // send notification via mail/telegram/webhook
+  run.Now(notifier.Notifier{Messages: []interface{}{
+    notifier.Telegram{
+      ID: user.Settings.GetValue(UserSettingTelegramID),
+      Text: revel.Message(lang, "notification.telegram.body", link, link, host),
+    },
+    notifier.Mail{
+      To: user.Settings.GetValue(UserSettingMailAddress),
+      Subject: subject,
+      Body: revel.Message(lang, "notification.mail.body", link, link, host),
+      Lang: user.Settings.GetValue(UserSettingLanguage),
+    },
+  }})
   return err
 }
 

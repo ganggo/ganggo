@@ -26,32 +26,23 @@ func init() {
   // redirect if logged-in
   revel.InterceptFunc(redirectIfLoggedIn, revel.BEFORE, &App{})
   // requires login
-  revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Setting{})
-  revel.InterceptFunc(requiresHTTPLogin, revel.BEFORE, &Search{})
+  revel.InterceptFunc(requiresLogin, revel.BEFORE, &Setting{})
+  revel.InterceptFunc(requiresLogin, revel.BEFORE, &Search{})
 }
 
 func redirectIfLoggedIn(c *revel.Controller) revel.Result {
-  result := requiresHTTPLogin(c)
+  result := requiresLogin(c)
   if result == nil {
     return c.Redirect(Stream.Index)
   }
   return nil
 }
 
-func requiresHTTPLogin(c *revel.Controller) revel.Result {
-  var session models.Session
-
-  db, err := models.OpenDatabase()
+func requiresLogin(c *revel.Controller) revel.Result {
+  _, err := models.CurrentUser(c)
   if err != nil {
-    c.Log.Error("Cannot open database", "error", err)
-    return c.RenderError(err)
-  }
-  defer db.Close()
-
-  err = db.Where("token = ?", c.Session["TOKEN"]).First(&session).Error
-  if err != nil {
-    c.Flash.Error("Please log in first")
-    return c.Redirect(App.Index)
+    c.Flash.Error(c.Message("flash.errors.login"))
+    return c.Redirect(User.Login)
   }
   return nil
 }
