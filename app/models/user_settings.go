@@ -33,7 +33,8 @@ type UserSetting struct {
   ID uint `gorm:"primary_key"`
   UserID uint
 
-  Key UserSettingKey
+  // NOTE Key is a special word in MySQL
+  Key UserSettingKey `gorm:"column:setting_key"`
   Value string
 }
 
@@ -63,7 +64,8 @@ func (setting *UserSetting) FindByKeyValue(key UserSettingKey, value string) err
   }
   defer db.Close()
 
-  return db.Where("key = ? and value = ?", key, value).First(setting).Error
+  return db.Where("setting_key = ? and value = ?",
+    key, value).First(setting).Error
 }
 
 func (setting *UserSetting) Update() error {
@@ -75,8 +77,8 @@ func (setting *UserSetting) Update() error {
   defer db.Close()
 
   var dbSetting UserSetting
-  err = db.Where("user_id = ? and key = ?", setting.UserID, setting.Key).
-    First(&dbSetting).Error
+  err = db.Where("user_id = ? and setting_key = ?",
+    setting.UserID, setting.Key).First(&dbSetting).Error
   if err == nil {
     setting.ID = dbSetting.ID
     return db.Save(setting).Error
@@ -99,6 +101,6 @@ func (setting *UserSetting) Delete() error {
   }
   defer db.Close()
 
-  return db.Where("user_id = ? and key = ?", setting.UserID, setting.Key).
-    Delete(UserSetting{}).Error
+  return db.Where("user_id = ? and setting_key = ?",
+    setting.UserID, setting.Key).Delete(UserSetting{}).Error
 }

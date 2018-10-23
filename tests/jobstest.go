@@ -108,7 +108,7 @@ func (t *JobsTest) TestTelegramReceiver() {
 
   var setting models.UserSetting
   id := t.UserID(t.AccessToken())
-  err = db.Where("user_id = ? and key = ?", id,
+  err = db.Where("user_id = ? and setting_key = ?", id,
     models.UserSettingTelegramVerified).First(&setting).Error
   t.Assertf(err == nil, "Expected nil, got '%+v'", err)
 
@@ -122,7 +122,7 @@ func (t *JobsTest) TestTelegramReceiver() {
       Body: []byte(fmt.Sprintf(tmpl, test.Text))}).Run()
 
     var setting models.UserSetting
-    db.Where("key = ? and value = ?",
+    db.Where("setting_key = ? and value = ?",
       models.UserSettingTelegramID, "4321").Find(&setting)
 
     if test.Expected == "" {

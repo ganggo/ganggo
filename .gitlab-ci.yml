@@ -3,12 +3,14 @@
 image: zauberstuhl/ganggo-ci:1.9-stretch
 services:
 - postgres:latest
+- mysql:latest
 variables:
   POSTGRES_DB: ganggo
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: ""
   UPDATE_CHANNEL: alpha
 stages:
+- install
 - test
 - build
 - deploy
@@ -20,17 +22,32 @@ before_script:
 - ln -s $(pwd) $PROJECT_PATH/ganggo
 - ln -sf $(pwd)/bin $GOPATH/bin
 - cd $PROJECT_PATH/ganggo
-linux:test:
+install:
   artifacts:
     expire_in: "1 hour"
     paths:
     - vendor/
     - node_modules/
     - bin/
-  stage: test
+  stage: install
   script:
   - make install
+linux:test:psql:
+  stage: test
+  script:
+  - bash ci/scripts/change_database.sh postgres
   - make test
+  dependencies:
+  - install
+  except:
+  - master
+linux:test:mysql:
+  stage: test
+  script:
+  - bash ci/scripts/change_database.sh mysql
+  - make test
+  dependencies:
+  - install
   except:
   - master
 linux:amd64:
@@ -44,7 +61,7 @@ linux:amd64:
   - export GOOS=linux
   - make release
   dependencies:
-  - linux:test
+  - install
   except:
   - master
 windows:amd64:
@@ -61,7 +78,7 @@ windows:amd64:
   - export GOOS=windows
   - make release
   dependencies:
-  - linux:test
+  - install
   only:
   - /^v[\d\.]+-\w.*$/
 windows:386:
@@ -78,7 +95,7 @@ windows:386:
   - export GOOS=windows
   - make release
   dependencies:
-  - linux:test
+  - install
   only:
   - /^v[\d\.]+-\w.*$/
 linux:arm:7:
@@ -95,7 +112,7 @@ linux:arm:7:
   - export GOARM=7
   - make release
   dependencies:
-  - linux:test
+  - install
   only:
   - /^v[\d\.]+-\w.*$/
 deploy artifacts to bintray:

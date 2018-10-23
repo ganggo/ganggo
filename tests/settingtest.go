@@ -68,7 +68,7 @@ func (t *SettingTest) TestSettings() {
     var ii int
     for key, value := range test.Settings {
       var setting models.UserSetting
-      err = db.Where("key = ? and user_id = ?", key, id).
+      err = db.Where("setting_key = ? and user_id = ?", key, id).
         First(&setting).Error
 
       var statement bool
