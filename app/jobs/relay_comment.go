@@ -18,14 +18,15 @@ package jobs
 //
 
 import (
+  "fmt"
+  "time"
   "crypto/rsa"
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/models"
   federation "git.feneas.org/ganggo/federation"
+  run "github.com/revel/modules/jobs/app/jobs"
   "git.feneas.org/ganggo/federation/helpers"
-  "fmt"
   "github.com/microcosm-cc/bluemonday"
-  "time"
 )
 
 func (dispatcher *Dispatcher) RelayComment(entity federation.MessageComment) {
@@ -116,20 +117,24 @@ func (dispatcher *Dispatcher) RelayComment(entity federation.MessageComment) {
         revel.AppLog.Error("Dispatcher RelayComment", err.Error(), err)
         continue
       }
-      err = translate.Send(endpoint, priv, pub)
-      if err != nil {
-        revel.AppLog.Error("Dispatcher RelayComment", err.Error(), err)
-        continue
-      }
+      // send and retry if it fails the first time
+      run.Now(Retry{
+        Pod: &person.Pod,
+        Send: func() error {
+          return translate.Send(endpoint, priv, pub)
+        },
+      })
     } else {
       // required for a valid envelope signature
       entity.SetAuthor(parentUser.Person.Author)
 
-      err = entity.Send(endpoint, priv, pub)
-      if err != nil {
-        revel.AppLog.Error("Dispatcher RelayComment", err.Error(), err)
-        continue
-      }
+      // send and retry if it fails the first time
+      run.Now(Retry{
+        Pod: &person.Pod,
+        Send: func() error {
+          return entity.Send(endpoint, priv, pub)
+        },
+      })
     }
   }
 }

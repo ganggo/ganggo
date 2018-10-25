@@ -88,6 +88,10 @@ func (dispatcher *Dispatcher) findRecipients(parentPost *models.Post, parentUser
           revel.AppLog.Error("Dispatcher findRecipients", err.Error(), err)
           continue
         }
+        // skip if not reachable
+        if !person.Pod.Alive {
+          continue
+        }
         persons = append(persons, person)
       }
       return persons, nil
@@ -95,14 +99,21 @@ func (dispatcher *Dispatcher) findRecipients(parentPost *models.Post, parentUser
   } else if parentPost != nil {
     // it is not local just send it to
     // the remote server it should handle the rest
-    var persons = []models.Person{parentPost.Person}
+    var persons = []models.Person{}
+    // skip if not reachable
+    if parentPost.Person.Pod.Alive {
+      persons = append(persons, parentPost.Person)
+    }
     if !parentPost.Public {
       // in case of AP we will fetch known visibilties as well
       var visibilities models.Visibilities
       err := visibilities.FindByPost(*parentPost)
       if err == nil {
         for _, visibility := range visibilities {
-          persons = append(persons, visibility.Person)
+          // skip if not reachable
+          if visibility.Person.Pod.Alive {
+            persons = append(persons, visibility.Person)
+          }
         }
       } else {
         revel.AppLog.Error("Dispatcher findRecipients", err.Error(), err)
@@ -128,7 +139,10 @@ func (dispatcher *Dispatcher) findPublicEndpoints() (persons []models.Person, er
     if err != nil {
       continue
     }
-    persons = append(persons, person)
+    // skip if not reachable
+    if person.Pod.Alive {
+      persons = append(persons, person)
+    }
   }
   return
 }

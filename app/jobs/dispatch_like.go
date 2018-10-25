@@ -23,6 +23,7 @@ import (
   "git.feneas.org/ganggo/ganggo/app/models"
   federation "git.feneas.org/ganggo/federation"
   "git.feneas.org/ganggo/federation/helpers"
+  run "github.com/revel/modules/jobs/app/jobs"
 )
 
 func (dispatcher *Dispatcher) Like(like models.Like) {
@@ -85,10 +86,12 @@ func (dispatcher *Dispatcher) Like(like models.Like) {
       entity = post
     }
 
-    err = entity.Send(endpoint, priv, pub)
-    if err != nil {
-      revel.AppLog.Error("Dispatcher Like", err.Error(), err)
-      continue
-    }
+    // send and retry if it fails the first time
+    run.Now(Retry{
+      Pod: &person.Pod,
+      Send: func() error {
+        return entity.Send(endpoint, priv, pub)
+      },
+    })
   }
 }

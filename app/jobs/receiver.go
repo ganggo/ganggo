@@ -52,6 +52,16 @@ func (receiver Receiver) Run() {
     return
   }
 
+  // if the pod was deactivated and we receive a
+  // new valid message we can set him active again
+  if person.Pod.ID > 0 && !person.Pod.Alive {
+    person.Pod.Alive = true
+    err = person.Pod.Save()
+    if err != nil {
+      revel.AppLog.Error("Dispatcher", "error", err, "pod", person.Pod)
+    }
+  }
+
   switch entity := base.(type) {
   case federation.MessageContact:
     revel.AppLog.Debug("Starting contact receiver")

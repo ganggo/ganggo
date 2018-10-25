@@ -22,6 +22,7 @@ import (
   "github.com/revel/revel"
   "git.feneas.org/ganggo/ganggo/app/models"
   federation "git.feneas.org/ganggo/federation"
+  run "github.com/revel/modules/jobs/app/jobs"
   "git.feneas.org/ganggo/federation/helpers"
 )
 
@@ -70,10 +71,12 @@ func (dispatcher *Dispatcher) RelayLike(entity federation.MessageLike) {
     // required for a valid envelope signature
     entity.SetAuthor(parentUser.Person.Author)
 
-    err = entity.Send(endpoint, priv, pub)
-    if err != nil {
-      revel.AppLog.Error("Dispatcher RelayLike", err.Error(), err)
-      continue
-    }
+    // send and retry if it fails the first time
+    run.Now(Retry{
+      Pod: &person.Pod,
+      Send: func() error {
+        return entity.Send(endpoint, priv, pub)
+      },
+    })
   }
 }

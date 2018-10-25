@@ -23,6 +23,7 @@ import (
   "git.feneas.org/ganggo/ganggo/app/models"
   "git.feneas.org/ganggo/federation"
   fhelpers "git.feneas.org/ganggo/federation/helpers"
+  run "github.com/revel/modules/jobs/app/jobs"
 )
 
 func (dispatcher *Dispatcher) StatusMessage(post models.Post) {
@@ -108,10 +109,12 @@ func (dispatcher *Dispatcher) StatusMessage(post models.Post) {
       panic("Something went wrong!")
     }
 
-    err = entity.Send(endpoint, priv, pub)
-    if err != nil {
-      revel.AppLog.Error("Dispatcher Reshare", err.Error(), err)
-      continue
-    }
+    // send and retry if it fails the first time
+    run.Now(Retry{
+      Pod: &person.Pod,
+      Send: func() error {
+        return entity.Send(endpoint, priv, pub)
+      },
+    })
   }
 }
