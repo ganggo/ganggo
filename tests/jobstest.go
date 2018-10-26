@@ -23,6 +23,7 @@ import (
   "git.feneas.org/ganggo/ganggo/app/models"
   "git.feneas.org/ganggo/gorm"
   "time"
+  "errors"
 )
 
 type JobsTest struct {
@@ -136,4 +137,49 @@ func (t *JobsTest) TestTelegramReceiver() {
 
   t.Assertf(len(tgReceiverTests) == 4,
     "Expected four entries, got %d", len(tgReceiverTests))
+}
+
+func (t *JobsTest) TestRetryOnFail() {
+  tests := []struct {
+    After []time.Duration
+    Expected int
+  }{
+    {
+      After: []time.Duration{
+        time.Second, time.Second, time.Second,
+      },
+      Expected: 3,
+    },
+    {
+      After: []time.Duration{
+        time.Second, time.Second,
+      },
+      Expected: 2,
+    },
+    {
+      After: []time.Duration{
+        time.Second, time.Second, time.Second, time.Second,
+      },
+      Expected: 4,
+    },
+  }
+
+  for i, test := range tests {
+    var triggered int = 0
+    retry := jobs.RetryOnFail{
+      Send: func() error {
+        triggered += 1
+        return errors.New("testing RetryOnFail")
+      },
+      After: test.After,
+    }
+    retry.Run()
+
+    // wait for async task
+    duration := time.Duration(test.Expected) * time.Second
+    time.Sleep(duration)
+
+    t.Assertf(triggered == test.Expected,
+      "#%d: Expected %d tries, got %d", i, test.Expected, triggered)
+  }
 }

@@ -23,6 +23,7 @@ import (
   "git.feneas.org/ganggo/ganggo/app/models"
   federation "git.feneas.org/ganggo/federation"
   "git.feneas.org/ganggo/federation/helpers"
+  run "github.com/revel/modules/jobs/app/jobs"
 )
 
 func (dispatcher *Dispatcher) Comment(comment models.Comment) {
@@ -94,11 +95,12 @@ func (dispatcher *Dispatcher) Comment(comment models.Comment) {
       entity = post
     }
 
-    err = entity.Send(endpoint, priv, pub)
-    if err != nil {
-      revel.AppLog.Error("Dispatcher Comment", err.Error(), err)
-      continue
-    }
-
+    // send and retry if it fails the first time
+    run.Now(RetryOnFail{
+      Pod: &person.Pod,
+      Send: func() error {
+        return entity.Send(endpoint, priv, pub)
+      },
+    })
   }
 }

@@ -22,6 +22,7 @@ import (
   "git.feneas.org/ganggo/ganggo/app/models"
   fhelpers "git.feneas.org/ganggo/federation/helpers"
   federation "git.feneas.org/ganggo/federation"
+  run "github.com/revel/modules/jobs/app/jobs"
 )
 
 func (dispatcher *Dispatcher) Contact(contact models.AspectMembership) {
@@ -57,9 +58,11 @@ func (dispatcher *Dispatcher) Contact(contact models.AspectMembership) {
   entity.SetRecipient(person.Author)
   entity.SetSharing(true)
 
-  err = entity.Send(endpoint, priv, pub)
-  if err != nil {
-    revel.AppLog.Error("Dispatcher Contact", err.Error(), err)
-    return
-  }
+  // send and retry if it fails the first time
+  run.Now(RetryOnFail{
+    Pod: &person.Pod,
+    Send: func() error {
+      return entity.Send(endpoint, priv, pub)
+    },
+  })
 }

@@ -31,6 +31,7 @@ type Pod struct {
   // cause asumming we use utf8mb 4*191 = 764 < 767
   Host string `gorm:"size:191" json:"host"`
   Inbox string `gorm:"size:191"`
+  Alive bool `gorm:"default:true"`
 
   Protocol federation.Protocol
 }
