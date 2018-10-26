@@ -96,7 +96,7 @@ func (dispatcher *Dispatcher) Comment(comment models.Comment) {
     }
 
     // send and retry if it fails the first time
-    run.Now(Retry{
+    run.Now(RetryOnFail{
       Pod: &person.Pod,
       Send: func() error {
         return entity.Send(endpoint, priv, pub)

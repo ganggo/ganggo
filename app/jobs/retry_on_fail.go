@@ -24,21 +24,35 @@ import (
   "time"
 )
 
-type Retry struct {
+type RetryOnFail struct {
   Pod *models.Pod
   Send func() error
-  wait time.Duration
+  After []time.Duration
+
+  firstRun bool
 }
 
-func (retry Retry) Run() {
+func (retry RetryOnFail) Run() {
+  // set default values on first run
+  if !retry.firstRun {
+    retry.firstRun = true
+    if len(retry.After) == 0 {
+      retry.After = append(retry.After, []time.Duration{
+        time.Minute, time.Hour, 24 * time.Hour,
+      }...)
+    }
+  }
+
+  // execute job and check on errors
   err := retry.Send()
   if err != nil {
-    if retry.wait == 0 {
-      retry.wait = time.Minute
-    } else if retry.wait == time.Minute {
-      retry.wait = time.Hour
-    } else if retry.wait == time.Hour {
-      retry.wait = 24 * time.Hour
+    if len(retry.After) > 0 {
+      // repeat until timeout (empty array)
+      duration := retry.After[0]
+      retry.After = retry.After[1:]
+      // repeat until timeout (empty array)
+      revel.AppLog.Warn("Jobs Retry", "waitfor", duration, "error", err)
+      run.In(duration, retry)
     } else {
       // this server is probably down. skip it..
       revel.AppLog.Error("Jobs Retry", "error", err)
@@ -49,11 +63,6 @@ func (retry Retry) Run() {
           revel.AppLog.Error("Jobs Retry", "error", err)
         }
       }
-      return
     }
-    revel.AppLog.Warn("Jobs Retry", "waitfor", retry.wait, "error", err)
-
-    // repeat until timeout
-    run.In(retry.wait, retry)
   }
 }

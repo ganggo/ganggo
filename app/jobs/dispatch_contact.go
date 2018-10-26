@@ -59,7 +59,7 @@ func (dispatcher *Dispatcher) Contact(contact models.AspectMembership) {
   entity.SetSharing(true)
 
   // send and retry if it fails the first time
-  run.Now(Retry{
+  run.Now(RetryOnFail{
     Pod: &person.Pod,
     Send: func() error {
       return entity.Send(endpoint, priv, pub)

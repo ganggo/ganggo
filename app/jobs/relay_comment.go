@@ -118,7 +118,7 @@ func (dispatcher *Dispatcher) RelayComment(entity federation.MessageComment) {
         continue
       }
       // send and retry if it fails the first time
-      run.Now(Retry{
+      run.Now(RetryOnFail{
         Pod: &person.Pod,
         Send: func() error {
           return translate.Send(endpoint, priv, pub)
@@ -129,7 +129,7 @@ func (dispatcher *Dispatcher) RelayComment(entity federation.MessageComment) {
       entity.SetAuthor(parentUser.Person.Author)
 
       // send and retry if it fails the first time
-      run.Now(Retry{
+      run.Now(RetryOnFail{
         Pod: &person.Pod,
         Send: func() error {
           return entity.Send(endpoint, priv, pub)
