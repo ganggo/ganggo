@@ -1,6 +1,6 @@
-# you will find the build script
-# for the image in ci/docker/Dockerfile
-image: zauberstuhl/ganggo-ci:1.9-stretch
+# you will find the build script for the image
+# in git.feneas.org:ganggo/docker.git
+image: ganggo/ganggo-ci:1.9-stretch
 services:
 - postgres:latest
 - mysql:latest
@@ -14,6 +14,7 @@ stages:
 - test
 - build
 - deploy
+- review
 before_script:
 - export VERSION=$(git tag -l --sort=-v:refname |head -n1)
 - export PROJECT_PATH=$GOPATH/src/git.feneas.org/ganggo
@@ -128,5 +129,17 @@ deploy artifacts to bintray:
   - windows:amd64
   - windows:386
   - linux:arm:7
+  only:
+  - /^v[\d\.]+-\w.*$/
+trigger other pipelines:
+  before_script:
+  - export VERSION=$(git tag -l --sort=-v:refname |head -n1)
+  stage: review
+  script:
+  # ID 99 https://git.feneas.org/ganggo/docker
+  - curl -X POST -F "token=$CI_JOB_TOKEN" -F "ref=master" -F "variables[GVERSION]=$VERSION" https://git.feneas.org/api/v4/projects/99/trigger/pipeline
+  # XXX trigger updating documentation
+  dependencies:
+  - deploy artifacts to bintray
   only:
   - /^v[\d\.]+-\w.*$/
