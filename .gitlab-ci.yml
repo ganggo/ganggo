@@ -8,7 +8,6 @@ variables:
   POSTGRES_DB: ganggo
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: ""
-  UPDATE_CHANNEL: alpha
 stages:
 - install
 - test
@@ -35,6 +34,7 @@ install:
   - make install
   except:
   - master
+  - develop
 linux:test:psql:
   stage: test
   script:
@@ -44,6 +44,7 @@ linux:test:psql:
   - install
   except:
   - master
+  - develop
 linux:test:mysql:
   stage: test
   script:
@@ -53,6 +54,7 @@ linux:test:mysql:
   - install
   except:
   - master
+  - develop
 linux:amd64:
   artifacts:
     expire_in: "1 hour"
@@ -67,6 +69,7 @@ linux:amd64:
   - install
   except:
   - master
+  - develop
 windows:amd64:
   artifacts:
     expire_in: "1 hour"

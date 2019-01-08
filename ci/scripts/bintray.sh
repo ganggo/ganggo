@@ -6,7 +6,7 @@ API=https://api.bintray.com
 # BINTRAY_USER=$1
 # BINTRAY_API_KEY=$2
 # BINTRAY_REPO=$3
-PCK_NAME=${UPDATE_CHANNEL}
+PCK_NAME=$(echo $VERSION |sed 's#^v[\.0-9\-]*\([a-z]*\)[\.0-9]*$#\1#')
 CURL="curl -u${BINTRAY_USER}:${BINTRAY_API_KEY} -H Content-Type:application/json -H Accept:application/json"
 
 data="{

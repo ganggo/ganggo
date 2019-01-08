@@ -73,14 +73,23 @@ func InitSocialRelay() {
   // this is required for using the social-relay
   revel.Config.SetSection("ganggo")
   subscribe := revel.Config.BoolDefault("relay.subscribe", false)
-  if !revel.DevMode && subscribe {
-    address, found := revel.Config.String("address")
-    if found {
-      _, err := http.Get("https://the-federation.info/register/" + address)
-      if err != nil {
-        revel.WARN.Println("Wasn't able to register at the-federation.info", err)
-      }
+  address, found := revel.Config.String("address")
+  if !revel.DevMode && subscribe && found {
+    result := struct{Error string `json:"error"`}{}
+    endpoint := fmt.Sprintf(revel.Config.StringDefault(
+      "relay.endpoint", "https://the-federation.info/register/%s",
+    ), address)
+
+    err := federation.FetchJson("GET", endpoint, nil, &result)
+    if err != nil {
+      revel.AppLog.Error("InitSocialRelay failed",
+        "result", result, "err", err)
+    } else {
+      revel.AppLog.Info("InitSocialRelay registration", "result", result)
     }
+  } else {
+    revel.AppLog.Info("InitSocialRelay skipped",
+      "devMode", revel.DevMode, "subscribe", subscribe)
   }
 }
 

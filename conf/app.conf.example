@@ -51,6 +51,8 @@ relay.subscribe = false
 #relay.scope = "all"
 # This option is obsolete if you specified "all" in "relay.scope"
 #relay.tags = "social,network,politics"
+# DO NOT touch unless you know exactly what you are doing
+#relay.endpoint = "https://the-federation.info/register/%s"
 
 [DEFAULT]
 
