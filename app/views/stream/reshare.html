@@ -1,7 +1,0 @@
-{{$person := PersonByID .PersonID}}
-{{$profile := $person.Profile}}
-
-<div class="bs-callout bs-callout-info">
-  <h4 id="callout-progress-csp">{{StripHTML $profile.Author}}</h4>
-  <p class="markdown">{{SafeHTML .Text}}</p>
-</div>
